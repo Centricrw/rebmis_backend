@@ -5,9 +5,9 @@ if(!class_exists('DatabaseConnector')):
 
     class DatabaseConnector {
         
-    private  $server = "mysql:host=localhost;dbname=tmis";
-    private  $user = "root";
-    private  $password = "root";
+    private  $server = "mysql:host=localhost;dbname=rebmis";
+    private  $user = "clement";
+    private  $password = "clement123";
     private  $options  = array(\PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,\PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC,);
     private $dbConnection = null;
 
