@@ -19,8 +19,6 @@ use Src\Routes\MainRoutes;
 //Route instance
 $route = new MainRoutes();
 
-            //---Joseph Routes---//
-
 //route address and location
 
 // Users routes 

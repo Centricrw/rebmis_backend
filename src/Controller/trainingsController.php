@@ -49,5 +49,5 @@
     }
 
   }
-    $controller = new trainingsController($this->db, $request_method,$params);
-    $controller->processRequest();
+$controller = new trainingsController($this->db, $request_method,$params);
+$controller->processRequest();
