@@ -1,7 +1,7 @@
 <?php
 namespace Src\Models;
 
-class AcademicCalenderModel {
+class TrainingsModel {
 
     private $db = null;
 
@@ -10,10 +10,9 @@ class AcademicCalenderModel {
       $this->db = $db;
     }
 
-    public function findAll()
+    public function getAllTranings()
     {
-      $statement = " 
-        SELECT  * FROM academic_calendar ";
+      $statement = "SELECT  * FROM trainings";
 
       try {
           $statement = $this->db->query($statement);
