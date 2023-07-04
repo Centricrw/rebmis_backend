@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:8889
--- Generation Time: Jul 04, 2023 at 06:33 PM
+-- Generation Time: Jul 04, 2023 at 11:15 PM
 -- Server version: 5.7.39
 -- PHP Version: 7.4.33
 
@@ -69,10 +69,31 @@ INSERT INTO `roles` (`role_id`, `role`, `access`, `status`) VALUES
 -- --------------------------------------------------------
 
 --
--- Table structure for table `trainingProvider`
+-- Table structure for table `trainees`
 --
 
-CREATE TABLE `trainingProvider` (
+CREATE TABLE `trainees` (
+  `traineesId` int(11) NOT NULL,
+  `participantId` varchar(255) NOT NULL,
+  `sessionId` int(11) NOT NULL,
+  `trainingId` int(11) NOT NULL,
+  `status` enum('Shortlisted','Approved','Invited','Rejected') NOT NULL DEFAULT 'Shortlisted'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Dumping data for table `trainees`
+--
+
+INSERT INTO `trainees` (`traineesId`, `participantId`, `sessionId`, `trainingId`, `status`) VALUES
+(1, '03602025-a5e2-4ea6-b778-21557a9b49bd', 1, 1, 'Shortlisted');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `trainingProviders`
+--
+
+CREATE TABLE `trainingProviders` (
   `trainingProviderId` int(11) NOT NULL,
   `trainingProviderName` varchar(255) NOT NULL,
   `createdBy` varchar(255) NOT NULL,
@@ -85,10 +106,10 @@ CREATE TABLE `trainingProvider` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 --
--- Dumping data for table `trainingProvider`
+-- Dumping data for table `trainingProviders`
 --
 
-INSERT INTO `trainingProvider` (`trainingProviderId`, `trainingProviderName`, `createdBy`, `createdDate`, `updatedBy`, `updatedDate`, `archive`, `archivedBy`, `archivedDate`) VALUES
+INSERT INTO `trainingProviders` (`trainingProviderId`, `trainingProviderName`, `createdBy`, `createdDate`, `updatedBy`, `updatedDate`, `archive`, `archivedBy`, `archivedDate`) VALUES
 (1, 'FHI360', '00df908b-36e2-435b-8e88-a31d65348390', '2023-07-04 18:28:08', NULL, NULL, '0', NULL, NULL);
 
 -- --------------------------------------------------------
@@ -102,6 +123,9 @@ CREATE TABLE `trainings` (
   `trainingProviderId` varchar(255) NOT NULL,
   `trainingName` varchar(255) NOT NULL,
   `trainingDescription` text NOT NULL,
+  `startDate` date NOT NULL,
+  `endDate` date NOT NULL,
+  `status` enum('Waiting','Pending','Ongoing','Ended') NOT NULL DEFAULT 'Waiting',
   `createdBy` varchar(255) NOT NULL,
   `createdDate` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `updatedBy` varchar(255) DEFAULT NULL,
@@ -115,8 +139,9 @@ CREATE TABLE `trainings` (
 -- Dumping data for table `trainings`
 --
 
-INSERT INTO `trainings` (`trainingId`, `trainingProviderId`, `trainingName`, `trainingDescription`, `createdBy`, `createdDate`, `updatedBy`, `updatedDate`, `archive`, `archivedBy`, `archivedDate`) VALUES
-(1, '1', 'FHI Tunoze gusoma', 'The project is expected to enhance the pre-primary education system to develop, promote and improve students’ emergent language and literacy skills, as well as strengthen the lower primary education system, school environment and classroom instruction to improve students’ literacy outcomes. FHI 360 is supporting the REB and NESA to strengthen literacy assessments and their use in decision-making.', '00df908b-36e2-435b-8e88-a31d65348390', '2023-07-04 18:31:07', NULL, NULL, '0', NULL, NULL);
+INSERT INTO `trainings` (`trainingId`, `trainingProviderId`, `trainingName`, `trainingDescription`, `startDate`, `endDate`, `status`, `createdBy`, `createdDate`, `updatedBy`, `updatedDate`, `archive`, `archivedBy`, `archivedDate`) VALUES
+(1, '1', 'FHI Tunoze gusoma', 'The project is expected to enhance the pre-primary education system to develop, promote and improve students’ emergent language and literacy skills, as well as strengthen the lower primary education system, school environment and classroom instruction to improve students’ literacy outcomes. FHI 360 is supporting the REB and NESA to strengthen literacy assessments and their use in decision-making.', '2023-07-04', '2023-07-05', 'Waiting', '00df908b-36e2-435b-8e88-a31d65348390', '2023-07-04 21:54:30', NULL, NULL, '0', NULL, NULL),
+(2, '1', 'FHI Tunoze Gusoma', 'The project is expected to enhance the pre-primary education system to develop, promote and improve students’ emergent language and literacy skills, as well as strengthen the lower primary education system, school environment and classroom instruction to improve students’ literacy outcomes. FHI 360 is supporting the REB and NESA to strengthen literacy assessments and their use in decision-making.', '2023-08-04', '2023-09-04', 'Waiting', '00df908b-36e2-435b-8e88-a31d65348390', '2023-07-04 23:08:46', NULL, NULL, '0', NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -4030,9 +4055,15 @@ ALTER TABLE `roles`
   ADD UNIQUE KEY `role` (`role`);
 
 --
--- Indexes for table `trainingProvider`
+-- Indexes for table `trainees`
 --
-ALTER TABLE `trainingProvider`
+ALTER TABLE `trainees`
+  ADD PRIMARY KEY (`traineesId`);
+
+--
+-- Indexes for table `trainingProviders`
+--
+ALTER TABLE `trainingProviders`
   ADD PRIMARY KEY (`trainingProviderId`);
 
 --
@@ -4065,16 +4096,22 @@ ALTER TABLE `roles`
   MODIFY `role_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
 
 --
--- AUTO_INCREMENT for table `trainingProvider`
+-- AUTO_INCREMENT for table `trainees`
 --
-ALTER TABLE `trainingProvider`
+ALTER TABLE `trainees`
+  MODIFY `traineesId` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT for table `trainingProviders`
+--
+ALTER TABLE `trainingProviders`
   MODIFY `trainingProviderId` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `trainings`
 --
 ALTER TABLE `trainings`
-  MODIFY `trainingId` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `trainingId` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
