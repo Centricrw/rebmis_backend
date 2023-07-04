@@ -24,21 +24,26 @@ class TrainingsModel {
       }
     }
 
-    public function findCurrentAcademicYear()
-    {
-      $statement = "SELECT * FROM academic_calendar WHERE status = 1";
-
+    public function addAtraining($data, $user_id){
+      $statement = "INSERT INTO trainings (trainingName,trainingDescription,trainingProviderId,startDate,endDate,createdBy) 
+      VALUES(:trainingName,:trainingDescription,:trainingProviderId,:startDate,:endDate,:createdBy)";
+      
       try {
         $statement = $this->db->prepare($statement);
-        $statement->execute(array());
-        $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
-        if(sizeof($result) == 0){
-          return null;
-        }
-        return $result;
+        $statement->execute(array(
+            ':trainingName' => $data['trainingName'],
+            ':trainingDescription' => $data['trainingDescription'],
+            ':trainingProviderId' => $data['trainingProviderId'],
+            ':startDate' => $data['startDate'],
+            ':endDate' => $data['endDate'],
+            ':createdBy' => $user_id
+        ));
+        $inserted = $statement->fetchAll(\PDO::FETCH_ASSOC);
+        return $inserted;
       } catch (\PDOException $e) {
-          exit($e->getMessage());
+        exit($e->getMessage());
       }
     }
+
 }
 ?>
