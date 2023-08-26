@@ -49,6 +49,7 @@ $route->router("/qualification/{qualification_id}", "src/Controller/qualificatio
 
 // TRAININGS
 $route->router("/trainings/{action}", "src/Controller/trainingsController.php");
+$route->router("/trainings/{action}/{status}", "src/Controller/trainingsController.php");
 
 //write it at the last
 //arg is 404 file location
