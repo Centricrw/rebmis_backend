@@ -300,11 +300,14 @@ class AuthController
         }
         $userAuthData = $this->usersModel->findByUsername($input['username']);
         if (sizeof($userAuthData) == 0) {
-            $response['status_code_header'] = 'HTTP/1.1 400 bad request!';
-            $response['body'] = json_encode([
-                'message' => "Username/password does not match",
-            ]);
-            return $response;
+            $userAuthData = $this->usersModel->findUserByPhoneNumber($input['username']);
+            if (sizeof($userAuthData) == 0) {
+                $response['status_code_header'] = 'HTTP/1.1 400 bad request!';
+                $response['body'] = json_encode([
+                    'message' => "Wrong username or password, Please try again?",
+                ]);
+                return $response;
+            }
         }
         $input_password = Encrypt::saltEncryption($input['password']);
         // Password compare
