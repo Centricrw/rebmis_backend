@@ -42,6 +42,36 @@ class TrainingsModel
         }
     }
 
+    public function findTrainingByID($training_id)
+    {
+        $sql = "SELECT * FROM trainings WHERE trainingId = ? LIMIT 1";
+        try {
+            $statement = $this->db->prepare($sql);
+            $statement->execute(array($training_id));
+
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $result;
+        } catch (\PDOException $e) {
+            exit($e->getMessage());
+        }
+    }
+
+    public function comfirmTraining($training_id, $status)
+    {
+        $sql = "UPDATE trainings SET status=:status WHERE trainingId = :trainingId";
+        try {
+            $statement = $this->db->prepare($sql);
+            $statement->execute(array(
+                ':status' => $status,
+                ':trainingId' => $training_id));
+
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $result;
+        } catch (\PDOException $e) {
+            exit($e->getMessage());
+        }
+    }
+
     public function addAtraining($data, $user_id)
     {
         $statement = "INSERT INTO trainings (trainingName,trainingDescription,trainingProviderId,startDate,endDate,createdBy)

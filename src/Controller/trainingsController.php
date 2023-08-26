@@ -44,6 +44,10 @@ class trainingsController
                 if (sizeof($this->params) > 0) {
                     if ($this->params['action'] == "create") {
                         $response = $this->addAtraining();
+                    } elseif ($this->params['action'] == "comfirm") {
+                        $response = $this->ComfirmTainingsByReb($this->params['status']);
+                    } else {
+                        $response = Errors::notFoundError("Route not found!");
                     }
                 }
                 break;
@@ -128,6 +132,64 @@ class trainingsController
         $result = $this->trainingsModel->addAtraining($data, $user_id);
         $response['status_code_header'] = 'HTTP/1.1 200 OK';
         $response['body'] = json_encode($result);
+        return $response;
+    }
+
+    private function ComfirmTainingsByReb($trainings_id)
+    {
+        $jwt_data = new \stdClass();
+
+        $all_headers = getallheaders();
+        if (isset($all_headers['Authorization'])) {
+            $jwt_data->jwt = $all_headers['Authorization'];
+        }
+        // Decoding jwt
+        if (empty($jwt_data->jwt)) {
+            return Errors::notAuthorized();
+        }
+        if (!AuthValidation::isValidJwt($jwt_data)) {
+            return Errors::notAuthorized();
+        }
+
+        $user_id = AuthValidation::decodedData($jwt_data)->data->id;
+        $data = (array) json_decode(file_get_contents('php://input'), true);
+
+        // validate status Rejected, Ongoing
+        if (!empty($data['status']) && $data["status"] !== "Rejected" && $data["status"] !== "Ongoing") {
+            $response['status_code_header'] = 'HTTP/1.1 400 bad request!';
+            $response['body'] = json_encode([
+                'message' => $data['status'] . ", Invalid Status input, Please try again?",
+            ]);
+            return $response;
+        }
+
+        $user_role = $this->userRoleModel->findCurrentUserRole($user_id);
+
+        if (sizeof($user_role) > 0 && strval($user_role[0]['role_id']) !== "4") {
+            $response['status_code_header'] = 'HTTP/1.1 400 bad request!';
+            $response['body'] = json_encode([
+                'message' => "Not allowed to view this data, Please contact admistrator?",
+            ]);
+            return $response;
+        }
+
+        // checking if trainings id exists
+        $trainingExist = $this->trainingsModel->findTrainingByID($trainings_id);
+
+        if (sizeof($trainingExist) == 0) {
+            $response['status_code_header'] = 'HTTP/1.1 400 bad request!';
+            $response['body'] = json_encode([
+                'message' => "Training not found, please try again?",
+            ]);
+            return $response;
+        }
+        // update or comfirm trainings status
+        $result = $this->trainingsModel->comfirmTraining($trainings_id, $data["status"]);
+
+        $response['status_code_header'] = 'HTTP/1.1 200 OK';
+        $response['body'] = json_encode([
+            "message" => "Trainings status updated successfully!",
+        ]);
         return $response;
     }
 
