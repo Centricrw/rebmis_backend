@@ -1,24 +1,25 @@
 <?php
 namespace Src\Controller;
-use Src\Models\QualificationsModel;
+
 use Src\Models\AcademicCalenderModel;
-use Src\Models\MartialStatusModel;
 use Src\Models\BanksModel;
 use Src\Models\CountriesModel;
 use Src\Models\EducationDomainModel;
 use Src\Models\EducationSubdomainModel;
-use Src\Models\StaffCategoryModel;
-use Src\Models\SpecializationsModel;
-use Src\Models\QualificationModel;
-use Src\Models\SchoolsModel;
-use Src\Models\SchoolLocationsModel;
+use Src\Models\MartialStatusModel;
+use Src\Models\PositionsModel;
+use Src\Models\QualificationsModel;
 use Src\Models\RolesModel;
+use Src\Models\SchoolLocationsModel;
+use Src\Models\SchoolsModel;
+use Src\Models\SpecializationsModel;
+use Src\Models\StaffCategoryModel;
 use Src\Models\StakeholdersModel;
-use Src\Models\PositionModel;
-use Src\System\Errors;
 use Src\System\AuthValidation;
+use Src\System\Errors;
 
-class BasicInfoController {
+class BasicInfoController
+{
     private $db;
     private $qualificationsModel;
     private $academicCalenderModel;
@@ -38,7 +39,7 @@ class BasicInfoController {
     private $request_method;
     private $params;
 
-    public function __construct($db,$request_method,$params)
+    public function __construct($db, $request_method, $params)
     {
         $this->db = $db;
         $this->request_method = $request_method;
@@ -52,28 +53,28 @@ class BasicInfoController {
         $this->educationSubdomainModel = new EducationSubdomainModel($db);
         $this->staffCategoryModel = new StaffCategoryModel($db);
         $this->specializationsModel = new SpecializationsModel($db);
-        $this->qualificationModel = new QualificationModel($db);
+        $this->qualificationModel = new QualificationsModel($db);
         $this->schoolsModel = new SchoolsModel($db);
         $this->rolesModel = new RolesModel($db);
         $this->stakeholdersModel = new StakeholdersModel($db);
-        $this->positionModel = new PositionModel($db);
+        $this->positionModel = new PositionsModel($db);
         $this->schoolLocationModel = new SchoolLocationsModel($db);
     }
     function processRequest()
     {
         switch ($this->request_method) {
             case 'GET':
-                if(sizeof($this->params) > 0){
-                    if($this->params['action'] == "acalqual"){
+                if (sizeof($this->params) > 0) {
+                    if ($this->params['action'] == "acalqual") {
                         $response = $this->getAcademicCalenderAndQualifications();
-                    }elseif($this->params['action'] == "userpreregister"){
+                    } elseif ($this->params['action'] == "userpreregister") {
                         $response = $this->getPreregisterData();
-                    }elseif($this->params['action'] == "userderegister"){
+                    } elseif ($this->params['action'] == "userderegister") {
                         $response = $this->getDeregisterData($this->params['district_code']);
-                    }else{
+                    } else {
                         $response = Errors::notFoundError("Route not found!");
                     }
-                }else{
+                } else {
                     $response = Errors::notFoundError("Route not found!");
                 }
                 break;
@@ -86,88 +87,90 @@ class BasicInfoController {
             echo $response['body'];
         }
     }
-    function getAcademicCalenderAndQualifications(){
-        
-            $jwt_data = new \stdClass();
-            $output = new \stdClass();
-
-            $all_headers = getallheaders();
-            if(isset($all_headers['Authorization'])){
-              $jwt_data->jwt = $all_headers['Authorization'];
-            }
-            // Decoding jwt
-            if(empty($jwt_data->jwt)){
-              return Errors::notFoundError($jwt_data->jwt);
-            }
-            if(!AuthValidation::isValidJwt($jwt_data)){
-              return Errors::notFoundError($jwt_data->jwt);
-            }
-
-            $academic_calender = $this->academicCalenderModel->findCurrentAcademicYear();
-
-            $result = $this->qualificationsModel->findAll();
-
-            $output->jwt = $jwt_data->jwt;
-            $output->qualifications = $result;
-            $output->academic_calender = sizeof($academic_calender) > 0 ? $academic_calender[0] : null;
-
-            $response['status_code_header'] = 'HTTP/1.1 200 success';
-            $response['body'] = json_encode($output);
-            return $response;
-    }
-    function getPreregisterData(){
-        
-            $jwt_data = new \stdClass();
-            $output = new \stdClass();
-
-            $all_headers = getallheaders();
-            if(isset($all_headers['Authorization'])){
-              $jwt_data->jwt = $all_headers['Authorization'];
-            }
-            // Decoding jwt
-            if(empty($jwt_data->jwt)){
-              return Errors::notFoundError($jwt_data->jwt);
-            }
-            if(!AuthValidation::isValidJwt($jwt_data)){
-              return Errors::notFoundError($jwt_data->jwt);
-            }
-            $marital = $this->martialStatusModel->findAll();
-            $output->marital = $marital;
-            $banks = $this->banksModel->findAll();
-            $output->banks = $banks;
-            $nationality =  $this->countriesModel->findAll();
-            $output->nationality = $nationality;
-            $education_domain = $this->educationDomainModel->findAll();
-            $output->education_domain = $education_domain;
-            $education_subdomain = $this->educationSubdomainModel->findAll();
-            $output->education_sub_domain = $education_subdomain;
-            $staff_category = $this->staffCategoryModel->findAll();
-            $output->staff_category = $staff_category;
-            $specializations = $this->specializationsModel->findAll();
-            $output->specializations = $specializations;
-            $qualifications = $this->qualificationModel->findAll();
-            $output->qualifications = $qualifications;
-            $output->contract_types = ["permanent","contractual"];
-
-
-            $response['status_code_header'] = 'HTTP/1.1 200 success';
-            $response['body'] = json_encode($output);
-            return $response;
-    }
-    function getDeregisterData($district_code){
+    function getAcademicCalenderAndQualifications()
+    {
 
         $jwt_data = new \stdClass();
         $output = new \stdClass();
 
         $all_headers = getallheaders();
-        if(isset($all_headers['Authorization'])){
+        if (isset($all_headers['Authorization'])) {
             $jwt_data->jwt = $all_headers['Authorization'];
         }
         // Decoding jwt
-        if(empty($jwt_data->jwt)){
+        if (empty($jwt_data->jwt)) {
             return Errors::notFoundError($jwt_data->jwt);
         }
-        if(!AuthValidation::isValidJwt($jwt_data)){
+        if (!AuthValidation::isValidJwt($jwt_data)) {
+            return Errors::notFoundError($jwt_data->jwt);
+        }
+
+        $academic_calender = $this->academicCalenderModel->findCurrentAcademicYear();
+
+        $result = $this->qualificationsModel->findAll();
+
+        $output->jwt = $jwt_data->jwt;
+        $output->qualifications = $result;
+        $output->academic_calender = sizeof($academic_calender) > 0 ? $academic_calender[0] : null;
+
+        $response['status_code_header'] = 'HTTP/1.1 200 success';
+        $response['body'] = json_encode($output);
+        return $response;
+    }
+    function getPreregisterData()
+    {
+
+        $jwt_data = new \stdClass();
+        $output = new \stdClass();
+
+        $all_headers = getallheaders();
+        if (isset($all_headers['Authorization'])) {
+            $jwt_data->jwt = $all_headers['Authorization'];
+        }
+        // Decoding jwt
+        if (empty($jwt_data->jwt)) {
+            return Errors::notFoundError($jwt_data->jwt);
+        }
+        if (!AuthValidation::isValidJwt($jwt_data)) {
+            return Errors::notFoundError($jwt_data->jwt);
+        }
+        $marital = $this->martialStatusModel->findAll();
+        $output->marital = $marital;
+        $banks = $this->banksModel->findAll();
+        $output->banks = $banks;
+        $nationality = $this->countriesModel->findAll();
+        $output->nationality = $nationality;
+        $education_domain = $this->educationDomainModel->findAll();
+        $output->education_domain = $education_domain;
+        $education_subdomain = $this->educationSubdomainModel->findAll();
+        $output->education_sub_domain = $education_subdomain;
+        $staff_category = $this->staffCategoryModel->findAll();
+        $output->staff_category = $staff_category;
+        $specializations = $this->specializationsModel->findAll();
+        $output->specializations = $specializations;
+        $qualifications = $this->qualificationModel->findAll();
+        $output->qualifications = $qualifications;
+        $output->contract_types = ["permanent", "contractual"];
+
+        $response['status_code_header'] = 'HTTP/1.1 200 success';
+        $response['body'] = json_encode($output);
+        return $response;
+    }
+    function getDeregisterData($district_code)
+    {
+
+        $jwt_data = new \stdClass();
+        $output = new \stdClass();
+
+        $all_headers = getallheaders();
+        if (isset($all_headers['Authorization'])) {
+            $jwt_data->jwt = $all_headers['Authorization'];
+        }
+        // Decoding jwt
+        if (empty($jwt_data->jwt)) {
+            return Errors::notFoundError($jwt_data->jwt);
+        }
+        if (!AuthValidation::isValidJwt($jwt_data)) {
             return Errors::notFoundError($jwt_data->jwt);
         }
 
@@ -182,9 +185,8 @@ class BasicInfoController {
         $response['body'] = json_encode($output);
         return $response;
     }
-    
+
 }
 
-$controller = new BasicInfoController($this->db, $request_method,$params);
+$controller = new BasicInfoController($this->db, $request_method, $params);
 $controller->processRequest();
-?>
