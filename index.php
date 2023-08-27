@@ -1,4 +1,7 @@
 <?php
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     header('Access-Control-Allow-Origin: *');
     header('Access-Control-Allow-Methods: POST, GET, DELETE, PUT, PATCH, OPTIONS');
@@ -19,12 +22,10 @@ use Src\Routes\MainRoutes;
 //Route instance
 $route = new MainRoutes();
 
-//route address and location
-
-// Users routes 
+// Users routes
 $route->router("/user", "src/Controller/userscontroller.php");
-$route->router("/user/{id}","src/Controller/userscontroller.php");
-$route->router("/user/assign/role","src/Controller/userscontroller.php");
+$route->router("/user/{id}", "src/Controller/userscontroller.php");
+$route->router("/user/assign/role", "src/Controller/userscontroller.php");
 $route->router("/user/account/{action}", "src/Controller/authcontroller.php");
 $route->router("/user/account/{action}/{user_id}", "src/Controller/userscontroller.php");
 $route->router("/user/current/info", "src/Controller/authcontroller.php");
@@ -43,10 +44,9 @@ $route->router("/qualification", "src/Controller/qualificationscontroller.php");
 $route->router("/qualification/{qualification_id}", "src/Controller/qualificationscontroller.php");
 
 // TRAININGS
-$route->router("/trainings/{action}","src/Controller/trainingsController.php");
+$route->router("/trainings/{action}", "src/Controller/trainingsController.php");
+$route->router("/trainings/{action}/{status}", "src/Controller/trainingsController.php");
 
 //write it at the last
 //arg is 404 file location
 $route->notFound("404.php");
-
-?>
