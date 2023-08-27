@@ -22,10 +22,6 @@ use Src\Routes\MainRoutes;
 //Route instance
 $route = new MainRoutes();
 
-//---Joseph Routes---//
-
-//route address and location
-
 // Users routes
 $route->router("/user", "src/Controller/userscontroller.php");
 $route->router("/user/{id}", "src/Controller/userscontroller.php");

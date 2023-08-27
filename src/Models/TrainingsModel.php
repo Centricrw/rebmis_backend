@@ -13,9 +13,33 @@ class TrainingsModel
 
     public function getAllTranings()
     {
-        $statement = "SELECT  T.trainingId, T.trainingProviderId, TP.trainingProviderName, T.trainingName, T.trainingDescription, T.startDate, T.endDate, T.status, ifnull((SELECT COUNT(TN.traineesId) FROM trainees TN WHERE TN.trainingId
-      = T.trainingId),0) trainees FROM trainings T INNER JOIN trainingProviders TP ON T.trainingProviderId = TP.trainingProviderId";
+        $statement = "SELECT  T.trainingId, T.trainingProviderId, TP.trainingProviderName, T.trainingName, T.trainingDescription, T.startDate, T.endDate, T.status, ifnull((SELECT COUNT(TN.traineesId) FROM trainees TN WHERE TN.trainingId = T.trainingId),0) trainees FROM trainings T INNER JOIN trainingProviders TP ON T.trainingProviderId = TP.trainingProviderId";
+        try
+        {
+            $statement = $this->db->query($statement);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $result[0]['TrainingProviderlogo'] = '/trainingProviders/' . $result[0]['trainingProviderId'] . '.jpg';
+            unset($result[0]['trainingProviderId']);
+            return $result;
+        } catch (\PDOException $e) {
+            exit($e->getMessage());
+        }
+    }
+
+    public function findCurrentAcademicYear()
+    {
+        $statementSelectAcademic = "SELECT * FROM academic_calendar WHERE status = 1";
+
         try {
+            $statementSelectAcademic = $this->db->prepare($statementSelectAcademic);
+            $statementSelectAcademic->execute(array());
+            $result = $statementSelectAcademic->fetchAll(\PDO::FETCH_ASSOC);
+            if (sizeof($result) == 0) {
+                return null;
+            }
+            $statement = "SELECT  T.trainingId, T.trainingProviderId, TP.trainingProviderName, T.trainingName, T.trainingDescription, T.startDate, T.endDate, T.status, ifnull((SELECT COUNT(TN.traineesId) FROM trainees TN WHERE TN.trainingId
+      = T.trainingId),0) trainees FROM trainings T INNER JOIN trainingProviders TP ON T.trainingProviderId = TP.trainingProviderId";
             $statement = $this->db->query($statement);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
