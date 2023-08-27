@@ -67,10 +67,8 @@ class UsersModel
           phone_numbers=:phone_numbers,email=:email,
           staff_code=:staff_code,sex=:sex,marital_status=:marital_status,
           dob=:dob,rssb_number=:rssb_number,nationality_id=:nationality_id,
-          bank_account=:bank_account,bank_id=:bank_id,
-          specialization_id=:specialization_id,village_code=:village_code,
-          education_domain_id=:education_domain_id,education_sub_dommain_id=:education_sub_dommain_id,
-          specialisation_id=:specialisation_id,graduation_date=:graduation_date,hired_date=:hired_date,
+          bank_account=:bank_account,bank_id=:bank_id,village_code=:village_code,
+          education_domain_id=:education_domain_id,education_sub_dommain_id=:education_sub_dommain_id,graduation_date=:graduation_date,hired_date=:hired_date,
           contract_type=:contract_type,updated_by=:updated_by,updated_at=:updated_at
           WHERE user_id = :user_id AND status =:status;
       ";
@@ -92,11 +90,9 @@ class UsersModel
                 ':nationality_id' => $data['nationality_id'],
                 ':bank_account' => $data['bank_account'],
                 ':bank_id' => $data['bank_id'],
-                ':specialization_id' => $data['specialization_id'],
                 ':village_code' => $data['village_code'],
                 ':education_domain_id' => $data['education_domain_id'],
                 ':education_sub_dommain_id' => $data['education_sub_dommain_id'],
-                ':specialisation_id' => $data['specialisation_id'],
                 ':graduation_date' => $data['graduation_date'],
                 ':hired_date' => $data['hired_date'],
                 ':contract_type' => $data['contract_type'],
@@ -180,16 +176,11 @@ class UsersModel
 
     public function findById($user_id, $status)
     {
-        $statement = "
-          SELECT
-              *
-          FROM
-              users WHERE user_id = ? AND status = ? LIMIT 1
-      ";
+        $statement = "SELECT * FROM users WHERE user_id = ? OR staff_code = ?  AND status = ? LIMIT 1 ";
 
         try {
             $statement = $this->db->prepare($statement);
-            $statement->execute(array($user_id, $status));
+            $statement->execute(array($user_id, $user_id, $status));
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             return $result;
         } catch (\PDOException $e) {
@@ -254,16 +245,11 @@ class UsersModel
     }
     public function findOne($user_id)
     {
-        $statement = "
-          SELECT
-              *
-          FROM
-              users WHERE user_id = ? AND status = ? LIMIT 1
-      ";
+        $statement = "SELECT * FROM users WHERE user_id = ? OR staff_code = ?  AND status = ? LIMIT 1";
 
         try {
             $statement = $this->db->prepare($statement);
-            $statement->execute(array($user_id, 1));
+            $statement->execute(array($user_id, $user_id, 1));
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             if (sizeof($result) == 0) {
                 return null;

@@ -26,10 +26,17 @@ $route = new MainRoutes();
 $route->router("/user", "src/Controller/userscontroller.php");
 $route->router("/user/{id}", "src/Controller/userscontroller.php");
 $route->router("/user/assign/role", "src/Controller/userscontroller.php");
-$route->router("/user/account/{action}", "src/Controller/authcontroller.php");
 $route->router("/user/account/{action}/{user_id}", "src/Controller/userscontroller.php");
+
+// Users route authcontroller
+$route->router("/user/account/{action}", "src/Controller/authcontroller.php");
 $route->router("/user/current/info", "src/Controller/authcontroller.php");
 $route->router("/user/updateinfo/{action}/{user_id}", "src/Controller/authcontroller.php");
+
+// $route->router("/user/assign/{action}", "src/Controller/userscontroller.php");
+// $route->router("/user/status/{status}", "src/Controller/userscontroller.php");
+// $route->router("/user/status/{status}/{nid}", "src/Controller/userscontroller.php");
+// $route->router("/user/add/{action}", "src/Controller/userscontroller.php");
 
 // Roles routes
 $route->router("/role", "src/Controller/rolescontroller.php");

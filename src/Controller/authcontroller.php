@@ -146,7 +146,7 @@ class AuthController
 
         $data = (array) json_decode(file_get_contents('php://input'), true);
 
-        if (!UserValidation::updateUser($data)) {
+        if (!UserValidation::ValidateUpdatedUser($data)) {
             return Errors::unprocessableEntityResponse();
         }
 
@@ -240,7 +240,8 @@ class AuthController
 
         $result = $this->usersModel->findById($user_id, 1);
         if (sizeof($result) > 0) {
-            $role = $this->rolesModel->findById($result[0]['role_id']);
+            $role_id = isset($user_role[0]['role_id']) ? $user_role[0]['role_id'] : 0;
+            $role = $this->rolesModel->findById($role_id);
 
             $rlt->jwt = $jwt_data->jwt;
             $rlt->user_info = $result[0];
