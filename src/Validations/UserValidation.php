@@ -1,7 +1,8 @@
 <?php
 namespace Src\Validations;
 
-class UserValidation {
+class UserValidation
+{
 
     public static function assignUserToSchool($input)
     {
@@ -12,19 +13,24 @@ class UserValidation {
             return false;
         }
         return true;
-    }  
+    }
     public static function insertUser($input)
     {
         if (empty($input['nid'])) {
             return false;
         }
         return true;
-    } 
-    public static function updateUser($input)
+    }
+    /**
+     * validating user information
+     * @param {Json} $input
+     * @return {Boolean} $results
+     */
+    public static function ValidateUpdatedUser($input)
     {
         if (empty($input['nid'])) {
             return false;
         }
         return true;
-    }           
+    }
 }

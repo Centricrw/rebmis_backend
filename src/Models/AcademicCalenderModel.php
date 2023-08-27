@@ -27,8 +27,7 @@ class AcademicCalenderModel {
 
     public function findCurrentAcademicYear()
     {
-      $statement = "SELECT * FROM academic_calendar WHERE status = 1";
-
+      $statement = "SELECT * FROM academic_calendar WHERE academic_year_status = 'true'";
       try {
         $statement = $this->db->prepare($statement);
         $statement->execute(array());

@@ -11,14 +11,12 @@ class MartialStatusModel {
     }
     public function findAll()
     {
-        $martial_status = ["SINGLE","MARRIED","MARRIED","WIDOWED","DIVORCED","SEPARATED","REGISTERED PARTNERSHIP"];
-
+        $martial_status = ["SINGLE","MARRIED","MARRIED","WIDOWED","DIVORCED","SEPARATED","REGISTERED PARTNERSHIP","BROTHER","NUN","RELIGIOUS","OTHERS"];
         return $martial_status;
     }
   public function findById($martial_status_id)
   {
-    $martial_status = ["SINGLE","MARRIED","MARRIED","WIDOWED","DIVORCED","SEPARATED","REGISTERED PARTNERSHIP"];
-
+        $martial_status = ["SINGLE","MARRIED","MARRIED","WIDOWED","DIVORCED","SEPARATED","REGISTERED PARTNERSHIP","BROTHER","NUN","RELIGIOUS","OTHERS"];
 
     foreach ($martial_status as $data)
     {
