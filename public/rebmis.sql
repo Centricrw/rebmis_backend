@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:8889
--- Generation Time: Jul 04, 2023 at 11:15 PM
+-- Generation Time: Jul 04, 2023 at 06:33 PM
 -- Server version: 5.7.39
 -- PHP Version: 7.4.33
 
@@ -140,8 +140,7 @@ CREATE TABLE `trainings` (
 --
 
 INSERT INTO `trainings` (`trainingId`, `trainingProviderId`, `trainingName`, `trainingDescription`, `startDate`, `endDate`, `status`, `createdBy`, `createdDate`, `updatedBy`, `updatedDate`, `archive`, `archivedBy`, `archivedDate`) VALUES
-(1, '1', 'FHI Tunoze gusoma', 'The project is expected to enhance the pre-primary education system to develop, promote and improve students’ emergent language and literacy skills, as well as strengthen the lower primary education system, school environment and classroom instruction to improve students’ literacy outcomes. FHI 360 is supporting the REB and NESA to strengthen literacy assessments and their use in decision-making.', '2023-07-04', '2023-07-05', 'Waiting', '00df908b-36e2-435b-8e88-a31d65348390', '2023-07-04 21:54:30', NULL, NULL, '0', NULL, NULL),
-(2, '1', 'FHI Tunoze Gusoma', 'The project is expected to enhance the pre-primary education system to develop, promote and improve students’ emergent language and literacy skills, as well as strengthen the lower primary education system, school environment and classroom instruction to improve students’ literacy outcomes. FHI 360 is supporting the REB and NESA to strengthen literacy assessments and their use in decision-making.', '2023-08-04', '2023-09-04', 'Waiting', '00df908b-36e2-435b-8e88-a31d65348390', '2023-07-04 23:08:46', NULL, NULL, '0', NULL, NULL);
+(1, '1', 'FHI Tunoze gusoma', 'The project is expected to enhance the pre-primary education system to develop, promote and improve students’ emergent language and literacy skills, as well as strengthen the lower primary education system, school environment and classroom instruction to improve students’ literacy outcomes. FHI 360 is supporting the REB and NESA to strengthen literacy assessments and their use in decision-making.', '2023-07-04', '2023-07-05', 'Waiting', '00df908b-36e2-435b-8e88-a31d65348390', '2023-07-04 21:54:30', NULL, NULL, '0', NULL, NULL);
 
 -- --------------------------------------------------------
 
