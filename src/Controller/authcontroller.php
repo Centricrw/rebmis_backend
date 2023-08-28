@@ -240,7 +240,6 @@ class AuthController
 
         $result = $this->usersModel->findById($user_id, 1);
         if (sizeof($result) > 0) {
-            $role = $this->rolesModel->findById($result[0]['role_id']);
 
             $rlt->jwt = $jwt_data->jwt;
             $rlt->user_info = $result[0];
