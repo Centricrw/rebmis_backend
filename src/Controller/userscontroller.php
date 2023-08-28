@@ -63,10 +63,16 @@ class UsersController
     {
         switch ($this->request_method) {
             case 'GET':
-                if (sizeof($this->params) == 1) {
-                    $response = $this->getUser($this->params['id']);
+                if (sizeof($this->params) > 0) {
+                    if (isset($this->params['id'])) {
+                        $response = $this->getUser($this->params['id']);
+                    } elseif (isset($this->params['page'])) {
+                        $response = $this->getUsersByRole($this->params['role_id'], $this->params['page']);
+                    } else {
+                        $response = Errors::notFoundError("Route not found!");
+                    }
                 } else {
-                    $response = $this->getUsers();
+                    $response = Errors::notFoundError("Route not found!");
                 }
                 break;
             case "POST":
@@ -84,7 +90,7 @@ class UsersController
                 }
                 break;
             default:
-                $response = Errors::notFoundError("ROute not found!");
+                $response = Errors::notFoundError("Route not found!");
                 break;
         }
         header($response['status_code_header']);
@@ -234,10 +240,9 @@ class UsersController
 
     }
     // Get all users
-    function getUsers()
+    function getUsersByRole($role_id, $page = 1)
     {
-
-        $result = $this->usersModel->findAll();
+        $result = $this->usersModel->findUsersByRole($role_id, $page);
 
         $response['status_code_header'] = 'HTTP/1.1 200 OK';
         $response['body'] = json_encode($result);
