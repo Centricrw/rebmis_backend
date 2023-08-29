@@ -49,6 +49,8 @@ class trainingsController
                         $response = $this->getAllTranings();
                     } elseif ($this->params['action'] == "training") {
                         $response = $this->getOneTraining($this->params['id']);
+                    } elseif ($this->params['action'] == "provider") {
+                        $response = $this->getTrainingProvider();
                     } elseif ($this->params['action'] == "status") {
                         $response = $this->getTrainingsByStatusRebUser($this->params['id']);
                     } elseif (isset($this->params['training_id']) && isset($this->params['cohort_id'])) {
@@ -291,6 +293,30 @@ class trainingsController
         $results->success = true;
         $results->supporting_documents = $file_name;
         return $results;
+    }
+
+    private function getTrainingProvider()
+    {
+        $jwt_data = new \stdClass();
+
+        $all_headers = getallheaders();
+        if (isset($all_headers['Authorization'])) {
+            $jwt_data->jwt = $all_headers['Authorization'];
+        }
+        // Decoding jwt
+        if (empty($jwt_data->jwt)) {
+            return Errors::notAuthorized();
+        }
+        if (!AuthValidation::isValidJwt($jwt_data)) {
+            return Errors::notAuthorized();
+        }
+
+        // $user_id = AuthValidation::decodedData($jwt_data)->data->id;
+        $result = $this->trainingsModel->getTrainingProvider();
+
+        $response['status_code_header'] = 'HTTP/1.1 200 OK';
+        $response['body'] = json_encode($result);
+        return $response;
     }
 
     private function CreateTrainingProvider()

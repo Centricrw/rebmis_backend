@@ -144,6 +144,20 @@ class TrainingsModel
         }
     }
 
+    public function getTrainingProvider()
+    {
+        $sql = "SELECT * FROM trainingProviders";
+        try {
+            $statement = $this->db->prepare($sql);
+            $statement->execute(array());
+
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $result;
+        } catch (\PDOException $e) {
+            exit($e->getMessage());
+        }
+    }
+
     public function CreateTrainingProvider($data, $doneBY)
     {
         $statement = "INSERT INTO `trainingProviders`(`trainingProviderName`, `description`, `email`, `address`, `phone_number`, `supporting_documents`, `createdBy`) VALUES (:trainingProviderName,:description,:email,:address,:phone_number,:supporting_documents,:createdBy)";
