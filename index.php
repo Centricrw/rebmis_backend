@@ -28,13 +28,11 @@ $route = new MainRoutes();
 // Users routes
 $route->router("/user", "src/Controller/userscontroller.php");
 $route->router("/user/{id}", "src/Controller/userscontroller.php");
-$route->router("/user/{page}/{role_id}", "src/Controller/userscontroller.php");
+$route->router("/user/list/{page}/{role_id}", "src/Controller/userscontroller.php");
 $route->router("/user/assign/role", "src/Controller/userscontroller.php");
-$route->router("/user/account/{action}/{user_id}", "src/Controller/userscontroller.php");
-
-// auth routers
-$route->router("/user/account/{action}", "src/Controller/authcontroller.php");
 $route->router("/user/current/info", "src/Controller/authcontroller.php");
+$route->router("/user/account/{action}", "src/Controller/authcontroller.php");
+$route->router("/user/account/{action}/{user_id}", "src/Controller/userscontroller.php");
 $route->router("/user/updateinfo/{action}/{user_id}", "src/Controller/authcontroller.php");
 
 // Roles routes
@@ -52,6 +50,7 @@ $route->router("/qualification/{qualification_id}", "src/Controller/qualificatio
 // TRAININGS
 $route->router("/trainings/{action}", "src/Controller/trainingsController.php");
 $route->router("/trainings/{action}/{id}", "src/Controller/trainingsController.php");
+$route->router("/trainings/trainees/{training_id}/{cohort_id}", "src/Controller/trainingsController.php");
 
 // COHORTS
 $route->router("/cohorts/{action}", "src/Controller/cohortsController.php");

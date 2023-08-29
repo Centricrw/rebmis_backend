@@ -40,6 +40,21 @@ class TrainingsModel
         }
     }
 
+    public function getTrainingsTrainees($training_id, $cohort_id)
+    {
+        $statement = "SELECT trainees.*, trainings.trainingName FROM trainees
+        INNER JOIN trainings ON trainees.trainingId = trainings.trainingId
+        WHERE trainees.trainingId = :trainingId";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(':trainingId' => $training_id));
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $result;
+        } catch (\PDOException $e) {
+            exit($e->getMessage());
+        }
+    }
+
     public function getOneTraining($training_id)
     {
         $statement = "SELECT  T.trainingId, T.trainingProviderId, TP.trainingProviderName, T.trainingName, T.offerMode, T.trainingDescription, T.startDate, T.endDate, T.status, ifnull((SELECT COUNT(TN.traineesId) FROM trainees TN WHERE TN.trainingId
