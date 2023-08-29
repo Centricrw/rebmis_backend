@@ -23,6 +23,21 @@ class trainingsController
         $this->userRoleModel = new UserRoleModel($db);
     }
 
+    private function request_path()
+    {
+        $request_uri = explode('/', trim($_SERVER['REQUEST_URI'], '/'));
+        $script_name = explode('/', trim($_SERVER['SCRIPT_NAME'], '/'));
+        $parts = array_diff_assoc($request_uri, $script_name);
+        if (empty($parts)) {
+            return '/';
+        }
+        $path = implode('/', $parts);
+        if (($position = strpos($path, '?')) !== false) {
+            $path = substr($path, 0, $position);
+        }
+        return $path;
+    }
+
     function processRequest()
     {
         switch ($this->request_method) {
@@ -36,7 +51,11 @@ class trainingsController
                         $response = $this->getOneTraining($this->params['id']);
                     } elseif ($this->params['action'] == "status") {
                         $response = $this->getTrainingsByStatusRebUser($this->params['id']);
+                    } elseif (isset($this->params['training_id']) && isset($this->params['cohort_id'])) {
+                        $response = $this->getTrainingsTrainees($this->params['training_id'], $this->params['cohort_id']);
                     } else {
+                        // echo ($this->request_path());
+                        print_r($this->params);
                         $response = Errors::notFoundError("Route not found!");
                     }
                 }
@@ -75,6 +94,31 @@ class trainingsController
     private function getOneTraining($training_id)
     {
         $result = $this->trainingsModel->getOneTraining($training_id);
+
+        $response['status_code_header'] = 'HTTP/1.1 200 OK';
+        $response['body'] = json_encode($result);
+        return $response;
+    }
+
+    private function getTrainingsTrainees($training_id, $cohort_id)
+    {
+        $jwt_data = new \stdClass();
+
+        $all_headers = getallheaders();
+        if (isset($all_headers['Authorization'])) {
+            $jwt_data->jwt = $all_headers['Authorization'];
+        }
+        // Decoding jwt
+        if (empty($jwt_data->jwt)) {
+            return Errors::notAuthorized();
+        }
+        if (!AuthValidation::isValidJwt($jwt_data)) {
+            return Errors::notAuthorized();
+        }
+
+        $user_id = AuthValidation::decodedData($jwt_data)->data->id;
+
+        $result = $this->trainingsModel->getTrainingsTrainees($training_id, $cohort_id);
 
         $response['status_code_header'] = 'HTTP/1.1 200 OK';
         $response['body'] = json_encode($result);
