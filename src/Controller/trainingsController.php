@@ -67,6 +67,8 @@ class trainingsController
                         $response = $this->addAtraining();
                     } elseif ($this->params['action'] == "comfirm") {
                         $response = $this->ComfirmTainingsByReb($this->params['id']);
+                    } elseif ($this->params['action'] == "provider") {
+                        $response = $this->CreateTrainingProvider();
                     } else {
                         $response = Errors::notFoundError("Route not found!");
                     }
@@ -246,6 +248,105 @@ class trainingsController
         $response['status_code_header'] = 'HTTP/1.1 200 OK';
         $response['body'] = json_encode($result);
         return $response;
+    }
+
+    private function FileUpload($file)
+    {
+        $results = new \stdClass;
+        $target_dir = "public/uploads/";
+        $file_name = $target_dir . basename($file["supporting_documents"]["name"]);
+        $file_size = $file['supporting_documents']['size'];
+        $file_tmp = $file['supporting_documents']['tmp_name'];
+        $file_type = $file['supporting_documents']['type'];
+        $tmp = explode('.', $file_name);
+        $file_ext = end($tmp);
+
+        // Check if file already exists
+        if (file_exists($file_name)) {
+            $results->message = "Sorry, file already exists.";
+            $results->success = false;
+            $results->supporting_documents = $file_name;
+            return $results;
+        }
+
+        // Check if file extension
+        $extensions = array("jpeg", "jpg", "png", "pdf");
+        if (in_array($file_ext, $extensions) === false) {
+            $results->message = "extension not allowed, please choose a JPEG, PNG, pdf file.";
+            $results->success = false;
+            $results->supporting_documents = $file_name;
+            return $results;
+        }
+
+        // Check if file size
+        if ($file_size > 2097152) {
+            $results->message = "Sorry, File size excessed 2 MB";
+            $results->success = false;
+            $results->supporting_documents = $file_name;
+            return $results;
+        }
+
+        move_uploaded_file($file_tmp, SITE_ROOT . "/" . $file_name);
+        $results->message = "file uploaded succesfuly";
+        $results->success = true;
+        $results->supporting_documents = $file_name;
+        return $results;
+    }
+
+    private function CreateTrainingProvider()
+    {
+        $jwt_data = new \stdClass();
+
+        $all_headers = getallheaders();
+        if (isset($all_headers['Authorization'])) {
+            $jwt_data->jwt = $all_headers['Authorization'];
+        }
+        // Decoding jwt
+        if (empty($jwt_data->jwt)) {
+            return Errors::notAuthorized();
+        }
+        if (!AuthValidation::isValidJwt($jwt_data)) {
+            return Errors::notAuthorized();
+        }
+
+        $user_id = AuthValidation::decodedData($jwt_data)->data->id;
+        if (isset($_FILES['supporting_documents']) && $_POST['trainingProviderName']) {
+
+            /**
+             * Checking if provider name, phone_number and email  exist in table
+             */
+            $proverExists = $this->trainingsModel->ProviderExists($_POST);
+            if (sizeof($proverExists) > 0) {
+                $message = $proverExists[0]['trainingProviderName'] == $_POST['trainingProviderName'] ? "Provider name alredy exists, please try again" : ($proverExists[0]['phone_number'] == $_POST['phone_number'] ? "Provider phone number alredy exists, please try again" : "Provider email alredy exists, please try again");
+
+                $response['status_code_header'] = 'HTTP/1.1 400 bad request!';
+                $response['body'] = json_encode([
+                    'message' => $message,
+                ]);
+                return $response;
+
+            };
+
+            // upload file
+            $fileupload = $this->FileUpload($_FILES);
+            if (!$fileupload->success) {
+                $response['status_code_header'] = 'HTTP/1.1 400 bad request!';
+                $response['body'] = json_encode([
+                    'message' => $fileupload->message,
+                ]);
+                return $response;
+            }
+            $data = (object) $_POST;
+            $data->supporting_documents = $fileupload->supporting_documents;
+            $result = $this->trainingsModel->CreateTrainingProvider($data, $user_id);
+
+            $response['status_code_header'] = 'HTTP/1.1 201 Created';
+            $response['body'] = json_encode([
+                'message' => "Training provider created succesfully!",
+            ]);
+            return $response;
+
+        }
     }
 
     private function validateNewTraining($input)
