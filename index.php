@@ -10,11 +10,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     header('Access-Control-Max-Age: 1728000');
     header('Content-Length: 0');
     header('Content-Type: text/plain');
+    header('Content-Type: multipart/form-data');
     die();
 }
 
 header('Access-Control-Allow-Origin: *');
 header('Content-Type: application/json');
+define('SITE_ROOT', realpath(dirname(__FILE__)));
 
 require "bootstrap.php";
 
