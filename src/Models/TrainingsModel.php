@@ -144,4 +144,43 @@ class TrainingsModel
         }
     }
 
+    public function CreateTrainingProvider($data, $doneBY)
+    {
+        $statement = "INSERT INTO `trainingProviders`(`trainingProviderName`, `description`, `email`, `address`, `phone_number`, `supporting_documents`, `createdBy`) VALUES (:trainingProviderName,:description,:email,:address,:phone_number,:supporting_documents,:createdBy)";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
+                ':trainingProviderName' => $data->trainingProviderName,
+                ':description' => $data->description,
+                ':email' => $data->email,
+                ':address' => $data->address,
+                ':phone_number' => $data->phone_number,
+                ':supporting_documents' => $data->supporting_documents,
+                ':createdBy' => $doneBY,
+            ));
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $result;
+        } catch (\PDOException $e) {
+            exit($e->getMessage());
+        }
+    }
+
+    public function ProviderExists($data)
+    {
+        $sql = "SELECT trainingProviderName, email, phone_number FROM trainingProviders WHERE trainingProviderName = :trainingProviderName OR email = :email OR phone_number = :phone_number LIMIT 1";
+        try {
+            $statement = $this->db->prepare($sql);
+            $statement->execute(array(
+                ':trainingProviderName' => $data['trainingProviderName'],
+                ':phone_number' => $data['phone_number'],
+                ':email' => $data['email'],
+            ));
+
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $result;
+        } catch (\PDOException $e) {
+            exit($e->getMessage());
+        }
+    }
+
 }
