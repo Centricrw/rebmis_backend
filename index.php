@@ -1,7 +1,7 @@
 <?php
-// ini_set('display_errors', 1);
-// ini_set('display_startup_errors', 1);
-// error_reporting(E_ALL);
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     header('Access-Control-Allow-Origin: *');
@@ -37,10 +37,6 @@ $route->router("/user/account/{action}", "src/Controller/authcontroller.php");
 $route->router("/user/account/{action}/{user_id}", "src/Controller/userscontroller.php");
 $route->router("/user/updateinfo/{action}/{user_id}", "src/Controller/authcontroller.php");
 
-// Roles routes
-$route->router("/role", "src/Controller/rolescontroller.php");
-$route->router("/role/{id}", "src/Controller/rolescontroller.php");
-
 // District routes
 $route->router("/district", "src/Controller/districtscontroller.php");
 $route->router("/district/{district_code}", "src/Controller/districtscontroller.php");
@@ -63,6 +59,13 @@ $route->router("/cohortcondition/{action}/{id}", "src/Controller/cohortcondition
 
 // locations
 $route->router("/locations/{action}/{id}", "src/Controller/locationsController.php");
+
+// role
+$route->router("/role", "src/Controller/userrolecontroller.php");
+$route->router("/role/{action}", "src/Controller/userrolecontroller.php");
+
+//SYSTEM FUNCTION
+$route->router("/systemfunction/{action}", "src/Controller/systemFunctionController.php");
 
 //write it at the last
 //arg is 404 file location
