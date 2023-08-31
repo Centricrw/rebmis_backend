@@ -67,6 +67,10 @@ $route->router("/role/{action}", "src/Controller/userrolecontroller.php");
 //SYSTEM FUNCTION
 $route->router("/systemfunction/{action}", "src/Controller/systemFunctionController.php");
 
+//TRAINING CENTER
+$route->router("/trainingcenter", "src/Controller/trainingCenterController.php");
+$route->router("/trainingcenter/{id}", "src/Controller/trainingCenterController.php");
+
 //write it at the last
 //arg is 404 file location
 $route->notFound("404.php");
