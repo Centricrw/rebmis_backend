@@ -75,6 +75,10 @@ class TrainingCenterController
             $this->trainingCenterModel->insertNewTrainingCenter($data, $user_id);
             $response['status_code_header'] = 'HTTP/1.1 201 Created';
             $response['body'] = json_encode([
+                "training_centers_id" => $data['training_centers_id'],
+                "training_centers_name" => $data['training_centers_name'],
+                "district_code" => $data['district_code'],
+                "district_name" => $data['district_name'],
                 "message" => "Training center created successfully!",
             ]);
             return $response;
