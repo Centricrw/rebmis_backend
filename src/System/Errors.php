@@ -25,39 +25,44 @@ class Errors
     // }
     public static function unprocessableEntityResponse()
     {
-        $response['status_code_header'] = 'HTTP/1.1 400 Unprocessable Entity';
+        $response['status_code_header'] = 'HTTP/1.1 422 Unprocessable Content';
         $response['body'] = json_encode([
             'message' => 'Invalid input',
         ]);
         return $response;
     }
-    public static function badRequestError()
+
+    public static function badRequestError($msg = "Something went wrong, please try again!")
     {
-        $response['status_code_header'] = 'HTTP/1.1 500 Not Found';
-        $response['body'] = json_encode(["message" => "Body request"]);
+        $response['status_code_header'] = 'HTTP/1.1 400 Bad Request';
+        $response['body'] = json_encode(["message" => $msg]);
         return $response;
     }
+
     public static function notFoundError($msg)
     {
         $response['status_code_header'] = 'HTTP/1.1 404 Not Found';
         $response['body'] = json_encode(["message" => $msg]);
         return $response;
     }
+
     public static function notAuthorized()
     {
-        $response['status_code_header'] = 'HTTP/1.1 401 Not Found';
+        $response['status_code_header'] = 'HTTP/1.1 401 Unauthorized';
         $response['body'] = json_encode(["message" => "Not Authorized"]);
         return $response;
     }
+
     public static function databaseError($stack = null)
     {
         $response['status_code_header'] = 'HTTP/1.1 500 Internal Server Error';
         $response['body'] = json_encode(["message" => "Something went wrong, please try again!", "stack" => $stack]);
         return $response;
     }
+
     public static function existError($data)
     {
-        $response['status_code_header'] = 'HTTP/1.1 403 Already exist';
+        $response['status_code_header'] = 'HTTP/1.1 403 Forbidden';
         $response['body'] = json_encode([
             'message' => $data,
         ]);

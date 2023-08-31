@@ -69,7 +69,8 @@ $route->router("/systemfunction/{action}", "src/Controller/systemFunctionControl
 
 //TRAINING CENTER
 $route->router("/trainingcenter", "src/Controller/trainingCenterController.php");
-$route->router("/trainingcenter/{id}", "src/Controller/trainingCenterController.php");
+$route->router("/trainingcenter/{action}", "src/Controller/trainingCenterController.php");
+$route->router("/trainingcenter/{action}/{id}", "src/Controller/trainingCenterController.php");
 
 //write it at the last
 //arg is 404 file location
