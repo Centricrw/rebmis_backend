@@ -16,7 +16,6 @@ class TrainingsModel
         $newTrainingsArray = array();
         foreach ($trainingsArray as $trainingItem) {
             $trainingItem['TrainingProviderlogo'] = '/trainingProviders/' . $trainingItem['trainingProviderId'] . '.jpg';
-            unset($trainingItem['trainingProviderId']);
             $newTrainingsArray[] = $trainingItem;
         }
         return $newTrainingsArray;
