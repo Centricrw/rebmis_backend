@@ -55,6 +55,7 @@ $route->router("/cohorts/{action}", "src/Controller/cohortsController.php");
 $route->router("/cohorts/{action}/{id}", "src/Controller/cohortsController.php");
 
 // COHORTS Conditions
+$route->router("/cohortcondition/{action}", "src/Controller/cohortconditionController.php");
 $route->router("/cohortcondition/{action}/{id}", "src/Controller/cohortconditionController.php");
 
 // locations
