@@ -13,27 +13,46 @@ class CohortconditionModel
         $this->db = $db;
     }
 
-    public function createCondition($data, $user_id, $cohortId)
+    // {
+    //     "": "1",
+    //     "": "11",
+    //     "": "",
+    //     "": "",
+    //     "": "",
+    //     "": "",
+    //     "": "English",
+    //     "": 0,
+    //     "": 1000,
+    //     "cohort_id": "",
+    //     "": ""
+    // }
+
+    public function createCondition($data, $user_id)
     {
-        $statement = "INSERT INTO cohortconditions (schoolLocation, availabletrainees, capacity, cohortId, createdBy)
-      VALUES(:schoolLocation,:availabletrainees, :capacity, :cohortId, :createdBy)";
+        $statement = "INSERT INTO cohortconditions (cohortconditionId, capacity, cohortId, createdBy, provincecode, district_code, sector_code, school_code, combination_code, grade_code, course_name, comfirmed, approval_role_id)
+      VALUES(:cohortconditionId, :capacity, :cohortId, :createdBy, :provincecode, :district_code, :sector_code, :school_code, :combination_code, :grade_code, :course_name, :comfirmed, :approval_role_id)";
 
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array(
-                ':schoolLocation' => serialize($data['location']), // implode($data['location']),
-                ':availabletrainees' => $data['availabletrainees'],
-                ':capacity' => $data['limit'],
-                ':cohortId' => $cohortId,
+                ':cohortconditionId' => $data['cohortconditionId'],
+                ':capacity' => $data['capacity'],
+                ':cohortId' => $data['cohortId'],
+                ':provincecode' => $data['provincecode'],
+                ':district_code' => $data['district_code'],
+                ':sector_code' => empty($data['sector_code']) ? null : $data['sector_code'],
+                ':school_code' => empty($data['school_code']) ? null : $data['school_code'],
+                ':combination_code' => empty($data['combination_code']) ? null : $data['combination_code'],
+                ':grade_code' => empty($data['grade_code']) ? null : $data['grade_code'],
+                ':course_name' => empty($data['course_name']) ? null : $data['course_name'],
+                ':comfirmed' => $data['comfirmed'],
+                ':approval_role_id' => $data['approval_role_id'],
                 ':createdBy' => $user_id,
             ));
-            $conditionId = $this->db->lastInsertId();
-            $data['cohortConditionId'] = $conditionId;
-            $data['providedTrainees'] = '0';
-            $this->listAvailableTrainees($data['conditions'], $data['trainingId'], $cohortId, $conditionId);
-            return $data;
+
+            return $statement->rowCount();
         } catch (\PDOException $e) {
-            exit($e->getMessage());
+            throw new Error($e->getMessage());
         }
     }
 
@@ -61,135 +80,14 @@ class CohortconditionModel
 
     public function getAllConditions($cohortId)
     {
-        $statement = "SELECT cohortConditionId, schoolLocation, availabletrainees, capacity, IFNULL((SELECT COUNT(T.traineesId) FROM trainees T WHERE T.cohortId = CC.cohortId AND status = 'Approved'),0) providedTrainees FROM cohortconditions CC WHERE CC.cohortId = ?";
+        $statement = "SELECT *, IFNULL((SELECT COUNT(T.traineesId) FROM trainees T WHERE T.cohortId = CC.cohortId AND status = 'Approved'),0) providedTrainees FROM cohortconditions CC WHERE CC.cohortId = ?";
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array($cohortId));
             $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
-            $finalres = [];
-            foreach ($results as $result) {
-                $condition = new \stdClass();
-                $condition->cohortConditionId = $result['cohortConditionId'];
-                $condition->location = unserialize($result['schoolLocation']);
-                $condition->availabletrainees = $result['availabletrainees'];
-                $condition->limit = $result['capacity'];
-                $condition->providedTrainees = $result['providedTrainees'];
-                array_push($finalres, $condition);
-            };
-            return $finalres;
+            return $results;
         } catch (\PDOException $e) {
-            exit($e->getMessage());
-        }
-    }
-
-    private function listAvailableTrainees($conditions, $trainingId, $cohortId, $conditionId)
-    {
-        $location = explode("/", $conditions)[0];
-        $route = explode("/", $conditions)[1];
-        $id = explode("/", $conditions)[2];
-        return $trainees = $this->$route($id, $trainingId, $cohortId, $conditionId);
-
-        //explode("/",$conditions)[0];
-    }
-
-    private function getperschool($schoolcode, $trainingId, $cohortId, $conditionId)
-    {
-        $statement = "INSERT INTO trainees(userId, traineeName, traineePhone, trainingId, cohortId, conditionId)
-      SELECT UR.user_id, U.full_name, U.phone_numbers,$trainingId,$cohortId,$conditionId FROM user_to_role UR
-          INNER JOIN users U ON U.user_id = UR.user_id
-              WHERE UR.school_code = ?";
-        try {
-            $statement = $this->db->prepare($statement);
-            $statement->execute(array($schoolcode));
-            $teachers = $statement->fetchAll(\PDO::FETCH_ASSOC);
-            return $this->getTrainees($conditionId);
-        } catch (\PDOException $e) {
-            exit($e->getMessage());
-        }
-    }
-
-    private function getvillages($villagecode, $trainingId, $cohortId, $conditionId)
-    {
-        $statement = "INSERT INTO trainees(userId, traineeName, traineePhone, trainingId, cohortId, conditionId)
-      SELECT UR.user_id, U.full_name, U.phone_numbers,$trainingId,$cohortId,$conditionId FROM user_to_role UR
-              INNER JOIN users U ON U.user_id = UR.user_id
-              LEFT JOIN schools_conf SCF ON SCF.school_code = UR.school_code
-              WHERE SCF.village_id = ?";
-        try {
-            $statement = $this->db->prepare($statement);
-            $statement->execute(array($villagecode));
-            $teachers = $statement->fetchAll(\PDO::FETCH_ASSOC);
-            return $this->getTrainees($conditionId);
-        } catch (\PDOException $e) {
-            exit($e->getMessage());
-        }
-    }
-
-    private function getcells($cellcode, $trainingId, $cohortId, $conditionId)
-    {
-        $statement = "INSERT INTO trainees(userId, traineeName, traineePhone, trainingId, cohortId, conditionId)
-      SELECT UR.user_id, U.full_name, U.phone_numbers,$trainingId,$cohortId,$conditionId FROM user_to_role UR
-              INNER JOIN users U ON U.user_id = UR.user_id
-              LEFT JOIN schools_conf SCF ON SCF.school_code = UR.school_code
-              WHERE SCF.cell_code = ?";
-        try {
-            $statement = $this->db->prepare($statement);
-            $statement->execute(array($cellcode));
-            $teachers = $statement->fetchAll(\PDO::FETCH_ASSOC);
-            return $this->getTrainees($conditionId);
-        } catch (\PDOException $e) {
-            exit($e->getMessage());
-        }
-    }
-
-    private function getsectors($sectorcode, $trainingId, $cohortId, $conditionId)
-    {
-        $statement = "INSERT INTO trainees(userId, traineeName, traineePhone, trainingId, cohortId, conditionId)
-      SELECT UR.user_id, U.full_name, U.phone_numbers,$trainingId,$cohortId,$conditionId FROM user_to_role UR
-              INNER JOIN users U ON U.user_id = UR.user_id
-              LEFT JOIN schools_conf SCF ON SCF.school_code = UR.school_code
-              WHERE SCF.sector_code = ?";
-        try {
-            $statement = $this->db->prepare($statement);
-            $statement->execute(array($sectorcode));
-            $teachers = $statement->fetchAll(\PDO::FETCH_ASSOC);
-            return $this->getTrainees($conditionId);
-        } catch (\PDOException $e) {
-            exit($e->getMessage());
-        }
-    }
-
-    private function getdistricts($provinceId, $trainingId, $cohortId, $conditionId)
-    {
-        $statement = "INSERT INTO trainees(userId, traineeName, traineePhone, trainingId, cohortId, conditionId)
-              SELECT UR.user_id, U.full_name, U.phone_numbers,$trainingId,$cohortId,$conditionId FROM user_to_role UR
-              INNER JOIN users U ON U.user_id = UR.user_id
-              LEFT JOIN schools_conf SCF ON SCF.school_code = UR.school_code
-              WHERE SCF.district_code = ?";
-        try {
-            $statement = $this->db->prepare($statement);
-            $statement->execute(array($provinceId));
-            $teachers = $statement->fetchAll(\PDO::FETCH_ASSOC);
-            return $this->getTrainees($conditionId);
-        } catch (\PDOException $e) {
-            exit($e->getMessage());
-        }
-    }
-
-    private function getprovince($provinceId, $trainingId, $cohortId, $conditionId)
-    {
-        $statement = "INSERT INTO trainees(userId, traineeName, traineePhone, trainingId, cohortId, conditionId)
-              SELECT UR.user_id, U.full_name, U.phone_numbers,$trainingId,$cohortId,$conditionId FROM user_to_role UR
-              INNER JOIN users U ON U.user_id = UR.user_id
-              LEFT JOIN schools_conf SCF ON SCF.school_code = UR.school_code
-              WHERE SCF.province_code = ?";
-        try {
-            $statement = $this->db->prepare($statement);
-            $statement->execute(array($provinceId));
-            $teachers = $statement->fetchAll(\PDO::FETCH_ASSOC);
-            return $this->getTrainees($conditionId);
-        } catch (\PDOException $e) {
-            exit($e->getMessage());
+            throw new Error($e->getMessage());
         }
     }
 
@@ -204,6 +102,33 @@ class CohortconditionModel
             return $teachers;
         } catch (\PDOException $e) {
             exit($e->getMessage());
+        }
+    }
+
+    public function getSchoolsByLocation($location)
+    {
+        $stringArray = ["provincecode", "district_code", "sector_code", "school_code"];
+        $likeSchoolcode = 0;
+        // splitig condition into sql condition
+        foreach ($stringArray as $key => $value) {
+            if (isset($location[$value]) && $location[$value] != "") {
+                $likeSchoolcode = $value == "provincecode" ? $location[$value] : (
+                    $value == "district_code" ? $location[$value] : (
+                        $value == "sector_code" ? $location[$value] : (
+                            $value == "school_code" ? $location[$value] : 0
+                        )
+                    )
+                );
+            }
+        };
+        try {
+            $statement = "SELECT * FROM `schools` WHERE `school_code` LIKE '$likeSchoolcode%'";
+            $statement = $this->db->prepare($statement);
+            $statement->execute();
+            $schools = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $schools;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
         }
     }
 
@@ -256,7 +181,7 @@ class CohortconditionModel
         INNER JOIN teacher_study_hierarchy TCH ON TCH.teacher_code = U.staff_code
         INNER JOIN study_hierarchy SH ON SH.studyhierarchyid = TCH.study_hierarchy_id
         WHERE S.school_code LIKE '$likeSchoolcode%' AND TCH.status = 1
-        AND UR.status = 'Active' $sqlConditionString LIMIT " . $condition['limit'];
+        AND UR.status = 'Active' $sqlConditionString LIMIT " . $condition['capacity'];
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute($sqlConditionArrayValues);

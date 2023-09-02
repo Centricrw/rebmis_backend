@@ -23,11 +23,11 @@ class Errors
     //         "TooLarge" => "HTTP/1.1 413 Content Too Large",
     //     );
     // }
-    public static function unprocessableEntityResponse()
+    public static function unprocessableEntityResponse($msg = "Invalid input, please try again!")
     {
         $response['status_code_header'] = 'HTTP/1.1 422 Unprocessable Content';
         $response['body'] = json_encode([
-            'message' => 'Invalid input',
+            'message' => $msg,
         ]);
         return $response;
     }

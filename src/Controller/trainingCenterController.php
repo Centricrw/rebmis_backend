@@ -72,6 +72,13 @@ class TrainingCenterController
         $generated_user_id = UuidGenerator::gUuid();
         $data['training_centers_id'] = $generated_user_id;
         try {
+            // checking if training center name exists
+            // Remove whitespaces from both sides of a string
+            $training_center_name = trim($data['training_centers_name']);
+            $trainingCenterNameExists = $this->trainingCenterModel->getTrainingCenterByName(strtolower($training_center_name));
+            if (sizeof($trainingCenterNameExists) > 0) {
+                return Errors::badRequestError("Training center already exists, please try again?");
+            }
             $this->trainingCenterModel->insertNewTrainingCenter($data, $user_id);
             $response['status_code_header'] = 'HTTP/1.1 201 Created';
             $response['body'] = json_encode([

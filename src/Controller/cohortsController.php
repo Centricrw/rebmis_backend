@@ -69,21 +69,8 @@ class cohortsController
 
     private function addACohort($trainingId)
     {
-        $jwt_data = new \stdClass();
-
-        $all_headers = getallheaders();
-        if (isset($all_headers['Authorization'])) {
-            $jwt_data->jwt = $all_headers['Authorization'];
-        }
-        // Decoding jwt
-        if (empty($jwt_data->jwt)) {
-            return Errors::notAuthorized();
-        }
-        if (!AuthValidation::isValidJwt($jwt_data)) {
-            return Errors::notAuthorized();
-        }
-
-        $user_id = AuthValidation::decodedData($jwt_data)->data->id;
+        // geting authorized user id
+        $user_id = AuthValidation::authorized()->id;
 
         $data = (array) json_decode(file_get_contents('php://input'), true);
 
@@ -92,33 +79,14 @@ class cohortsController
             return Errors::unprocessableEntityResponse();
         }
 
-        $result = $this->cohortsModel->addACohort($data, $user_id, $trainingId);
-        $response['status_code_header'] = 'HTTP/1.1 200 OK';
-        $response['body'] = json_encode($result);
-        return $response;
-    }
-
-    private function validateNewTraining($input)
-    {
-        if (empty($input['trainingName'])) {
-            return false;
+        try {
+            $result = $this->cohortsModel->addACohort($data, $user_id, $trainingId);
+            $response['status_code_header'] = 'HTTP/1.1 201 Created';
+            $response['body'] = json_encode($result);
+            return $response;
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
         }
-        if (empty($input['trainingDescription'])) {
-            return false;
-        }
-        if (empty($input['offerMode'])) {
-            return false;
-        }
-        if (empty($input['trainingProviderId'])) {
-            return false;
-        }
-        if (empty($input['startDate'])) {
-            return false;
-        }
-        if (empty($input['endDate'])) {
-            return false;
-        }
-        return true;
     }
 
     private function validateNewCohort($input)
