@@ -68,9 +68,9 @@ class TrainingCenterController
         $data = (array) json_decode(file_get_contents('php://input'), true);
         // geting authorized user id
         $user_id = AuthValidation::authorized()->id;
-        // Generate user id
-        $generated_user_id = UuidGenerator::gUuid();
-        $data['training_centers_id'] = $generated_user_id;
+        // Generate training center id
+        $generated_training_centers_id = UuidGenerator::gUuid();
+        $data['training_centers_id'] = $generated_training_centers_id;
         try {
             // checking if training center name exists
             // Remove whitespaces from both sides of a string

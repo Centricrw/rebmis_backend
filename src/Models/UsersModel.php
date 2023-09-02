@@ -1,6 +1,8 @@
 <?php
 namespace Src\Models;
 
+use Error;
+
 class UsersModel
 {
 
@@ -10,51 +12,46 @@ class UsersModel
     {
         $this->db = $db;
     }
-    public function insert($data)
+    public function insertNewUser($data)
     {
-        $statement = "
-        INSERT
-          INTO users
-            (user_id,first_name,middle_name,last_name,full_name,phone_numbers,email,username,password,staff_code,sex,marital_status,nid,highest_qualification_id,dob,rssb_number,nationality_id,bank_account,bank_id,specialization_id,village_code,education_domain_id,education_sub_dommain_id,graduation_date,hired_date,contract_type,staff_category_id,created_by)
-          VALUES (:user_id,:first_name,:middle_name,:last_name,:full_name,:phone_numbers,:email,:username,:password,:staff_code,:sex,:marital_status,:nid,:highest_qualification_id,:dob,:rssb_number,:nationality_id,:bank_account,:bank_id,:specialization_id,:village_code,:education_domain_id,:education_sub_dommain_id,:graduation_date,:hired_date,:contract_type,:staff_category_id,:created_by);
-        ";
+        $query = "INSERT INTO `users` (`staff_code`, `staff_category_id`, `full_name`, `sex`, `dob`, `marital_status`, `nid`, `email`, `phone_numbers`, `rssb_number`, `education_domain_id`, `education_sub_dommain_id`, `graduation_date`, `highest_qualification_id`, `hired_date`, `contract_type`, `bank_account`, `nationality_id`, `user_id`, `username`, `password`, `created_by`, `first_name`, `middle_name`, `last_name`, `specialization_id`, `resident_district_id`) VALUES (:staff_code, :staff_category_id, :full_name, :sex, :dob, :marital_status, :nid, :email, :phone_numbers, :rssb_number, :education_domain_id, :education_sub_dommain_id, :graduation_date, :highest_qualification_id, :hired_date, :contract_type, :bank_account, :nationality_id, :user_id, :username, :password, :created_by, :first_name, :middle_name, :last_name, :specialization_id, :resident_district_id);";
         try {
-            $statement = $this->db->prepare($statement);
+            $statement = $this->db->prepare($query);
             $statement->execute(array(
+                ':staff_code' => $data['user_id'],
+                ':staff_category_id' => empty($data['staff_category_id']) ? null : $data['staff_category_id'],
+                ':full_name' => $data['full_name'],
+                ':sex' => $data['gender'],
+                ':dob' => empty($data['dob']) ? null : $data['dob'],
+                ':marital_status' => empty($data['marital_status']) ? null : $data['marital_status'],
+                ':nid' => $data['nid'],
+                ':email' => $data['email'],
+                ':phone_numbers' => $data['phone_numbers'],
+                ':rssb_number' => empty($data['rssb_number']) ? null : $data['rssb_number'],
+                ':education_domain_id' => empty($data['education_domain_id']) ? null : $data['education_domain_id'],
+                ':education_sub_dommain_id' => empty($data['education_sub_dommain_id']) ? null : $data['education_sub_dommain_id'],
+                ':graduation_date' => empty($data['graduation_date']) ? null : $data['graduation_date'],
+                ':highest_qualification_id' => empty($data['highest_qualification_id']) ? null : $data['highest_qualification_id'],
+                ':hired_date' => empty($data['hired_date']) ? null : $data['hired_date'],
+                ':contract_type' => empty($data['contract_type']) ? null : $data['contract_type'],
+                ':bank_account' => empty($data['bank_account']) ? null : $data['bank_account'],
+                ':nationality_id' => empty($data['nationality_id']) ? 1 : $data['nationality_id'],
                 ':user_id' => $data['user_id'],
+                ':username' => $data['phone_numbers'],
+                ':password' => $data['password'],
+                ':created_by' => $data['created_by'],
                 ':first_name' => $data['first_name'],
                 ':middle_name' => $data['middle_name'],
                 ':last_name' => $data['last_name'],
-                ':full_name' => $data['full_name'],
-                ':phone_numbers' => $data['phone_numbers'],
-                ':email' => $data['email'],
-                ':username' => $data['username'],
-                ':password' => $data['password'],
-                ':staff_code' => $data['staff_code'],
-                ':sex' => $data['sex'],
-                ':marital_status' => $data['marital_status'],
-                ':highest_qualification_id' => $data['highest_qualification_id'],
-                ':dob' => $data['dob'],
-                ':rssb_number' => $data['rssb_number'],
-                ':nationality_id' => $data['nationality_id'],
-                ':bank_account' => $data['bank_account'],
-                ':bank_id' => $data['bank_id'],
-                ':nid' => $data['nid'],
-                ':specialization_id' => $data['specialization_id'],
-                ':village_code' => $data['village_code'],
-                ':education_domain_id' => $data['education_domain_id'],
-                ':education_sub_dommain_id' => $data['education_sub_dommain_id'],
-                ':graduation_date' => $data['graduation_date'],
-                ':hired_date' => $data['hired_date'],
-                ':contract_type' => $data['contract_type'],
-                ':staff_category_id' => $data['staff_category_id'],
-                ':created_by' => $data['created_by'],
+                ':specialization_id' => empty($data['specialization_id']) ? null : $data['specialization_id'],
+                ':resident_district_id' => $data['resident_district_id'],
             ));
             return $statement->rowCount();
         } catch (\PDOException $e) {
-            exit($e->getMessage());
+            throw new Error($e->getMessage());
         }
     }
+
     public function updateUser($data, $user_id, $updated_by)
     {
         $sql = "
@@ -107,6 +104,7 @@ class UsersModel
             exit($e->getMessage());
         }
     }
+
     public function changePassword($data)
     {
         $sql = "
@@ -132,6 +130,7 @@ class UsersModel
             exit($e->getMessage());
         }
     }
+
     public function changeUsernameAndPassword($data, $user_id, $updated_by)
     {
         $sql = "
@@ -158,6 +157,7 @@ class UsersModel
             exit($e->getMessage());
         }
     }
+
     public function findUsersByRole($role_id, $page = 1)
     {
         $results_per_page = 10;
@@ -223,28 +223,23 @@ class UsersModel
         }
     }
 
-    public function findExistUserName($username, $user_id, $status)
+    public function findExistPhoneNumberEmailNid($phone_number, $email, $nid)
     {
-        $statement = "SELECT * FROM users WHERE username=? AND user_id != ? AND status = ? LIMIT 1
-      ";
+        $statement = "SELECT * FROM users WHERE phone_numbers=? OR email = ? OR nid = ? LIMIT 1";
 
         try {
             $statement = $this->db->prepare($statement);
-            $statement->execute(array($username, $user_id, $status));
+            $statement->execute(array($phone_number, $email, $nid));
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             return $result;
         } catch (\PDOException $e) {
-            exit($e->getMessage());
+            throw new Error($e->getMessage());
         }
     }
+
     public function findByUsername($username)
     {
-        $statement = "
-          SELECT
-              *
-          FROM
-              users WHERE username = ? AND status = ? LIMIT 1
-      ";
+        $statement = "SELECT * FROM users WHERE username = ? AND status = ? LIMIT 1";
 
         try {
             $statement = $this->db->prepare($statement);

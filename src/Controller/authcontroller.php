@@ -94,35 +94,44 @@ class AuthController
     {
 
         $data = (array) json_decode(file_get_contents('php://input'), true);
-
-        if (!UserValidation::insertUser($data)) {
-            return Errors::unprocessableEntityResponse();
+        // geting authorized user id
+        $created_by_user_id = AuthValidation::authorized()->id;
+        $validateUserInputData = UserValidation::insertUser($data);
+        if (!$validateUserInputData['validated']) {
+            return Errors::unprocessableEntityResponse($validateUserInputData['message']);
         }
 
-        // Check if user is registered
-        $user = $this->usersModel->findByUsername($data['username']);
-        if (sizeof($user) > 0) {
-            return Errors::ExistError("Username is already exist");
+        try {
+
+            // Check if user phone number, email, nid exists
+            $phoneNumberExists = $this->usersModel->findExistPhoneNumberEmailNid($data['phone_numbers'], $data['email'], $data['nid']);
+            if (sizeof($phoneNumberExists) > 0) {
+                return Errors::ExistError("Phone number, nid or email already exist");
+            }
+
+            // Encrypting default password
+            $default_password = 12345;
+            $default_password = Encrypt::saltEncryption($default_password);
+
+            // Generate user id
+            $user_id = UuidGenerator::gUuid();
+
+            $data['password'] = $default_password;
+            $data['user_id'] = $user_id;
+            $data['created_by'] = $created_by_user_id;
+
+            $results = $this->usersModel->insertNewUser($data);
+
+            $response['status_code_header'] = 'HTTP/1.1 201 Created';
+            $response['body'] = json_encode([
+                'message' => "Created",
+                'user_id' => $user_id,
+                'results' => $results,
+            ]);
+            return $response;
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
         }
-        // Encrypting default password
-        $default_password = 12345;
-        $default_password = Encrypt::saltEncryption($default_password);
-
-        // Generate user id
-        $user_id = UuidGenerator::gUuid();
-
-        $data['password'] = $default_password;
-        $data['user_id'] = $user_id;
-        $data['created_by'] = $user_id;
-
-        $this->usersModel->insert($data);
-
-        $response['status_code_header'] = 'HTTP/1.1 201 Created';
-        $response['body'] = json_encode([
-            'message' => "Created",
-            'user_id' => $user_id,
-        ]);
-        return $response;
     }
 
     function updateAccount($user_id)
@@ -159,10 +168,10 @@ class AuthController
         // Check if user is registered
         if (empty($user[0]['username']) && empty($data['username'])) {
             // Check if username is registered
-            $user = $this->usersModel->findExistUserName($data['username'], $user_id, 1);
-            if (sizeof($user) > 0) {
-                return Errors::ExistError("Username is already exist");
-            }
+            // $user = $this->usersModel->findExistUserName($data['username'], $user_id, 1);
+            // if (sizeof($user) > 0) {
+            //     return Errors::ExistError("Username is already exist");
+            // }
             // Encrypting default password
             $default_password = 12345;
             $default_password = Encrypt::saltEncryption($default_password);
@@ -200,10 +209,10 @@ class AuthController
             return Errors::notAuthorized();
         }
         // // Check if user is registered
-        $user = $this->usersModel->findExistUserName($data['username'], $user_id, 1);
-        if (sizeof($user) > 0) {
-            return Errors::notFoundError("Username is already token!");
-        }
+        // $user = $this->usersModel->findExistUserName($data['username'], $user_id, 1);
+        // if (sizeof($user) > 0) {
+        //     return Errors::notFoundError("Username is already token!");
+        // }
         $updated_by = AuthValidation::decodedData($jwt_data)->data->id;
         // Encrypting default password
         $default_password = Encrypt::saltEncryption($data['password']);
