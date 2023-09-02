@@ -175,7 +175,7 @@ class CohortconditionModel
                 }
             }
         };
-        $statement = "SELECT TCH.teacher_study_hierarchy_id,U.full_name, U.staff_code, SH.combination_name, SH.grade_name, SH.course_name, TCH.status, S.school_name, S.school_code, UR.sector_code, UR.district_code FROM user_to_role UR
+        $statement = "SELECT DISTINCT TCH.teacher_code,U.full_name, U.staff_code, SH.combination_name, SH.grade_name, SH.course_name, TCH.status, S.school_name, S.school_code, UR.sector_code, UR.district_code FROM user_to_role UR
         INNER JOIN users U ON  UR.user_id = U.user_id
         INNER JOIN schools S ON S.school_code = UR.school_code
         INNER JOIN teacher_study_hierarchy TCH ON TCH.teacher_code = U.staff_code
