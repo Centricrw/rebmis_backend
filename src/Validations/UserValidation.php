@@ -14,16 +14,13 @@ class UserValidation
         }
         return true;
     }
-    public static function insertUser($input)
+    public static function ValidateNewInsertedUser($input)
     {
         if (empty($input['nid']) || !preg_match('/^[0-9]{16}$/', $input['nid'])) {
             return ["validated" => false, "message" => "Invalid nid or not provided!, please try again"];
         }
         if (empty($input['first_name'])) {
             return ["validated" => false, "message" => "First name not provided!"];
-        }
-        if (empty($input['middle_name'])) {
-            return ["validated" => false, "message" => "Middle name not provided!"];
         }
         if (empty($input['last_name'])) {
             return ["validated" => false, "message" => "Last name not provided!"];
