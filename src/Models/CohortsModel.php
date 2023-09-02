@@ -1,6 +1,8 @@
 <?php
 namespace Src\Models;
 
+use Error;
+
 class CohortsModel
 {
 
@@ -49,7 +51,7 @@ class CohortsModel
             $data['providedTrainees'] = '0';
             return $data;
         } catch (\PDOException $e) {
-            exit($e->getMessage());
+            throw new Error($e->getMessage());
         }
     }
 

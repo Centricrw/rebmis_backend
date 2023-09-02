@@ -4,6 +4,7 @@ namespace Src\Controller;
 use Src\Models\CohortconditionModel;
 use Src\System\AuthValidation;
 use Src\System\Errors;
+use Src\System\UuidGenerator;
 
 class locationsController
 {
@@ -40,9 +41,11 @@ class locationsController
             case 'POST':
                 if (sizeof($this->params) > 0) {
                     if ($this->params['action'] == "create") {
-                        $response = $this->createCondition($this->params['id']);
+                        $response = $this->createCondition();
                     } else if ($this->params['action'] == "condition") {
                         $response = $this->getTeacherByCondition();
+                    } else if ($this->params['action'] == "school") {
+                        $response = $this->getSchoolsByLocation();
                     } else if ($this->params['action'] == "approveselected") {
                         $response = $this->approveselected($this->params['id']);
                     } else {
@@ -69,35 +72,46 @@ class locationsController
         return $response;
     }
 
-    private function createCondition($cohortId)
+    private function getSchoolsByLocation()
     {
-        $jwt_data = new \stdClass();
+        // geting authorized user id
+        $user_id = AuthValidation::authorized()->id;
+        $location = (array) json_decode(file_get_contents('php://input'), true);
+        try {
+            $result = $this->cohortconditionModel->getSchoolsByLocation($location);
 
-        $all_headers = getallheaders();
-        if (isset($all_headers['Authorization'])) {
-            $jwt_data->jwt = $all_headers['Authorization'];
+            $response['status_code_header'] = 'HTTP/1.1 200 OK';
+            $response['body'] = json_encode($result);
+            return $response;
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
         }
-        // Decoding jwt
-        if (empty($jwt_data->jwt)) {
-            return Errors::notAuthorized();
-        }
-        if (!AuthValidation::isValidJwt($jwt_data)) {
-            return Errors::notAuthorized();
-        }
+    }
 
-        $user_id = AuthValidation::decodedData($jwt_data)->data->id;
+    private function createCondition()
+    {
+        // geting authorized user id
+        $user_id = AuthValidation::authorized()->id;
 
         $data = (array) json_decode(file_get_contents('php://input'), true);
 
         // Validate input if not empty
-        if (!self::validateNewCohortCondition($data)) {
-            return Errors::unprocessableEntityResponse();
+        $validationInputData = self::validateNewCohortCondition($data);
+        if (!$validationInputData['validated']) {
+            return Errors::unprocessableEntityResponse($validationInputData['message']);
         }
-        $result = $this->cohortconditionModel->createCondition($data, $user_id, $cohortId);
-
-        $response['status_code_header'] = 'HTTP/1.1 200 OK';
-        $response['body'] = json_encode($result);
-        return $response;
+        try {
+            // Generate cohort condition id
+            $generated_condition_id = UuidGenerator::gUuid();
+            $data['cohortconditionId'] = $generated_condition_id;
+            $this->cohortconditionModel->createCondition($data, $user_id);
+            $response['status_code_header'] = 'HTTP/1.1 200 OK';
+            $data["message"] = "Cohort condition created successfully!";
+            $response['body'] = json_encode($data);
+            return $response;
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
+        }
     }
 
     private function approveselected($cohortConditionId)
@@ -133,11 +147,16 @@ class locationsController
 
     private function getallConditions($cohortId)
     {
-        $result = $this->cohortconditionModel->getAllConditions($cohortId);
+        try {
+            //code...
+            $result = $this->cohortconditionModel->getAllConditions($cohortId);
 
-        $response['status_code_header'] = 'HTTP/1.1 200 OK';
-        $response['body'] = json_encode($result);
-        return $response;
+            $response['status_code_header'] = 'HTTP/1.1 200 OK';
+            $response['body'] = json_encode($result);
+            return $response;
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
+        }
     }
 
     private function GetStudyHierarchy()
@@ -175,22 +194,22 @@ class locationsController
 
     private function validateNewCohortCondition($input)
     {
-        if (empty($input['conditions'])) {
-            return false;
+        if (empty($input['provincecode'])) {
+            return ["validated" => false, "message" => "provincecode not provided!"];
         }
-        if (empty($input['location'])) {
-            return false;
+        if (empty($input['district_code'])) {
+            return ["validated" => false, "message" => "district_code not provided!"];
         }
-        if (empty($input['limit'])) {
-            return false;
+        if (empty($input['capacity'])) {
+            return ["validated" => false, "message" => "capacity not provided!"];
         }
-        if (empty($input['availabletrainees'])) {
-            return false;
+        if (empty($input['cohortId'])) {
+            return ["validated" => false, "message" => "cohortId not provided!"];
         }
-        if (empty($input['trainingId'])) {
-            return false;
+        if (empty($input['approval_role_id'])) {
+            return ["validated" => false, "message" => "approval_role_id not provided!"];
         }
-        return true;
+        return ["validated" => true, "message" => "OK"];
     }
 }
 $controller = new locationsController($this->db, $request_method, $params);

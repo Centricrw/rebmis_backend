@@ -21,15 +21,35 @@ class TrainingCenterModel
     {
         $statement = "INSERT INTO `training_centers`(`training_centers_id`, `training_centers_name`, `district_code`, `district_name`, `createdBy`) VALUES (:training_centers_id,:training_centers_name,:district_code,:district_name,:createdBy)";
         try {
+            // Remove whitespaces from both sides of a string
+            $training_center_name = trim($data['training_centers_name']);
             $statement = $this->db->prepare($statement);
             $statement->execute(array(
                 ':training_centers_id' => $data['training_centers_id'],
-                ':training_centers_name' => $data['training_centers_name'],
+                ':training_centers_name' => strtolower($training_center_name),
                 ':district_code' => $data['district_code'],
                 ':district_name' => $data['district_name'],
                 ':createdBy' => $created_by,
             ));
             return $statement->rowCount();
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    /**
+     * get training center by name
+     * @param {NULL}
+     * @return {OBJECT} {results}
+     */
+    public function getTrainingCenterByName($training_center_name)
+    {
+        $statement = "SELECT * FROM `training_centers` WHERE training_centers_name = ? LIMIT 1";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array($training_center_name));
+            $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $results;
         } catch (\PDOException $e) {
             throw new Error($e->getMessage());
         }
