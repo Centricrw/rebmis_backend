@@ -41,7 +41,7 @@ class UsersModel
                 ':password' => $data['password'],
                 ':created_by' => $data['created_by'],
                 ':first_name' => $data['first_name'],
-                ':middle_name' => $data['middle_name'],
+                ':middle_name' => empty($data['middle_name']) ? null : $data['middle_name'],
                 ':last_name' => $data['last_name'],
                 ':specialization_id' => empty($data['specialization_id']) ? null : $data['specialization_id'],
                 ':resident_district_id' => $data['resident_district_id'],
@@ -54,10 +54,7 @@ class UsersModel
 
     public function updateUser($data, $user_id, $updated_by)
     {
-        $sql = "
-          UPDATE
-              users
-          SET
+        $sql = "UPDATE users SET
           first_name=:first_name,middle_name=:middle_name,
           last_name=:last_name,full_name=:full_name,
           phone_numbers=:phone_numbers,email=:email,
@@ -107,13 +104,7 @@ class UsersModel
 
     public function changePassword($data)
     {
-        $sql = "
-          UPDATE
-              users
-          SET
-          password=:password,updated_by=:updated_by,updated_at=:updated_at
-          WHERE user_id=:user_id AND status=:status;
-      ";
+        $sql = "UPDATE `users` SET `password`=:password,`updated_by`=:updated_by,`updated_at`=:updated_at WHERE `user_id`=:user_id AND `status`=:status";
         try {
 
             $statement = $this->db->prepare($sql);
@@ -190,22 +181,7 @@ class UsersModel
             $object->users = $result;
             return $object;
         } catch (\PDOException $e) {
-            exit($e->getMessage());
-        }
-    }
-
-    public function findById($user_id, $status)
-    {
-        $statement = "SELECT * FROM users WHERE user_id = ? OR staff_code = ?  AND status = ? LIMIT 1
-      ";
-
-        try {
-            $statement = $this->db->prepare($statement);
-            $statement->execute(array($user_id, $user_id, $status));
-            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
-            return $result;
-        } catch (\PDOException $e) {
-            exit($e->getMessage());
+            throw new Error($e->getMessage());
         }
     }
 
@@ -250,21 +226,17 @@ class UsersModel
             exit($e->getMessage());
         }
     }
-    public function findOne($user_id)
+    public function findOneUser($user_id, $status = 1)
     {
-        $statement = "SELECT * FROM users WHERE user_id = ? OR staff_code = ?  AND status = ? LIMIT 1
-      ";
+        $statement = "SELECT * FROM users WHERE user_id = ? OR staff_code = ?  AND status = ? LIMIT 1";
 
         try {
             $statement = $this->db->prepare($statement);
-            $statement->execute(array($user_id, $user_id, 1));
+            $statement->execute(array($user_id, $user_id, $status));
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
-            if (sizeof($result) == 0) {
-                return null;
-            }
             return $result;
         } catch (\PDOException $e) {
-            exit($e->getMessage());
+            throw new Error($e->getMessage());
         }
     }
     public function changeStatus($user_id, $updated_by, $status)

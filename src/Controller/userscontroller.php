@@ -65,9 +65,11 @@ class UsersController
             case 'GET':
                 if (sizeof($this->params) > 0) {
                     if (isset($this->params['id'])) {
-                        $response = $this->getUser($this->params['id']);
+                        $response = $this->getUser($this->params['id']); //
                     } elseif (isset($this->params['page'])) {
                         $response = $this->getUsersByRole($this->params['role_id'], $this->params['page']);
+                    } elseif (isset($this->params['action']) && $this->params['action'] === "profile") {
+                        $response = $this->getUserByEmailPhoneNumberNid($this->params['user_id']);
                     } else {
                         $response = Errors::notFoundError("Route not found!");
                     }
@@ -132,7 +134,7 @@ class UsersController
         // Disable current role
         $this->userRoleModel->disableRole($input['user_id'], $created_by, "Active", "Disabled");
         // Assign new role
-        $this->userRoleModel->insert($input, $created_by);
+        $this->userRoleModel->insertIntoUserToRole($input, $created_by);
 
         $response['status_code_header'] = 'HTTP/1.1 200 OK';
         $response['body'] = json_encode([
@@ -248,11 +250,27 @@ class UsersController
         $response['body'] = json_encode($result);
         return $response;
     }
+
+    function getUserByEmailPhoneNumberNid($params)
+    {
+
+        try {
+            $result = $this->usersModel->findExistPhoneNumberEmailNid($params, $params, $params);
+            if (sizeof($result) > 0) {
+                unset($result[0]['password']);
+            }
+            $response['status_code_header'] = 'HTTP/1.1 200 OK';
+            $response['body'] = json_encode($result);
+            return $response;
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
+        }
+    }
     // Get a user by id
     function getUser($params)
     {
 
-        $result = $this->usersModel->findOne($params);
+        $result = $this->usersModel->findOneUser($params);
         if (sizeof($result) > 0) {
             unset($result[0]['password']);
             $eddomain = $this->educationDomainModel->findById($result[0]['education_domain_id']);
@@ -284,7 +302,7 @@ class UsersController
             $secret_key = "owt125";
             $decoded_data = JWT::decode($data->jwt, new Key($secret_key, 'HS512'));
 
-            $user = $this->usersModel->findById($user_id, 1);
+            $user = $this->usersModel->findOneUser($user_id);
             if (sizeof($user) == 0) {
                 return Errors::notFoundError("Action failed, you can not suspend this user is already suspended!");
             }
@@ -314,7 +332,7 @@ class UsersController
             $secret_key = "owt125";
             $decoded_data = JWT::decode($data->jwt, new Key($secret_key, 'HS512'));
 
-            $user = $this->usersModel->findById($user_id, 0);
+            $user = $this->usersModel->findOneUser($user_id, 0);
             if (sizeof($user) == 0) {
                 return Errors::notFoundError("Action failed, you can not activate this user is already activated!");
             }

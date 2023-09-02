@@ -65,7 +65,7 @@ class AuthController
                 break;
             case 'PATCH':
                 if (sizeof($this->params) > 0) {
-                    if ($this->params['action'] == "credential") {
+                    if ($this->params['action'] == "assignaccess") {
                         $response = $this->assignAccessToUser($this->params['user_id']);
                     } elseif ($this->params['action'] == "password") {
                         $response = $this->login();
@@ -96,7 +96,7 @@ class AuthController
         $data = (array) json_decode(file_get_contents('php://input'), true);
         // geting authorized user id
         $created_by_user_id = AuthValidation::authorized()->id;
-        $validateUserInputData = UserValidation::insertUser($data);
+        $validateUserInputData = UserValidation::ValidateNewInsertedUser($data);
         if (!$validateUserInputData['validated']) {
             return Errors::unprocessableEntityResponse($validateUserInputData['message']);
         }
@@ -160,7 +160,7 @@ class AuthController
         }
 
         // // Check if user is registered
-        $user = $this->usersModel->findById($user_id, 1);
+        $user = $this->usersModel->findOneUser($user_id, 1);
         if (sizeof($user) <= 0) {
             return Errors::notFoundError("User not found");
         }
@@ -188,43 +188,41 @@ class AuthController
         ]);
         return $response;
     }
+
     // Assign access to user
     function assignAccessToUser($user_id)
     {
-        $data = (array) json_decode(file_get_contents('php://input'), true);
-
-        $rlt = new \stdClass();
-        $jwt_data = new \stdClass();
-
-        $all_headers = getallheaders();
-        if (isset($all_headers['Authorization'])) {
-            $jwt_data->jwt = $all_headers['Authorization'];
+        try {
+            $data = (array) json_decode(file_get_contents('php://input'), true);
+            // geting authorized user id
+            $created_by_user_id = AuthValidation::authorized()->id;
+            // Check if user is registered
+            $user = $this->usersModel->findOneUser($user_id, 1);
+            if (sizeof($user) == 0) {
+                return Errors::notFoundError("User not found!, please try again?");
+            }
+            // check if login is the same getting accesse
+            if ($created_by_user_id == $user_id) {
+                return Errors::badRequestError("You can not give yourself access!, please contact administrator?");
+            }
+            // Generate user id
+            $role_to_user_id = UuidGenerator::gUuid();
+            // check if user already have access role
+            $userHasActiveRole = $this->userRoleModel->findCurrentUserRole($user_id);
+            if (sizeof($userHasActiveRole) > 0) {
+                return Errors::badRequestError("This user has already active role, please disable the first one or contact administrator?");
+            }
+            $data['role_to_user_id'] = $role_to_user_id;
+            $data['user_id'] = $user_id;
+            $this->userRoleModel->insertIntoUserToRole($data, $created_by_user_id);
+            $response['status_code_header'] = 'HTTP/1.1 200 OK';
+            $response['body'] = json_encode([
+                "message" => "Change updated!",
+            ]);
+            return $response;
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
         }
-        // Decoding jwt
-        if (empty($jwt_data->jwt)) {
-            return Errors::notAuthorized();
-        }
-
-        if (!AuthValidation::isValidJwt($jwt_data)) {
-            return Errors::notAuthorized();
-        }
-        // // Check if user is registered
-        // $user = $this->usersModel->findExistUserName($data['username'], $user_id, 1);
-        // if (sizeof($user) > 0) {
-        //     return Errors::notFoundError("Username is already token!");
-        // }
-        $updated_by = AuthValidation::decodedData($jwt_data)->data->id;
-        // Encrypting default password
-        $default_password = Encrypt::saltEncryption($data['password']);
-        $data['password'] = $default_password;
-
-        $result = $this->usersModel->changeUsernameAndPassword($data, $user_id, $updated_by);
-
-        $response['status_code_header'] = 'HTTP/1.1 200 OK';
-        $response['body'] = json_encode([
-            "message" => "Change updated!",
-        ]);
-        return $response;
     }
     // Get all users
     function getCurrentUser()
@@ -247,7 +245,7 @@ class AuthController
         }
         $user_id = AuthValidation::decodedData($jwt_data)->data->id;
 
-        $result = $this->usersModel->findById($user_id, 1);
+        $result = $this->usersModel->findOneUser($user_id, 1);
         if (sizeof($result) > 0) {
 
             $rlt->jwt = $jwt_data->jwt;
@@ -327,7 +325,7 @@ class AuthController
             return $response;
         }
 
-        $userInfo = $this->usersModel->findById($userAuthData[0]['user_id'], 1);
+        $userInfo = $this->usersModel->findOneUser($userAuthData[0]['user_id'], 1);
 
         $iss = "localhost";
         $iat = time();
@@ -401,7 +399,7 @@ class AuthController
     function getUser($params)
     {
 
-        $result = $this->usersModel->findOne($params);
+        $result = $this->usersModel->findOneUser($params);
 
         $response['status_code_header'] = 'HTTP/1.1 200 OK';
         $response['body'] = json_encode($result);
