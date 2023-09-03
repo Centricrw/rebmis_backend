@@ -78,6 +78,9 @@ $route->router("/trainer", "src/Controller/trainerController.php");
 $route->router("/trainer/{action}", "src/Controller/trainerController.php");
 $route->router("/trainer/{action}/{training_id}", "src/Controller/trainerController.php");
 
+// ELEARNING
+$route->router("/elearning/{action}/{course_id}/{cohort_id}", "src/Controller/elearningController.php");
+
 //write it at the last
 //arg is 404 file location
 $route->notFound("404.php");
