@@ -1,7 +1,7 @@
 <?php
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+// ini_set('display_errors', 1);
+// ini_set('display_startup_errors', 1);
+// error_reporting(E_ALL);
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     header('Access-Control-Allow-Origin: *');
@@ -72,6 +72,11 @@ $route->router("/systemfunction/{action}", "src/Controller/systemFunctionControl
 $route->router("/trainingcenter", "src/Controller/trainingCenterController.php");
 $route->router("/trainingcenter/{action}", "src/Controller/trainingCenterController.php");
 $route->router("/trainingcenter/{action}/{id}", "src/Controller/trainingCenterController.php");
+
+// TRAINER
+$route->router("/trainer", "src/Controller/trainerController.php");
+$route->router("/trainer/{action}", "src/Controller/trainerController.php");
+$route->router("/trainer/{action}/{training_id}", "src/Controller/trainerController.php");
 
 //write it at the last
 //arg is 404 file location
