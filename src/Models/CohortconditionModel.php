@@ -29,8 +29,8 @@ class CohortconditionModel
 
     public function createCondition($data, $user_id)
     {
-        $statement = "INSERT INTO cohortconditions (cohortconditionId, capacity, cohortId, createdBy, provincecode, district_code, sector_code, school_code, combination_code, grade_code, course_name, comfirmed, approval_role_id)
-      VALUES(:cohortconditionId, :capacity, :cohortId, :createdBy, :provincecode, :district_code, :sector_code, :school_code, :combination_code, :grade_code, :course_name, :comfirmed, :approval_role_id)";
+        $statement = "INSERT INTO cohortconditions (cohortconditionId, capacity, cohortId, createdBy, provincecode, district_code, sector_code, school_code, combination_code, grade_code, course_name, comfirmed, approval_role_id, district_name, sector_name, school_name, combination_name, grade_name)
+      VALUES(:cohortconditionId, :capacity, :cohortId, :createdBy, :provincecode, :district_code, :sector_code, :school_code, :combination_code, :grade_code, :course_name, :comfirmed, :approval_role_id, :district_name, :sector_name, :school_name, :combination_name, :grade_name)";
 
         try {
             $statement = $this->db->prepare($statement);
@@ -45,6 +45,11 @@ class CohortconditionModel
                 ':combination_code' => empty($data['combination_code']) ? null : $data['combination_code'],
                 ':grade_code' => empty($data['grade_code']) ? null : $data['grade_code'],
                 ':course_name' => empty($data['course_name']) ? null : $data['course_name'],
+                ':district_name' => empty($data['district_name']) ? null : $data['district_name'],
+                ':sector_name' => empty($data['sector_name']) ? null : $data['sector_name'],
+                ':school_name' => empty($data['school_name']) ? null : $data['school_name'],
+                ':combination_name' => empty($data['combination_name']) ? null : $data['combination_name'],
+                ':grade_name' => empty($data['grade_name']) ? null : $data['grade_name'],
                 ':comfirmed' => $data['comfirmed'],
                 ':approval_role_id' => $data['approval_role_id'],
                 ':createdBy' => $user_id,
