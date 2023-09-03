@@ -78,6 +78,9 @@ $route->router("/trainer", "src/Controller/trainerController.php");
 $route->router("/trainer/{action}", "src/Controller/trainerController.php");
 $route->router("/trainer/{action}/{training_id}", "src/Controller/trainerController.php");
 
+// ELEARNING
+$route->router("/elearning/{action}/{course_id}/{cohort_id}", "src/Controller/elearningController.php");
+
 // TRAINING TYPE
 $route->router("/trainingtype", "src/Controller/trainingtypeController.php");
 $route->router("/trainingtype/{action}", "src/Controller/trainingtypeController.php");
