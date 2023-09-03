@@ -201,7 +201,10 @@ class UsersModel
 
     public function findExistPhoneNumberEmailNid($phone_number, $email, $nid)
     {
-        $statement = "SELECT * FROM users WHERE phone_numbers=? OR email = ? OR nid = ? LIMIT 1";
+        $statement = "SELECT U.*, R.role_id, R.role FROM users U
+        INNER JOIN user_to_role UR ON U.user_id = UR.user_id
+        INNER JOIN roles R ON UR.role_id = R.role_id
+         WHERE UR.status = 'Active' AND U.phone_numbers=? OR U.email = ? OR U.nid = ? LIMIT 1";
 
         try {
             $statement = $this->db->prepare($statement);
