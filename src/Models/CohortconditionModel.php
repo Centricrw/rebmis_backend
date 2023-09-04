@@ -152,31 +152,31 @@ class CohortconditionModel
         }
     }
 
-    function my_array_unique($array, $keep_key_assoc = false)
-    {
-        $duplicate_keys = array();
-        $tmp = array();
+    // function my_array_unique($array, $keep_key_assoc = false)
+    // {
+    //     $duplicate_keys = array();
+    //     $tmp = array();
 
-        foreach ($array as $key => $val) {
-            // convert objects to arrays, in_array() does not support objects
-            if (is_object($val)) {
-                $val = (array) $val;
-            }
+    //     foreach ($array as $key => $val) {
+    //         // convert objects to arrays, in_array() does not support objects
+    //         if (is_object($val)) {
+    //             $val = (array) $val;
+    //         }
 
-            if (!in_array($val['teacher_code'], $tmp)) {
-                $tmp[] = $val['teacher_code'];
-            } else {
-                $duplicate_keys[] = $key;
-            }
+    //         if (!in_array($val['teacher_code'], $tmp)) {
+    //             $tmp[] = $val['teacher_code'];
+    //         } else {
+    //             $duplicate_keys[] = $key;
+    //         }
 
-        }
+    //     }
 
-        foreach ($duplicate_keys as $key) {
-            unset($array[$key]);
-        }
+    //     foreach ($duplicate_keys as $key) {
+    //         unset($array[$key]);
+    //     }
 
-        return $keep_key_assoc ? $array : array_values($array);
-    }
+    //     return $keep_key_assoc ? $array : array_values($array);
+    // }
 
     public function getTeacherByConditions($condition)
     {
@@ -214,14 +214,13 @@ class CohortconditionModel
         INNER JOIN schools S ON S.school_code = UR.school_code
         INNER JOIN teacher_study_hierarchy TCH ON TCH.teacher_code = U.staff_code
         INNER JOIN study_hierarchy SH ON SH.studyhierarchyid = TCH.study_hierarchy_id
-        WHERE S.school_code LIKE '$likeSchoolcode%' AND TCH.status = 1
+        WHERE U.user_id NOT IN (select userId from trainees) AND S.school_code LIKE '$likeSchoolcode%' AND TCH.status = 1
         AND UR.status = 'Active' $sqlConditionString
         GROUP BY U.user_id LIMIT $limit";
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute($sqlConditionArrayValues);
             $teachers = $statement->fetchAll(\PDO::FETCH_ASSOC);
-            $results = $this->my_array_unique($teachers);
             return $teachers;
         } catch (\PDOException $e) {
             throw new Error($e->getMessage());
