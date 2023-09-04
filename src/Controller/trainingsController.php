@@ -166,7 +166,7 @@ class trainingsController
         $data = (array) json_decode(file_get_contents('php://input'), true);
 
         // validate status Rejected, Ongoing
-        if (!empty($data['status']) && $data["status"] !== "Rejected" && $data["status"] !== "Ongoing") {
+        if (!empty($data['status']) && $data["status"] !== "Rejected" && $data["status"] !== "Ongoing" && $data["status"] !== "Pending" && $data["status"] !== "Ended") {
             $response['status_code_header'] = 'HTTP/1.1 400 bad request!';
             $response['body'] = json_encode([
                 'message' => $data['status'] . ", Invalid Status input, Please try again?",
