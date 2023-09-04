@@ -106,9 +106,15 @@ class CohortconditionModel
     public function getTrainees($conditionId, $userDistrictCode = "")
     {
         if (isset($userDistrictCode) && $userDistrictCode !== "") {
-            $statement = "SELECT * FROM trainees WHERE cohortId = ? AND district_code = $userDistrictCode";
+            $statement = "SELECT T.*, S.school_name, SL.sector_name, SL.district_name FROM trainees T
+            INNER JOIN schools S ON S.school_code = T.school_code
+            INNER JOIN school_location SL ON SL.village_id = S.region_code
+            WHERE T.cohortId = ? AND T.district_code = $userDistrictCode";
         } else {
-            $statement = "SELECT * FROM trainees WHERE cohortId = ?";
+            $statement = "SELECT T.*, S.school_name, SL.sector_name, SL.district_name FROM trainees T
+            INNER JOIN schools S ON S.school_code = T.school_code
+            INNER JOIN school_location SL ON SL.village_id = S.region_code
+            WHERE T.cohortId = ?";
         }
         try {
             $statement = $this->db->prepare($statement);
