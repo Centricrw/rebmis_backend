@@ -153,6 +153,32 @@ class CohortconditionModel
         }
     }
 
+    function my_array_unique($array, $keep_key_assoc = false)
+    {
+        $duplicate_keys = array();
+        $tmp = array();
+
+        foreach ($array as $key => $val) {
+            // convert objects to arrays, in_array() does not support objects
+            if (is_object($val)) {
+                $val = (array) $val;
+            }
+
+            if (!in_array($val['teacher_code'], $tmp)) {
+                $tmp[] = $val['teacher_code'];
+            } else {
+                $duplicate_keys[] = $key;
+            }
+
+        }
+
+        foreach ($duplicate_keys as $key) {
+            unset($array[$key]);
+        }
+
+        return $keep_key_assoc ? $array : array_values($array);
+    }
+
     public function getTeacherByConditions($condition)
     {
         $stringArray = ["provincecode", "district_code", "sector_code", "school_code", "combination_code", "grade_code", "course_name"];
@@ -183,7 +209,7 @@ class CohortconditionModel
                 }
             }
         };
-        $statement = "SELECT DISTINCT TCH.teacher_code, U.user_id,U.full_name, U.staff_code, U.phone_numbers, SH.combination_name, SH.grade_name, SH.course_name, TCH.status, S.school_name, S.school_code, UR.sector_code, UR.district_code FROM user_to_role UR
+        $statement = "SELECT TCH.teacher_code, U.user_id,U.full_name, U.staff_code, U.phone_numbers, SH.combination_name, SH.grade_name, SH.course_name, TCH.status, S.school_name, S.school_code, UR.sector_code, UR.district_code FROM user_to_role UR
         INNER JOIN users U ON  UR.user_id = U.user_id
         INNER JOIN schools S ON S.school_code = UR.school_code
         INNER JOIN teacher_study_hierarchy TCH ON TCH.teacher_code = U.staff_code
@@ -194,7 +220,8 @@ class CohortconditionModel
             $statement = $this->db->prepare($statement);
             $statement->execute($sqlConditionArrayValues);
             $teachers = $statement->fetchAll(\PDO::FETCH_ASSOC);
-            return $teachers;
+            $results = $this->my_array_unique($teachers);
+            return $results;
         } catch (\PDOException $e) {
             throw new Error($e->getMessage());
         }
