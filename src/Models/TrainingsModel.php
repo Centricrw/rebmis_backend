@@ -25,7 +25,7 @@ class TrainingsModel
 
     public function getAllTranings($userDistrictCode)
     {
-        if (isset($userDistrictCode)) {
+        if (isset($userDistrictCode) && $userDistrictCode !== "") {
             $statement = "SELECT  T.trainingId, T.trainingProviderId, TP.trainingProviderName, T.trainingName, T.offerMode, T.trainingDescription, T.startDate, T.endDate, T.status, ifnull((SELECT COUNT(TN.traineesId) FROM trainees TN WHERE TN.trainingId = T.trainingId AND TN.status = 'Approved'),0) trainees FROM trainings T INNER JOIN trainingProviders TP ON T.trainingProviderId = TP.trainingProviderId INNER JOIN cohorts C ON T.trainingId = C.trainingId INNER JOIN cohortconditions CND ON C.cohortId = CND.cohortId WHERE CND.district_code = $userDistrictCode";
         } else {
             $statement = "SELECT  T.trainingId, T.trainingProviderId, TP.trainingProviderName, T.trainingName, T.offerMode, T.trainingDescription, T.startDate, T.endDate, T.status, ifnull((SELECT COUNT(TN.traineesId) FROM trainees TN WHERE TN.trainingId = T.trainingId AND TN.status = 'Approved'),0) trainees FROM trainings T INNER JOIN trainingProviders TP ON T.trainingProviderId = TP.trainingProviderId";
