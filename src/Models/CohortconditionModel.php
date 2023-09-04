@@ -103,9 +103,13 @@ class CohortconditionModel
         }
     }
 
-    public function getTrainees($conditionId)
+    public function getTrainees($conditionId, $userDistrictCode = "")
     {
-        $statement = "SELECT * FROM trainees WHERE cohortId = ?";
+        if (isset($userDistrictCode) && $userDistrictCode !== "") {
+            $statement = "SELECT * FROM trainees WHERE cohortId = ? AND district_code = $userDistrictCode";
+        } else {
+            $statement = "SELECT * FROM trainees WHERE cohortId = ?";
+        }
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array($conditionId));
