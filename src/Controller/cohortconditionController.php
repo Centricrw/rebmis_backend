@@ -116,33 +116,29 @@ class locationsController
 
     private function approveselected($cohortConditionId)
     {
-        $jwt_data = new \stdClass();
-
-        $all_headers = getallheaders();
-        if (isset($all_headers['Authorization'])) {
-            $jwt_data->jwt = $all_headers['Authorization'];
-        }
-        // Decoding jwt
-        if (empty($jwt_data->jwt)) {
-            return Errors::notAuthorized();
-        }
-        if (!AuthValidation::isValidJwt($jwt_data)) {
-            return Errors::notAuthorized();
-        }
-
-        $user_id = AuthValidation::decodedData($jwt_data)->data->id;
+        $logged_user_id = AuthValidation::authorized()->id;
 
         $data = (array) json_decode(file_get_contents('php://input'), true);
+        try {
+            foreach ($data['teachers'] as $aproved) {
+                //check if teacher assigned to this training
+                $traineerExist = $this->cohortconditionModel->checkIfTraineerAvailable($aproved['trainingId'], $aproved['user_id']);
+                if (sizeof($traineerExist) == 0) {
+                    // Generate traineer id
+                    $generated_traineer_id = UuidGenerator::gUuid();
+                    $aproved['traineesId'] = $generated_traineer_id;
+                    $this->cohortconditionModel->InsertApprovedSelectedTraineers($aproved, $logged_user_id);
+                }
+            }
 
-        // Validate input if not empty
-        $result = new \stdClass();
-        foreach ($data['teachers'] as $aproved) {
-            $result->ids = $this->cohortconditionModel->approveselected($aproved['userId'], $user_id, $cohortConditionId);
+            $response['status_code_header'] = 'HTTP/1.1 200 OK';
+            $response['body'] = json_encode([
+                'message' => "Traineers assigned succefully!",
+            ]);
+            return $response;
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
         }
-        $this->cohortconditionModel->cleanrejected($cohortConditionId);
-        $response['status_code_header'] = 'HTTP/1.1 200 OK';
-        $response['body'] = json_encode($result);
-        return $response;
     }
 
     private function getallConditions($cohortId)
