@@ -3,6 +3,7 @@ namespace Src\Controller;
 
 use Src\Models\CohortconditionModel;
 use Src\Models\CohortsModel;
+use Src\Models\UserRoleModel;
 use Src\System\AuthValidation;
 use Src\System\Errors;
 
@@ -11,6 +12,7 @@ class cohortsController
     private $db;
     private $cohortsModel;
     private $request_method;
+    private $userRoleModel;
     private $params;
     private $cohortconditionModel;
 
@@ -21,6 +23,7 @@ class cohortsController
         $this->params = $params;
         $this->cohortsModel = new CohortsModel($db);
         $this->cohortconditionModel = new CohortconditionModel($db);
+        $this->userRoleModel = new UserRoleModel($db);
     }
 
     function processRequest()
@@ -55,16 +58,28 @@ class cohortsController
 
     private function getAllCohorts($trainingId)
     {
-        $results = $this->cohortsModel->getAllCohorts($trainingId);
-        $newCohortWithCondition = [];
-        foreach ($results as $result) {
-            $cohortConditions = $this->cohortconditionModel->getAllConditions($result['cohortId']);
-            $result['cohorts_condition'] = $cohortConditions;
-            array_push($newCohortWithCondition, $result);
+        $logged_user_id = AuthValidation::authorized()->id;
+        try {
+            $current_user_role = $this->userRoleModel->findCurrentUserRole($logged_user_id);
+            if (sizeof($current_user_role) > 0) {
+                $userRole = $current_user_role[0]['role_id'];
+                $userSchoolCode = $current_user_role[0]['school_code'];
+                $userSectorCode = $current_user_role[0]['sector_code'];
+                $userDistrictCode = $current_user_role[0]['district_code'];
+            }
+            $results = $this->cohortsModel->getAllCohorts($trainingId);
+            $newCohortWithCondition = [];
+            foreach ($results as $result) {
+                $cohortConditions = $this->cohortconditionModel->getAllConditions($result['cohortId'], $userDistrictCode);
+                $result['cohorts_condition'] = $cohortConditions;
+                array_push($newCohortWithCondition, $result);
+            }
+            $response['status_code_header'] = 'HTTP/1.1 200 OK';
+            $response['body'] = json_encode($newCohortWithCondition);
+            return $response;
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
         }
-        $response['status_code_header'] = 'HTTP/1.1 200 OK';
-        $response['body'] = json_encode($newCohortWithCondition);
-        return $response;
     }
 
     private function addACohort($trainingId)
