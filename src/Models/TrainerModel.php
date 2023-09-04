@@ -102,10 +102,10 @@ class TrainerModel
      */
     public function getAllTrainersByTrainingId($training_id)
     {
-        $statement = "SELECT U.user_id, U.phone_numbers, U.email, U.nid, U.sex, U.full_name, U.first_name, U.middle_name, U.last_name, TN.training_id, T.trainingName, T.trainingDescription, T.startDate, T.endDate  FROM `trainers` TN
+        $statement = "SELECT U.user_id, TN.trainers_id, U.phone_numbers, U.email, U.nid, U.sex, U.full_name, U.first_name, U.middle_name, U.last_name, TN.training_id, T.trainingName, T.trainingDescription, T.startDate, T.endDate  FROM `trainers` TN
         INNER JOIN users U ON U.user_id = TN.user_id
         INNER JOIN trainings T ON T.trainingId = TN.training_id
-        WHERE TN.`training_id`=:training_id";
+        WHERE TN.`training_id`=:training_id AND TN.status = 1";
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array(':training_id' => $training_id));
