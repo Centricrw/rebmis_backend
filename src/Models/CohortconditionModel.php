@@ -101,8 +101,7 @@ class CohortconditionModel
 
     public function getTrainees($conditionId)
     {
-        $statement = "SELECT * FROM trainees TR
-              WHERE TR.cohortId = ?";
+        $statement = "SELECT * FROM trainees WHERE cohortId = ?";
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array($conditionId));
@@ -209,19 +208,21 @@ class CohortconditionModel
                 }
             }
         };
-        $statement = "SELECT TCH.teacher_code, U.user_id,U.full_name, U.staff_code, U.phone_numbers, SH.combination_name, SH.grade_name, SH.course_name, TCH.status, S.school_name, S.school_code, UR.sector_code, UR.district_code FROM user_to_role UR
+        $limit = $condition['capacity'];
+        $statement = "SELECT TCH.teacher_code, U.user_id,U.full_name, U.staff_code, U.phone_numbers, MIN(SH.combination_name) as combination_name, MIN(SH.grade_name) as grade_name, GROUP_CONCAT(SH.course_name) as course_name, TCH.status, MIN(S.school_name) as school_name, MIN(S.school_code) as school_code, MIN(UR.sector_code) as sector_code, MIN(UR.district_code) as district_code FROM user_to_role UR
         INNER JOIN users U ON  UR.user_id = U.user_id
         INNER JOIN schools S ON S.school_code = UR.school_code
         INNER JOIN teacher_study_hierarchy TCH ON TCH.teacher_code = U.staff_code
         INNER JOIN study_hierarchy SH ON SH.studyhierarchyid = TCH.study_hierarchy_id
         WHERE S.school_code LIKE '$likeSchoolcode%' AND TCH.status = 1
-        AND UR.status = 'Active' $sqlConditionString LIMIT " . $condition['capacity'];
+        AND UR.status = 'Active' $sqlConditionString
+        GROUP BY U.user_id LIMIT $limit";
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute($sqlConditionArrayValues);
             $teachers = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $results = $this->my_array_unique($teachers);
-            return $results;
+            return $teachers;
         } catch (\PDOException $e) {
             throw new Error($e->getMessage());
         }
