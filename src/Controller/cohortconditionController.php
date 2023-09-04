@@ -135,14 +135,23 @@ class locationsController
 
         $data = (array) json_decode(file_get_contents('php://input'), true);
         try {
+            // get cohort condition details
+            $conditionDetails = $this->cohortconditionModel->selectCohortConditionById($data['teachers'][0]['cohortconditionId']);
+
             foreach ($data['teachers'] as $aproved) {
-                //check if teacher assigned to this training
-                $traineerExist = $this->cohortconditionModel->checkIfTraineerAvailable($aproved['trainingId'], $aproved['user_id']);
-                if (sizeof($traineerExist) == 0) {
-                    // Generate traineer id
-                    $generated_traineer_id = UuidGenerator::gUuid();
-                    $aproved['traineesId'] = $generated_traineer_id;
-                    $this->cohortconditionModel->InsertApprovedSelectedTraineers($aproved, $logged_user_id);
+                //count avaible traineers
+                $availableTraineers = $this->cohortconditionModel->countTraineersOnCondition($aproved);
+                if (sizeof($availableTraineers) != (int) $conditionDetails['capacity']) {
+                    return Errors::badRequestError("Needed Traineers completed!");
+                } else {
+                    //check if teacher assigned to this training
+                    $traineerExist = $this->cohortconditionModel->checkIfTraineerAvailable($aproved['trainingId'], $aproved['user_id']);
+                    if (sizeof($traineerExist) == 0) {
+                        // Generate traineer id
+                        $generated_traineer_id = UuidGenerator::gUuid();
+                        $aproved['traineesId'] = $generated_traineer_id;
+                        $this->cohortconditionModel->InsertApprovedSelectedTraineers($aproved, $logged_user_id);
+                    }
                 }
             }
 

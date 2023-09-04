@@ -47,6 +47,34 @@ class CohortconditionModel
         }
     }
 
+    public function selectCohortConditionById($conditionId)
+    {
+        $statement = "SELECT * FROM cohortconditions WHERE cohortconditionId = :cohortconditionId";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(":cohortconditionId" => $conditionId,
+            ));
+            $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $results;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    public function countTraineersOnCondition($data)
+    {
+        $statement = "SELECT userId FROM trainees WHERE conditionId = :conditionId";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(":conditionId" => $data['cohortconditionId'],
+            ));
+            $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $results;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
     public function InsertApprovedSelectedTraineers($data, $logged_user_id)
     {
         $statement = "INSERT INTO `trainees`(`traineesId`, `userId`, `trainingId`, `cohortId`, `conditionId`, `status`, `traineeName`, `traineePhone`, `district_code`, `sector_code`, `school_code`) VALUES (:traineesId, :userId, :trainingId, :cohortId, :conditionId, :status, :traineeName, :traineePhone, :district_code, :sector_code, :school_code)";
@@ -89,7 +117,7 @@ class CohortconditionModel
     public function getAllConditions($cohortId, $userDistrictCode = "")
     {
         if (isset($userDistrictCode) && $userDistrictCode !== "") {
-            $statement = "SELECT *, IFNULL((SELECT COUNT(T.traineesId) FROM trainees T WHERE T.cohortId = CC.cohortId AND status = 'Approved'),0) providedTrainees FROM cohortconditions CC WHERE CC.cohortId = ? AND CC.district_code = $userDistrictCode";
+            $statement = "SELECT *, IFNULL((SELECT COUNT(T.traineesId) FROM trainees T WHERE T.conditionId = CC.cohortconditionId AND status = 'Approved'),0) providedTrainees FROM cohortconditions CC WHERE CC.cohortId = ? AND CC.district_code = $userDistrictCode";
         } else {
             $statement = "SELECT *, IFNULL((SELECT COUNT(T.traineesId) FROM trainees T WHERE T.cohortId = CC.cohortId AND status = 'Approved'),0) providedTrainees FROM cohortconditions CC WHERE CC.cohortId = ?";
         }
