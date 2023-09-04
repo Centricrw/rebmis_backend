@@ -141,7 +141,7 @@ class locationsController
             foreach ($data['teachers'] as $aproved) {
                 //count avaible traineers
                 $availableTraineers = $this->cohortconditionModel->countTraineersOnCondition($aproved);
-                if (sizeof($availableTraineers) != (int) $conditionDetails['capacity']) {
+                if (sizeof($availableTraineers) == (int) $conditionDetails[0]['capacity']) {
                     return Errors::badRequestError("Needed Traineers completed!");
                 } else {
                     //check if teacher assigned to this training
