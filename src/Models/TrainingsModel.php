@@ -35,8 +35,7 @@ class TrainingsModel
         $statement = "SELECT  T.trainingId, T.trainingProviderId, TP.trainingProviderName, T.trainingName, T.offerMode, T.trainingDescription, T.startDate, T.endDate, T.status, ifnull((SELECT COUNT(TN.traineesId) FROM trainees TN WHERE TN.trainingId
       = T.trainingId AND TN.status = 'Approved'),0) trainees
       FROM trainings T
-      INNER JOIN trainingProviders TP ON T.trainingProviderId = TP.trainingProviderId
-      $selectByDistrict";
+      INNER JOIN trainingProviders TP ON T.trainingProviderId = TP.trainingProviderId " . $selectByDistrict;
         try {
             $statement = $this->db->query($statement);
             $statement->execute();
