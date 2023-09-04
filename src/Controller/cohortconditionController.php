@@ -2,6 +2,7 @@
 namespace Src\Controller;
 
 use Src\Models\CohortconditionModel;
+use Src\Models\UserRoleModel;
 use Src\System\AuthValidation;
 use Src\System\Errors;
 use Src\System\UuidGenerator;
@@ -11,6 +12,7 @@ class locationsController
     private $db;
     private $cohortconditionModel;
     private $request_method;
+    private $userRoleModel;
     private $params;
 
     public function __construct($db, $request_method, $params)
@@ -19,6 +21,7 @@ class locationsController
         $this->request_method = $request_method;
         $this->params = $params;
         $this->cohortconditionModel = new CohortconditionModel($db);
+        $this->userRoleModel = new UserRoleModel($db);
     }
 
     function processRequest()
@@ -65,11 +68,23 @@ class locationsController
 
     private function getTrainees($conditionId)
     {
-        $result = $this->cohortconditionModel->getTrainees($conditionId);
+        $logged_user_id = AuthValidation::authorized()->id;
+        try {
+            $current_user_role = $this->userRoleModel->findCurrentUserRole($logged_user_id);
+            if (sizeof($current_user_role) > 0) {
+                $userRole = $current_user_role[0]['role_id'];
+                $userSchoolCode = $current_user_role[0]['school_code'];
+                $userSectorCode = $current_user_role[0]['sector_code'];
+                $userDistrictCode = $current_user_role[0]['district_code'];
+            }
+            $result = $this->cohortconditionModel->getTrainees($conditionId, $userDistrictCode);
 
-        $response['status_code_header'] = 'HTTP/1.1 200 OK';
-        $response['body'] = json_encode($result);
-        return $response;
+            $response['status_code_header'] = 'HTTP/1.1 200 OK';
+            $response['body'] = json_encode($result);
+            return $response;
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
+        }
     }
 
     private function getSchoolsByLocation()
