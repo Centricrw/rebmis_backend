@@ -88,7 +88,7 @@ class CohortconditionModel
 
     public function getAllConditions($cohortId, $userDistrictCode = "")
     {
-        if (isset($userDistrictCode)) {
+        if (isset($userDistrictCode) && $userDistrictCode !== "") {
             $statement = "SELECT *, IFNULL((SELECT COUNT(T.traineesId) FROM trainees T WHERE T.cohortId = CC.cohortId AND status = 'Approved'),0) providedTrainees FROM cohortconditions CC WHERE CC.cohortId = ? AND CC.district_code = $userDistrictCode";
         } else {
             $statement = "SELECT *, IFNULL((SELECT COUNT(T.traineesId) FROM trainees T WHERE T.cohortId = CC.cohortId AND status = 'Approved'),0) providedTrainees FROM cohortconditions CC WHERE CC.cohortId = ?";
