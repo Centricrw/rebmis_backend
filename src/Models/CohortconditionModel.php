@@ -13,20 +13,6 @@ class CohortconditionModel
         $this->db = $db;
     }
 
-    // {
-    //     "": "1",
-    //     "": "11",
-    //     "": "",
-    //     "": "",
-    //     "": "",
-    //     "": "",
-    //     "": "English",
-    //     "": 0,
-    //     "": 1000,
-    //     "cohort_id": "",
-    //     "": ""
-    // }
-
     public function createCondition($data, $user_id)
     {
         $statement = "INSERT INTO cohortconditions (cohortconditionId, capacity, cohortId, createdBy, provincecode, district_code, sector_code, school_code, combination_code, grade_code, course_name, comfirmed, approval_role_id, district_name, sector_name, school_name, combination_name, grade_name)
@@ -61,25 +47,42 @@ class CohortconditionModel
         }
     }
 
-    public function approveselected($traineesId, $user_id, $cohorConditiontId)
+    public function InsertApprovedSelectedTraineers($data, $logged_user_id)
     {
-        $statement = "UPDATE trainees SET `status` = 'Approved' WHERE userId = ?";
+        $statement = "INSERT INTO `trainees`(`traineesId`, `userId`, `trainingId`, `cohortId`, `conditionId`, `status`, `traineeName`, `traineePhone`, `district_code`, `sector_code`, `school_code`) VALUES (:traineesId, :userId, :trainingId, :cohortId, :conditionId, :status, :traineeName, :traineePhone, :district_code, :sector_code, :school_code)";
         try {
             $statement = $this->db->prepare($statement);
-            $statement->execute(array($traineesId));
+            $statement->execute(array(
+                ":traineesId" => $data['traineesId'],
+                ":userId" => $data['user_id'],
+                ":trainingId" => $data['trainingId'],
+                ":cohortId" => $data['cohortId'],
+                ":conditionId" => $data['cohortconditionId'],
+                ":status" => "Approved",
+                ":traineeName" => $data['full_name'],
+                ":traineePhone" => $data['traineePhone'],
+                ":district_code" => substr($data['school_code'], 0, 2),
+                ":sector_code" => substr($data['school_code'], 0, 4),
+                ":school_code" => $data['school_code'],
+            ));
         } catch (\PDOException $e) {
-            exit($e->getMessage());
+            throw new Error($e->getMessage());
         }
     }
 
-    public function cleanrejected($cohorConditiontId)
+    public function checkIfTraineerAvailable($trainingId, $userId)
     {
-        $statement = "DELETE FROM trainees WHERE status <> :status AND conditionId = :";
+        $statement = "SELECT * FROM trainees WHERE trainingId = :trainingId AND userId = :userId ";
         try {
             $statement = $this->db->prepare($statement);
-            $statement->execute(array(':status' => 'Approved', ':conditionId' => $cohorConditiontId));
+            $statement->execute(array(
+                ':trainingId' => $trainingId,
+                ':userId' => $userId,
+            ));
+            $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $results;
         } catch (\PDOException $e) {
-            exit($e->getMessage());
+            throw new Error($e->getMessage());
         }
     }
 
@@ -180,7 +183,7 @@ class CohortconditionModel
                 }
             }
         };
-        $statement = "SELECT DISTINCT TCH.teacher_code,U.full_name, U.staff_code, SH.combination_name, SH.grade_name, SH.course_name, TCH.status, S.school_name, S.school_code, UR.sector_code, UR.district_code FROM user_to_role UR
+        $statement = "SELECT DISTINCT TCH.teacher_code, U.user_id,U.full_name, U.staff_code, U.phone_numbers, SH.combination_name, SH.grade_name, SH.course_name, TCH.status, S.school_name, S.school_code, UR.sector_code, UR.district_code FROM user_to_role UR
         INNER JOIN users U ON  UR.user_id = U.user_id
         INNER JOIN schools S ON S.school_code = UR.school_code
         INNER JOIN teacher_study_hierarchy TCH ON TCH.teacher_code = U.staff_code
