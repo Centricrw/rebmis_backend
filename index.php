@@ -86,6 +86,9 @@ $route->router("/trainingtype", "src/Controller/trainingtypeController.php");
 $route->router("/trainingtype/{action}", "src/Controller/trainingtypeController.php");
 $route->router("/trainingtype/{action}/{training_type_id}", "src/Controller/trainingtypeController.php");
 
+// UPDATING NEW PASSWORD OR CHANGE PASSWORD
+$route->router("/changepassword/{action}", "src/Controller/changePasswordController.php");
+
 //write it at the last
 //arg is 404 file location
 $route->notFound("404.php");
