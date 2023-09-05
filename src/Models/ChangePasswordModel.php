@@ -54,32 +54,27 @@ class ChangePasswordModel
     public function sendVerficationCodeMessage($msg, $phoneNumber)
     {
         //?Username: university.rwanda, Password: pass1234
-        try {
-            $data = array(
-                "sender" => 'UOR',
-                "recipients" => $phoneNumber,
-                "message" => $msg,
-                "dlrurl" => "",
-            );
-            $url = "https://www.intouchsms.co.rw/api/sendsms/.json";
-            $data = http_build_query($data);
-            $username = "university.rwanda";
-            $password = "pass1234";
-            $ch = curl_init();
-            curl_setopt($ch, CURLOPT_URL, $url);
-            curl_setopt($ch, CURLOPT_USERPWD, $username . ":" . $password);
-            curl_setopt($ch, CURLOPT_POST, true);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
-            $result = curl_exec($ch);
-            $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            curl_close($ch);
-            $response['result'] = $result;
-            $response['httpcode'] = $httpcode;
-            return $response;
-        } catch (\Throwable $th) {
-            throw new Error($th->getMessage());
-        }
+        // try {
+        //     $data = "";
+        //     $url = "https://www.intouchsms.co.rw/api/sendsms/.json";
+        //     $data = http_build_query($data);
+        //     $username = "university.rwanda";
+        //     $password = "pass1234";
+        //     $ch = curl_init();
+        //     curl_setopt($ch, CURLOPT_URL, $url);
+        //     curl_setopt($ch, CURLOPT_USERPWD, $username . ":" . $password);
+        //     curl_setopt($ch, CURLOPT_POST, true);
+        //     curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        //     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+        //     curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+        //     $result = curl_exec($ch);
+        //     $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        //     curl_close($ch);
+        //     $response['result'] = $result;
+        //     $response['httpcode'] = $httpcode;
+        //     return $response;
+        // } catch (\Throwable $th) {
+        //     throw new Error($th->getMessage());
+        // }
     }
 }
