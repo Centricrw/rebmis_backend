@@ -1,7 +1,7 @@
 <?php
-// ini_set('display_errors', 1);
-// ini_set('display_startup_errors', 1);
-// error_reporting(E_ALL);
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     header('Access-Control-Allow-Origin: *');
@@ -88,6 +88,11 @@ $route->router("/trainingtype/{action}/{training_type_id}", "src/Controller/trai
 
 // UPDATING NEW PASSWORD OR CHANGE PASSWORD
 $route->router("/changepassword/{action}", "src/Controller/changePasswordController.php");
+
+// TRAINING TYPE
+$route->router("/invitation", "src/Controller/invitationLetterController.php");
+$route->router("/invitation/{action}", "src/Controller/invitationLetterController.php");
+$route->router("/invitation/{action}/{id}", "src/Controller/invitationLetterController.php");
 
 //write it at the last
 //arg is 404 file location
