@@ -73,6 +73,27 @@ class InvitationLetterModel
     }
 
     /**
+     * get ONE invitation letter by training id and type
+     * @param {STRING, STRING} $trainingId, $letter_type
+     * @return {OBJECT} $results
+     */
+    public function selectInvintationLetterByTrainingIdAndType($trainingId, $letter_type)
+    {
+        $statement = "SELECT * FROM `invintation_tamplete_letter` WHERE trainingId = :trainingId AND letter_type = :letter_type  LIMIT 1";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
+                ":trainingId" => $trainingId,
+                ":letter_type" => $letter_type,
+            ));
+            $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $results;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    /**
      * get invitation letter by training id and type
      * @param {STRING, STRING} {trainingId, letter_type}
      * @return {OBJECT} {results}

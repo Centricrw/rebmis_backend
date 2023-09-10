@@ -1,9 +1,10 @@
 <?php
 namespace Src\Controller;
 
+use Src\Models\CohortconditionModel;
 use Src\Models\InvitationLetterModel;
-use Src\Models\LocationsModel;
 use Src\Models\TrainingsModel;
+use Src\Models\UserRoleModel;
 use Src\Models\UsersModel;
 use Src\System\AuthValidation;
 use Src\System\Errors;
@@ -16,7 +17,8 @@ class InvitationLetterController
     private $invitationLetterModel;
     private $usersModel;
     private $trainingsModel;
-    private $locationsModel;
+    private $userRoleModel;
+    private $cohortconditionModel;
     private $request_method;
     private $params;
     private $homeDir;
@@ -29,7 +31,8 @@ class InvitationLetterController
         $this->invitationLetterModel = new InvitationLetterModel($db);
         $this->trainingsModel = new TrainingsModel($db);
         $this->usersModel = new UsersModel($db);
-        $this->locationsModel = new LocationsModel($db);
+        $this->userRoleModel = new UserRoleModel($db);
+        $this->cohortconditionModel = new CohortconditionModel($db);
         $this->homeDir = dirname(__DIR__, 2);
     }
 
@@ -42,7 +45,7 @@ class InvitationLetterController
                 } else if (isset($this->params['action']) && $this->params['action'] == "one") {
                     $response = $this->getOneInvitationLetterByID($this->params['id']);
                 } else if (isset($this->params['action']) && $this->params['action'] == "letter") {
-                    $response = $this->genarateSuspensionLetter($this->params['id']);
+                    $response = $this->generateTeacherTrainingLetter($this->params['id']);
                 } else {
                     $response = $this->getAllInvintationLetters();
                 }
@@ -224,109 +227,149 @@ class InvitationLetterController
         }
     }
 
-    // suspension letter Handler
-    public function genarateSuspensionLetter($user_id)
+    // checking if invitetion letter exists for this training
+    function invitationExistsHandler($training_id, $letter_type)
     {
-        // SUSPENDED
-        $userResult = $this->usersModel->findOneUser($user_id);
-        $schoolCode = "110101";
-
-        // checking if school is provided
-        if (empty($schoolCode)) {
-            $response = Errors::notFoundError("User School Not Found, Please Try Again Leter?");
+        $invitationExists = $this->invitationLetterModel->selectInvintationLetterByTrainingIdAndType($training_id, $letter_type);
+        if (sizeof($invitationExists) == 0) {
+            $response = Errors::notFoundError("This training does not have training letter for $letter_type, please contact admistrator?");
             return $response;
         }
-        $districtCode = $userResult[0]['district_code'] ? $userResult[0]['district_code'] : substr($schoolCode, 0, 2);
-        $provinceCode = $userResult[0]['province_code'];
-        $provinceResults = $this->locationsModel->getAddressDetails($provinceCode, "provinces");
-        $destrictResults = $this->locationsModel->getAddressDetails($districtCode, "districts");
-
-        // needed valiables
-        $province = "Kigali";
-        $district = "Nyarugenge";
-        $ref = "TMIS/Suspension No: 0" . 11;
-        $action = "Training";
-        $subject = "Subject";
-        $userName = $userResult[0]['full_name'];
-        $schoolName = "ECD RWAKIVUMU";
-        $role = "class teacher";
-        $statrtDate = ". . / . . / . . . .";
-        $endDate = ". . / . . / . . . .";
-
-        $reasonMessage = "Training invitation letter";
-        $messageBody = "First, I want to introduce myself. Flora Patty, the senior account manager. I am writing this letter to you to invite you to our upcoming four-day optional training program for all sales department employees. This training program is designed to inculcate additional selling skills and strategies among the sales team and we hope that you would be paying attention to it.This training program also included a marketing seminar for the participants.";
-
-        $reason = "Since this is not the obligatory training program, not attending it wouldn’t be marked as a negative against you. But it would be my personal appeal to try and make it to the program as it would be very helpful for you.  To register, kindly get and fill out a form from the accounts department front desk and submit it within 2 days. If your application isn’t received in this period, we wouldn’t be able to lodge you. Looking forward to your training application,";
-        $effectImediate = "This suspension is effective from the date it is signed.";
-        $mayor = "Sebutege Ange";
-        // $response['status_code_header'] = 'HTTP/1.1 200 OK';
-        // $response['body'] = json_encode($userResult);
-
-        return $this->createPDF($province, $district, $ref, $action, $userName, $messageBody, $reason, $mayor, $schoolName, $effectImediate, $subject);
+        return $invitationExists;
     }
 
-    public function createPDF($province, $district, $ref, $action, $userName, $messageBody, $reason, $mayor, $schoolName, $effectImediate = "", $subject = "Subject")
+    // get dde letter and traineers details
+    function getDDELetterAndDistrictTraineers($training_id, $userDetails, $district_code)
     {
-        //declaration
+        $ddeInvitation = $this->invitationExistsHandler($training_id, "DDE");
+        $classTeacherInvitation = $this->invitationExistsHandler($training_id, "Class Teacher");
+        // checking if users is assigned to that training
+        $traineerExists = $this->cohortconditionModel->selectTraineeOnThatDistrict($training_id, $district_code);
+        if (sizeof($traineerExists) == 0) {
+            $response = Errors::notFoundError("Traineer not found on this training, please contact admistrator?");
+            return $response;
+        }
+        return $this->genarateTampleteInvitaioninPDF($userDetails, $ddeInvitation[0], $classTeacherInvitation[0], $traineerExists);
 
-        // reference: TMIS/Appointment No: 00001
-        // action: Termination, Transfer, Suspension and Appointment
-        // subject: Re: or Subject:
-        // name of the letter user
-        // message body
+    }
+    // get Head teacher letter and traineers details
+    function getHeadTeacherLetterAndSchoolTraineers($training_id, $userDetails, $school_code)
+    {
+        $headTeacherInvitation = $this->invitationExistsHandler($training_id, "Head Teacher");
+        $classTeacherInvitation = $this->invitationExistsHandler($training_id, "Class Teacher");
+        // checking if users is assigned to that training
+        $traineerExists = $this->cohortconditionModel->selectTraineesOnThatSchools($training_id, $school_code);
+        if (sizeof($traineerExists) == 0) {
+            $response = Errors::notFoundError("Traineer not found on this training, please contact admistrator?");
+            return $response;
+        }
+        return $this->genarateTampleteInvitaioninPDF($userDetails, $headTeacherInvitation[0], $classTeacherInvitation[0], $traineerExists);
+    }
+    // get classTeacher details
+    function getTraineersDetails($training_id, $userDetails)
+    {
+        // checking if users is assigned to that training
+        $traineerExists = $this->cohortconditionModel->selectTraineeByUserIDAndTrainingID($userDetails['user_id'], $training_id);
+        if (sizeof($traineerExists) == 0) {
+            $response = Errors::notFoundError("Traineer not found on this training, please contact admistrator?");
+            return $response;
+        }
+        $invitation = $this->invitationExistsHandler($training_id, "Class Teacher");
+        return $this->genarateTampleteInvitaioninPDF($userDetails, $invitation[0]);
+    }
 
-        $address = $province == "Kigali City" ? $province : $district;
+    // generate training letter handler
+    public function generateTeacherTrainingLetter($training_id)
+    {
+        // getting authorized user id
+        $logged_user_id = AuthValidation::authorized()->id;
+        // getting users details
+        $userResult = $this->usersModel->findOneUser($logged_user_id);
+        if (sizeof($userResult) == 0) {
+            $response = Errors::notFoundError("User Not found, please contact admistrator?");
+            return $response;
+        }
+        // getting user role
+        $user_role = $this->userRoleModel->findCurrentUserRole($logged_user_id);
+        if (sizeof($user_role) == 0) {
+            $response = Errors::notFoundError("This user does not have role, please contact admistrator?");
+            return $response;
+        }
+        // is DDE
+        if ($user_role[0]['role_id'] == 3) {
+            return $this->getDDELetterAndDistrictTraineers($training_id, $userResult[0], $user_role[0]['district_code']);
+        }
+        // is Head Teacher
+        if ($user_role[0]['role_id'] == 2) {
+            return $this->getHeadTeacherLetterAndSchoolTraineers($training_id, $userResult[0], $user_role[0]['school_code']);
+        }
+        // is Class Teacher
+        if ($user_role[0]['role_id'] == 1) {
+            return $this->getTraineersDetails($training_id, $userResult[0]);
+        }
+
+        $response = Errors::badRequestError("This user does not have training letter role, please contact admistrator?");
+        return $response;
+    }
+
+    /**
+     * Genarate training tamplete invitation letter
+     * @param {OBJECT, OBJECT} $trainingId, $letter_type
+     * @return {OBJECT} {results}
+     */
+    public function genarateTampleteInvitaioninPDF($teacherDetails, $invitationDetails, $classTeacherInvitation = "", $traineers = [])
+    {
 
         //end
         $date = date("d F Y");
         // initiate FPDI
         $pdf = new TCPDF();
+        // remove default header/footer
+        $pdf->setPrintHeader(false);
+        $pdf->setPrintFooter(false);
+        // Start first Page Group
+        $pdf->startPageGroup();
         // add a page
-        $pdf->AddPage('P', 'A4', true);
+        $pdf->AddPage('P', 'A4', false, true);
+
+        // adding logo
+        $pdf->Image($this->homeDir . '/public/logos/REB_Logo.png', 90, 5, 30);
+        $pdf->SetXY(5, 30);
+        $pdf->writeHTML("<hr style='background-color: #005198; height: 5px;'>", true, false, false, false, '');
 
         // adding Date
         $pdf->SetFont('Times', '', 12);
         $pdf->SetXY(10, 30);
         $pdf->Ln();
-        $pdf->Cell(190, 5, "Done on: $date", 0, 1, 'R');
-        $pdf->Cell(190, 5, "Ref: $ref", 0, 0, 'R');
+        $pdf->Cell(190, 5, "Kigali on: $date", 0, 1, 'R');
+        $pdf->Cell(190, 5, "No ..03 /REB/06/2023", 0, 0, 'R');
         $pdf->Ln();
 
-        // add top header text
-        $pdf->SetFont('Times', 'B', 14);
-        $pdf->SetTextColor(0, 0, 0);
-        $pdf->SetXY(10, 10);
-        $pdf->Write(10, 'REPUBLIC OF RWANDA');
-
-        // adding logo
-        $pdf->Image($this->homeDir . '/public/logos/Rwanda_national_emblem.png', 20, 20, 40);
         // adding address
         $pdf->SetFont('Times', 'B', 12);
-        $pdf->SetXY(10, 65);
-        $pdf->Write(10, "$province PROVINCE");
-        $pdf->Ln();
-        $pdf->Write(5, "$district DISTRICT");
+        $pdf->SetXY(10, 40);
+        $pdf->Write(1, $teacherDetails['full_name'], '', false, '', true);
+        $pdf->SetFont('Times', '', 12);
+        $pdf->Write(1, $invitationDetails['letter_type'], '', false, '', true);
+        $pdf->Write(1, "Email: " . $teacherDetails['email'], '', false, '', true);
+        $pdf->Write(1, "Phone: " . $teacherDetails['phone_numbers'], '', false, '', true);
 
         // adding letter title
-        $pdf->SetFont('Times', 'B', 14);
-        $pdf->SetXY(10, 85);
         // use Re: for request and Subject for inforation
-        $pdf->Write(10, $subject . ': ' . $action . ' Letter');
+        $pdf->SetFont('Times', '', 12);
+        $pdf->SetXY(10, 65);
+        $pdf->Write(4, "Dear " . $teacherDetails['full_name'], '', false, '', true);
+        $pdf->SetFont('Times', 'B', 12);
+        $pdf->Write(1, "Re: " . $invitationDetails['title'], '', false, '', true);
 
         // body
         $pdf->SetFont('Times', '', 12);
-        $pdf->SetXY(10, 100);
-        $pdf->Write(7, "Dear $userName,");
-        $pdf->Ln();
-        $pdf->writeHTML($messageBody);
-
-        // Body reason
-        $pdf->Ln();
-        $pdf->writeHTML($reason);
+        $pdf->SetXY(10, 85);
+        $pdf->writeHTML($invitationDetails['body']);
 
         // Body date done
         $pdf->Ln(10);
-        $pdf->Write(5, $effectImediate);
+        $pdf->Write(5, "We highly appreciate your usual cooperation.");
 
         // footer
         $pdf->Ln(15);
@@ -334,22 +377,15 @@ class InvitationLetterController
 
         // Moyor
         $pdf->Ln(15);
-        $pdf->Write(5, 'Mayor: ');
+        $pdf->Write(5, 'Director General: ');
         $pdf->SetFont('Times', 'B', 12);
-        $pdf->Write(5, $mayor);
-        $pdf->Ln();
-        $pdf->SetFont('Times', '', 12);
-        $pdf->Write(5, "$district District");
+        $pdf->Write(5, "Dr. MBARUSHIMANA Nelson");
 
         // footer body
         $pdf->Ln(15);
         $pdf->Write(5, "Cc:
-            Minister of Education
-            Minister of Public Service and Labor
-            Executive Secretary of Public Service Commission
-            Director General of Rwanda Education
-            Board Governor/Mayor of $address
-            Head Teacher of $schoolName");
+        Head of ICT in Department /REB
+        Corporate Services Division Manager /REB");
 
         // BarCode
         // set style for barcode
@@ -365,7 +401,86 @@ class InvitationLetterController
         // QRCODE,Q : QR-CODE Better error correction
         $url = 'https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
         $pdf->write2DBarcode($url, 'QRCODE,Q', 130, 190, 50, 50, $style, 'R');
-        $name = "$action Letter for $userName.pdf";
+        // check if threre trainees for this training
+        if ($classTeacherInvitation !== "" && sizeof($traineers) > 0) {
+            // Start second Page Group
+            $pdf->startPageGroup();
+            foreach ($traineers as $key => $value) {
+                // add a page
+                $pdf->AddPage('P', 'A4', false, true);
+
+                // adding logo
+                $pdf->Image($this->homeDir . '/public/logos/REB_Logo.png', 90, 5, 30);
+                $pdf->SetXY(5, 30);
+                $pdf->writeHTML("<hr style='background-color: #005198; height: 5px;'>", true, false, false, false, '');
+
+                // adding Date
+                $pdf->SetFont('Times', '', 12);
+                $pdf->SetXY(10, 30);
+                $pdf->Ln();
+                $pdf->Cell(190, 5, "Kigali on: $date", 0, 1, 'R');
+                $pdf->Cell(190, 5, "No ..03 /REB/06/2023", 0, 0, 'R');
+                $pdf->Ln();
+
+                // adding address
+                $pdf->SetFont('Times', 'B', 12);
+                $pdf->SetXY(10, 40);
+                $pdf->Write(1, $value['traineeName'], '', false, '', true);
+                $pdf->SetFont('Times', '', 12);
+                $pdf->Write(1, $classTeacherInvitation['letter_type'], '', false, '', true);
+                $pdf->Write(1, "Email: ..................", '', false, '', true);
+                $pdf->Write(1, "Phone: " . $value['traineePhone'], '', false, '', true);
+
+                // adding letter title
+                // use Re: for request and Subject for inforation
+                $pdf->SetFont('Times', '', 12);
+                $pdf->SetXY(10, 65);
+                $pdf->Write(4, "Dear " . $value['traineeName'], '', false, '', true);
+                $pdf->SetFont('Times', 'B', 12);
+                $pdf->Write(1, "Re: " . $classTeacherInvitation['title'], '', false, '', true);
+
+                // body
+                $pdf->SetFont('Times', '', 12);
+                $pdf->SetXY(10, 85);
+                $pdf->writeHTML($classTeacherInvitation['body']);
+
+                // Body date done
+                $pdf->Ln(10);
+                $pdf->Write(5, "We highly appreciate your usual cooperation.");
+
+                // footer
+                $pdf->Ln(15);
+                $pdf->Write(5, 'Yours Sincerely.');
+
+                // Moyor
+                $pdf->Ln(15);
+                $pdf->Write(5, 'Director General: ');
+                $pdf->SetFont('Times', 'B', 12);
+                $pdf->Write(5, "Dr. MBARUSHIMANA Nelson");
+
+                // footer body
+                $pdf->Ln(15);
+                $pdf->Write(5, "Cc:
+          Head of ICT in Department /REB
+          Corporate Services Division Manager /REB");
+
+                // BarCode
+                // set style for barcode
+                $style = array(
+                    'border' => 2,
+                    'vpadding' => 'auto',
+                    'hpadding' => 'auto',
+                    'fgcolor' => array(0, 0, 0),
+                    'bgcolor' => false, //array(255,255,255)
+                    'module_width' => 1, // width of a single module in points
+                    'module_height' => 1, // height of a single module in points
+                );
+                // QRCODE,Q : QR-CODE Better error correction
+                $url = 'https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+                $pdf->write2DBarcode($url, 'QRCODE,Q', 130, 190, 50, 50, $style, 'R');
+            }
+        }
+        $name = "training_letter_Jean_gabin.pdf";
         $pdf->Output($name, 'D');
     }
 

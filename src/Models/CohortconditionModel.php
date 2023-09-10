@@ -61,6 +61,48 @@ class CohortconditionModel
         }
     }
 
+    public function selectTraineeByUserIDAndTrainingID($user_id, $training_id)
+    {
+        $statement = "SELECT * FROM `trainees` WHERE `userId` = :userId AND `trainingId` = :trainingId";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(":userId" => $user_id, ":trainingId" => $training_id,
+            ));
+            $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $results;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    public function selectTraineeOnThatDistrict($training_id, $district_code)
+    {
+        $statement = "SELECT * FROM `trainees` WHERE `district_code` = :district_code AND `trainingId` = :trainingId";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(":district_code" => $district_code, ":trainingId" => $training_id,
+            ));
+            $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $results;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    public function selectTraineesOnThatSchools($training_id, $school_code)
+    {
+        $statement = "SELECT * FROM `trainees` WHERE `school_code` = :school_code AND `trainingId` = :trainingId";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(":school_code" => $school_code, ":trainingId" => $training_id,
+            ));
+            $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $results;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
     public function countTraineersOnCondition($data)
     {
         $statement = "SELECT userId FROM trainees WHERE conditionId = :conditionId";
