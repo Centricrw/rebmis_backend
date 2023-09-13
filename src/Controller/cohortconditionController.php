@@ -199,10 +199,22 @@ class locationsController
         // getting input data
         $data = (array) json_decode(file_get_contents('php://input'), true);
         // geting authorized user id
-        $user_id = AuthValidation::authorized()->id;
+        $logged_user_id = AuthValidation::authorized()->id;
         // getting condition
         try {
+            $current_user_role = $this->userRoleModel->findCurrentUserRole($logged_user_id);
             $result = $this->cohortconditionModel->getTeacherByConditions($data);
+
+            if (sizeof($current_user_role) > 0 && $current_user_role[0]['role_id'] == 2) {
+                $schoolCode = $current_user_role[0]['school_code'];
+                $newResults = [];
+                foreach ($result as $key => $value) {
+                    if ($value['school_code'] == $schoolCode) {
+                        array_push($newResults, $value);
+                    }
+                }
+                $result = $newResults;
+            }
 
             $response['status_code_header'] = 'HTTP/1.1 200 OK';
             $response['body'] = json_encode($result);
