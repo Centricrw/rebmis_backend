@@ -98,6 +98,10 @@ $route->router("/invitation/{action}/{id}", "src/Controller/invitationLetterCont
 $route->router("/assetscategory", "src/Controller/assetCategoriesController.php");
 $route->router("/assetscategory/{assets_categories_id}", "src/Controller/assetCategoriesController.php");
 
+// ASSETS SUB CATEGORY
+$route->router("/assetssubcategory", "src/Controller/assetSubCategoriesController.php");
+$route->router("/assetssubcategory/{assets_categories_id}", "src/Controller/assetSubCategoriesController.php");
+
 //write it at the last
 //arg is 404 file location
 $route->notFound("404.php");
