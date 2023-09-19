@@ -102,6 +102,10 @@ $route->router("/assetscategory/{assets_categories_id}", "src/Controller/assetCa
 $route->router("/assetssubcategory", "src/Controller/assetSubCategoriesController.php");
 $route->router("/assetssubcategory/{assets_categories_id}", "src/Controller/assetSubCategoriesController.php");
 
+// ASSETS BRANDS
+$route->router("/brands", "src/Controller/brandsController.php");
+$route->router("/brands/{id}", "src/Controller/brandsController.php");
+
 //write it at the last
 //arg is 404 file location
 $route->notFound("404.php");
