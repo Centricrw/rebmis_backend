@@ -19,13 +19,15 @@ class AssetCategoriesModel
      */
     public function insertNewAssetsCategory($data, $created_by)
     {
-        $statement = "INSERT INTO `assets_categories`(`assets_categories_name`, `created_by`) VALUES (:assets_categories_name,:created_by)";
+        $statement = "INSERT INTO `assets_categories`(`assets_categories_name`, `attributes`, `created_by`) VALUES (:assets_categories_name, :attributes,:created_by)";
         try {
             // Remove whitespaces from both sides of a string
             $assets_categories_name = trim($data['assets_categories_name']);
+            $serialized_array = serialize($data['attributes']);
             $statement = $this->db->prepare($statement);
             $statement->execute(array(
                 ':assets_categories_name' => strtolower($assets_categories_name),
+                ':attributes' => $serialized_array,
                 ':created_by' => $created_by,
             ));
             return $statement->rowCount();
@@ -95,13 +97,15 @@ class AssetCategoriesModel
      */
     public function updateAssetsCategory($data, $assets_categories_id, $logged_user_id)
     {
-        $statement = "UPDATE `assets_categories` SET `assets_categories_name`=:assets_categories_name, `status`=:status,`updated_by`=:updated_by WHERE `assets_categories_id`=:assets_categories_id";
+        $statement = "UPDATE `assets_categories` SET `assets_categories_name`=:assets_categories_name, `attributes`=:attributes, `status`=:status,`updated_by`=:updated_by WHERE `assets_categories_id`=:assets_categories_id";
         try {
             // Remove whitespaces from both sides of a string
             $assets_categories_name = trim($data['assets_categories_name']);
+            $serialized_array = serialize($data['attributes']);
             $statement = $this->db->prepare($statement);
             $statement->execute(array(
                 ':assets_categories_name' => strtolower($assets_categories_name),
+                ':attributes' => $serialized_array,
                 ':status' => $data['status'],
                 ':updated_by' => $logged_user_id,
                 ':assets_categories_id' => $assets_categories_id,

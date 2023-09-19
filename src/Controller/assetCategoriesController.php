@@ -86,8 +86,13 @@ class AssetCategoriesController
         $logged_user_id = AuthValidation::authorized()->id;
         try {
             $results = $this->assetCategoriesModel->selectAllAssetsCategory();
+            $newResults = [];
+            foreach ($results as $key => $value) {
+                $value['attributes'] = unserialize($value['attributes']);
+                array_push($newResults, $value);
+            }
             $response['status_code_header'] = 'HTTP/1.1 200 OK';
-            $response['body'] = json_encode($results);
+            $response['body'] = json_encode($newResults);
             return $response;
         } catch (\Throwable $th) {
             return Errors::databaseError($th->getMessage());
