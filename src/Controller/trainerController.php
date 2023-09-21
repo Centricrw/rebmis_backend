@@ -107,7 +107,7 @@ class TrainerController
                 "trainers_id" => $data['trainers_id'],
                 "user_id" => $data['user_id'],
                 "training_id" => $data['training_id'],
-                "message" => "Training center created successfully!",
+                "message" => "Trainer created successfully!",
             ]);
             return $response;
         } catch (\Throwable $th) {

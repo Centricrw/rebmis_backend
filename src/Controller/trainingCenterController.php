@@ -67,7 +67,7 @@ class TrainingCenterController
         // getting input data
         $data = (array) json_decode(file_get_contents('php://input'), true);
         // geting authorized user id
-        $user_id = AuthValidation::authorized()->id;
+        $logged_user_id = AuthValidation::authorized()->id;
         // Generate training center id
         $generated_training_centers_id = UuidGenerator::gUuid();
         $data['training_centers_id'] = $generated_training_centers_id;
@@ -79,7 +79,7 @@ class TrainingCenterController
             if (sizeof($trainingCenterNameExists) > 0) {
                 return Errors::badRequestError("Training center already exists, please try again?");
             }
-            $this->trainingCenterModel->insertNewTrainingCenter($data, $user_id);
+            $this->trainingCenterModel->insertNewTrainingCenter($data, $logged_user_id);
             $response['status_code_header'] = 'HTTP/1.1 201 Created';
             $response['body'] = json_encode([
                 "training_centers_id" => $data['training_centers_id'],
@@ -105,7 +105,7 @@ class TrainingCenterController
         // getting input data
         $data = (array) json_decode(file_get_contents('php://input'), true);
         // geting authorized user id
-        $user_id = AuthValidation::authorized()->id;
+        $logged_user_id = AuthValidation::authorized()->id;
         try {
 
             // checking if training center already assigned to the same training

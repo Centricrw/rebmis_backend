@@ -2,6 +2,7 @@
 namespace Src\Controller;
 
 use Src\Models\CohortconditionModel;
+use Src\Models\UserRoleModel;
 use Src\System\AuthValidation;
 use Src\System\Errors;
 use Src\System\UuidGenerator;
@@ -11,6 +12,7 @@ class locationsController
     private $db;
     private $cohortconditionModel;
     private $request_method;
+    private $userRoleModel;
     private $params;
 
     public function __construct($db, $request_method, $params)
@@ -19,6 +21,7 @@ class locationsController
         $this->request_method = $request_method;
         $this->params = $params;
         $this->cohortconditionModel = new CohortconditionModel($db);
+        $this->userRoleModel = new UserRoleModel($db);
     }
 
     function processRequest()
@@ -65,11 +68,23 @@ class locationsController
 
     private function getTrainees($conditionId)
     {
-        $result = $this->cohortconditionModel->getTrainees($conditionId);
+        $logged_user_id = AuthValidation::authorized()->id;
+        try {
+            $current_user_role = $this->userRoleModel->findCurrentUserRole($logged_user_id);
+            if (sizeof($current_user_role) > 0) {
+                $userRole = $current_user_role[0]['role_id'];
+                $userSchoolCode = $current_user_role[0]['school_code'];
+                $userSectorCode = $current_user_role[0]['sector_code'];
+                $userDistrictCode = $current_user_role[0]['district_code'];
+            }
+            $result = $this->cohortconditionModel->getTrainees($conditionId, $userDistrictCode);
 
-        $response['status_code_header'] = 'HTTP/1.1 200 OK';
-        $response['body'] = json_encode($result);
-        return $response;
+            $response['status_code_header'] = 'HTTP/1.1 200 OK';
+            $response['body'] = json_encode($result);
+            return $response;
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
+        }
     }
 
     private function getSchoolsByLocation()
@@ -116,33 +131,38 @@ class locationsController
 
     private function approveselected($cohortConditionId)
     {
-        $jwt_data = new \stdClass();
-
-        $all_headers = getallheaders();
-        if (isset($all_headers['Authorization'])) {
-            $jwt_data->jwt = $all_headers['Authorization'];
-        }
-        // Decoding jwt
-        if (empty($jwt_data->jwt)) {
-            return Errors::notAuthorized();
-        }
-        if (!AuthValidation::isValidJwt($jwt_data)) {
-            return Errors::notAuthorized();
-        }
-
-        $user_id = AuthValidation::decodedData($jwt_data)->data->id;
+        $logged_user_id = AuthValidation::authorized()->id;
 
         $data = (array) json_decode(file_get_contents('php://input'), true);
+        try {
+            // get cohort condition details
+            $conditionDetails = $this->cohortconditionModel->selectCohortConditionById($data['teachers'][0]['cohortconditionId']);
 
-        // Validate input if not empty
-        $result = new \stdClass();
-        foreach ($data['teachers'] as $aproved) {
-            $result->ids = $this->cohortconditionModel->approveselected($aproved['userId'], $user_id, $cohortConditionId);
+            foreach ($data['teachers'] as $aproved) {
+                //count avaible traineers
+                $availableTraineers = $this->cohortconditionModel->countTraineersOnCondition($aproved);
+                if (sizeof($availableTraineers) == (int) $conditionDetails[0]['capacity']) {
+                    return Errors::badRequestError("Needed Traineers completed!");
+                } else {
+                    //check if teacher assigned to this training
+                    $traineerExist = $this->cohortconditionModel->checkIfTraineerAvailable($aproved['trainingId'], $aproved['user_id']);
+                    if (sizeof($traineerExist) == 0) {
+                        // Generate traineer id
+                        $generated_traineer_id = UuidGenerator::gUuid();
+                        $aproved['traineesId'] = $generated_traineer_id;
+                        $this->cohortconditionModel->InsertApprovedSelectedTraineers($aproved, $logged_user_id);
+                    }
+                }
+            }
+
+            $response['status_code_header'] = 'HTTP/1.1 200 OK';
+            $response['body'] = json_encode([
+                'message' => "Traineers assigned succefully!",
+            ]);
+            return $response;
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
         }
-        $this->cohortconditionModel->cleanrejected($cohortConditionId);
-        $response['status_code_header'] = 'HTTP/1.1 200 OK';
-        $response['body'] = json_encode($result);
-        return $response;
     }
 
     private function getallConditions($cohortId)
@@ -179,10 +199,22 @@ class locationsController
         // getting input data
         $data = (array) json_decode(file_get_contents('php://input'), true);
         // geting authorized user id
-        $user_id = AuthValidation::authorized()->id;
+        $logged_user_id = AuthValidation::authorized()->id;
         // getting condition
         try {
+            $current_user_role = $this->userRoleModel->findCurrentUserRole($logged_user_id);
             $result = $this->cohortconditionModel->getTeacherByConditions($data);
+
+            if (sizeof($current_user_role) > 0 && $current_user_role[0]['role_id'] == 2) {
+                $schoolCode = $current_user_role[0]['school_code'];
+                $newResults = [];
+                foreach ($result as $key => $value) {
+                    if ($value['school_code'] == $schoolCode) {
+                        array_push($newResults, $value);
+                    }
+                }
+                $result = $newResults;
+            }
 
             $response['status_code_header'] = 'HTTP/1.1 200 OK';
             $response['body'] = json_encode($result);

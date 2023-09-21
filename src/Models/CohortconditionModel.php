@@ -13,20 +13,6 @@ class CohortconditionModel
         $this->db = $db;
     }
 
-    // {
-    //     "": "1",
-    //     "": "11",
-    //     "": "",
-    //     "": "",
-    //     "": "",
-    //     "": "",
-    //     "": "English",
-    //     "": 0,
-    //     "": 1000,
-    //     "cohort_id": "",
-    //     "": ""
-    // }
-
     public function createCondition($data, $user_id)
     {
         $statement = "INSERT INTO cohortconditions (cohortconditionId, capacity, cohortId, createdBy, provincecode, district_code, sector_code, school_code, combination_code, grade_code, course_name, comfirmed, approval_role_id, district_name, sector_name, school_name, combination_name, grade_name)
@@ -61,34 +47,13 @@ class CohortconditionModel
         }
     }
 
-    public function approveselected($traineesId, $user_id, $cohorConditiontId)
+    public function selectCohortConditionById($conditionId)
     {
-        $statement = "UPDATE trainees SET `status` = 'Approved' WHERE userId = ?";
+        $statement = "SELECT * FROM cohortconditions WHERE cohortconditionId = :cohortconditionId";
         try {
             $statement = $this->db->prepare($statement);
-            $statement->execute(array($traineesId));
-        } catch (\PDOException $e) {
-            exit($e->getMessage());
-        }
-    }
-
-    public function cleanrejected($cohorConditiontId)
-    {
-        $statement = "DELETE FROM trainees WHERE status <> :status AND conditionId = :";
-        try {
-            $statement = $this->db->prepare($statement);
-            $statement->execute(array(':status' => 'Approved', ':conditionId' => $cohorConditiontId));
-        } catch (\PDOException $e) {
-            exit($e->getMessage());
-        }
-    }
-
-    public function getAllConditions($cohortId)
-    {
-        $statement = "SELECT *, IFNULL((SELECT COUNT(T.traineesId) FROM trainees T WHERE T.cohortId = CC.cohortId AND status = 'Approved'),0) providedTrainees FROM cohortconditions CC WHERE CC.cohortId = ?";
-        try {
-            $statement = $this->db->prepare($statement);
-            $statement->execute(array($cohortId));
+            $statement->execute(array(":cohortconditionId" => $conditionId,
+            ));
             $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
             return $results;
         } catch (\PDOException $e) {
@@ -96,10 +61,135 @@ class CohortconditionModel
         }
     }
 
-    public function getTrainees($conditionId)
+    public function selectTraineeByUserIDAndTrainingID($user_id, $training_id)
     {
-        $statement = "SELECT * FROM trainees TR
-              WHERE TR.cohortId = ?";
+        $statement = "SELECT * FROM `trainees` WHERE `userId` = :userId AND `trainingId` = :trainingId";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(":userId" => $user_id, ":trainingId" => $training_id,
+            ));
+            $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $results;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    public function selectTraineeOnThatDistrict($training_id, $district_code)
+    {
+        $statement = "SELECT * FROM `trainees` WHERE `district_code` = :district_code AND `trainingId` = :trainingId";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(":district_code" => $district_code, ":trainingId" => $training_id,
+            ));
+            $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $results;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    public function selectTraineesOnThatSchools($training_id, $school_code)
+    {
+        $statement = "SELECT * FROM `trainees` WHERE `school_code` = :school_code AND `trainingId` = :trainingId";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(":school_code" => $school_code, ":trainingId" => $training_id,
+            ));
+            $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $results;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    public function countTraineersOnCondition($data)
+    {
+        $statement = "SELECT userId FROM trainees WHERE conditionId = :conditionId";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(":conditionId" => $data['cohortconditionId'],
+            ));
+            $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $results;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    public function InsertApprovedSelectedTraineers($data, $logged_user_id)
+    {
+        $statement = "INSERT INTO `trainees`(`traineesId`, `userId`, `trainingId`, `cohortId`, `conditionId`, `status`, `traineeName`, `traineePhone`, `district_code`, `sector_code`, `school_code`) VALUES (:traineesId, :userId, :trainingId, :cohortId, :conditionId, :status, :traineeName, :traineePhone, :district_code, :sector_code, :school_code)";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
+                ":traineesId" => $data['traineesId'],
+                ":userId" => $data['user_id'],
+                ":trainingId" => $data['trainingId'],
+                ":cohortId" => $data['cohortId'],
+                ":conditionId" => $data['cohortconditionId'],
+                ":status" => "Approved",
+                ":traineeName" => $data['full_name'],
+                ":traineePhone" => $data['traineePhone'],
+                ":district_code" => substr($data['school_code'], 0, 2),
+                ":sector_code" => substr($data['school_code'], 0, 4),
+                ":school_code" => $data['school_code'],
+            ));
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    public function checkIfTraineerAvailable($trainingId, $userId)
+    {
+        $statement = "SELECT * FROM trainees WHERE trainingId = :trainingId AND userId = :userId ";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
+                ':trainingId' => $trainingId,
+                ':userId' => $userId,
+            ));
+            $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $results;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    public function getAllConditions($cohortId, $userDistrictCode = "")
+    {
+        if (isset($userDistrictCode) && $userDistrictCode !== "") {
+            $statement = "SELECT * FROM cohortconditions CC WHERE CC.cohortId = ? AND CC.district_code = $userDistrictCode";
+        } else {
+            $statement = "SELECT * FROM cohortconditions CC WHERE CC.cohortId = ?";
+        }
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array($cohortId));
+            $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            foreach ($results as $key => $value) {
+                $traineers = $this->countTraineersOnCondition($value);
+                $results[$key]['providedTrainees'] = sizeof($traineers);
+            }
+            return $results;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    public function getTrainees($conditionId, $userDistrictCode = "")
+    {
+        if (isset($userDistrictCode) && $userDistrictCode !== "") {
+            $statement = "SELECT T.*, S.school_name, SL.sector_name, SL.district_name FROM trainees T
+            INNER JOIN schools S ON S.school_code = T.school_code
+            INNER JOIN school_location SL ON SL.village_id = S.region_code
+            WHERE T.cohortId = ? AND T.district_code = $userDistrictCode";
+        } else {
+            $statement = "SELECT T.*, S.school_name, SL.sector_name, SL.district_name FROM trainees T
+            INNER JOIN schools S ON S.school_code = T.school_code
+            INNER JOIN school_location SL ON SL.village_id = S.region_code
+            WHERE T.cohortId = ?";
+        }
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array($conditionId));
@@ -150,6 +240,32 @@ class CohortconditionModel
         }
     }
 
+    // function my_array_unique($array, $keep_key_assoc = false)
+    // {
+    //     $duplicate_keys = array();
+    //     $tmp = array();
+
+    //     foreach ($array as $key => $val) {
+    //         // convert objects to arrays, in_array() does not support objects
+    //         if (is_object($val)) {
+    //             $val = (array) $val;
+    //         }
+
+    //         if (!in_array($val['teacher_code'], $tmp)) {
+    //             $tmp[] = $val['teacher_code'];
+    //         } else {
+    //             $duplicate_keys[] = $key;
+    //         }
+
+    //     }
+
+    //     foreach ($duplicate_keys as $key) {
+    //         unset($array[$key]);
+    //     }
+
+    //     return $keep_key_assoc ? $array : array_values($array);
+    // }
+
     public function getTeacherByConditions($condition)
     {
         $stringArray = ["provincecode", "district_code", "sector_code", "school_code", "combination_code", "grade_code", "course_name"];
@@ -180,13 +296,15 @@ class CohortconditionModel
                 }
             }
         };
-        $statement = "SELECT DISTINCT TCH.teacher_code,U.full_name, U.staff_code, SH.combination_name, SH.grade_name, SH.course_name, TCH.status, S.school_name, S.school_code, UR.sector_code, UR.district_code FROM user_to_role UR
+        $limit = $condition['capacity'];
+        $statement = "SELECT TCH.teacher_code, U.user_id,U.full_name, U.staff_code, U.phone_numbers, MIN(SH.combination_name) as combination_name, MIN(SH.grade_name) as grade_name, GROUP_CONCAT(SH.course_name) as course_name, TCH.status, MIN(S.school_name) as school_name, MIN(S.school_code) as school_code, MIN(UR.sector_code) as sector_code, MIN(UR.district_code) as district_code FROM user_to_role UR
         INNER JOIN users U ON  UR.user_id = U.user_id
         INNER JOIN schools S ON S.school_code = UR.school_code
         INNER JOIN teacher_study_hierarchy TCH ON TCH.teacher_code = U.staff_code
         INNER JOIN study_hierarchy SH ON SH.studyhierarchyid = TCH.study_hierarchy_id
-        WHERE S.school_code LIKE '$likeSchoolcode%' AND TCH.status = 1
-        AND UR.status = 'Active' $sqlConditionString LIMIT " . $condition['capacity'];
+        WHERE U.user_id NOT IN (select userId from trainees) AND S.school_code LIKE '$likeSchoolcode%' AND TCH.status = 1
+        AND UR.status = 'Active' $sqlConditionString
+        GROUP BY U.user_id LIMIT $limit";
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute($sqlConditionArrayValues);

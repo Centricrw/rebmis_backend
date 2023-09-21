@@ -73,11 +73,25 @@ class trainingsController
 
     private function getAllTranings()
     {
-        $result = $this->trainingsModel->getAllTranings();
+        // geting authorized user id
+        $logged_user_id = AuthValidation::authorized()->id;
+        try {
+            $current_user_role = $this->userRoleModel->findCurrentUserRole($logged_user_id);
+            if (sizeof($current_user_role) > 0) {
+                $userRole = $current_user_role[0]['role_id'];
+                $userSchoolCode = $current_user_role[0]['school_code'];
+                $userSectorCode = $current_user_role[0]['sector_code'];
+                $userDistrictCode = $current_user_role[0]['district_code'];
+            }
 
-        $response['status_code_header'] = 'HTTP/1.1 200 OK';
-        $response['body'] = json_encode($result);
-        return $response;
+            $result = $this->trainingsModel->getAllTranings($userDistrictCode);
+
+            $response['status_code_header'] = 'HTTP/1.1 200 OK';
+            $response['body'] = json_encode($result);
+            return $response;
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
+        }
     }
 
     private function getOneTraining($training_id)
@@ -147,25 +161,12 @@ class trainingsController
 
     private function ComfirmTainingsByReb($trainings_id)
     {
-        $jwt_data = new \stdClass();
-
-        $all_headers = getallheaders();
-        if (isset($all_headers['Authorization'])) {
-            $jwt_data->jwt = $all_headers['Authorization'];
-        }
-        // Decoding jwt
-        if (empty($jwt_data->jwt)) {
-            return Errors::notAuthorized();
-        }
-        if (!AuthValidation::isValidJwt($jwt_data)) {
-            return Errors::notAuthorized();
-        }
-
-        $user_id = AuthValidation::decodedData($jwt_data)->data->id;
+        // geting authorized user id
+        $logged_user_id = AuthValidation::authorized()->id;
         $data = (array) json_decode(file_get_contents('php://input'), true);
 
         // validate status Rejected, Ongoing
-        if (!empty($data['status']) && $data["status"] !== "Rejected" && $data["status"] !== "Ongoing") {
+        if (!empty($data['status']) && $data["status"] !== "Rejected" && $data["status"] !== "Ongoing" && $data["status"] !== "Pending" && $data["status"] !== "Ended") {
             $response['status_code_header'] = 'HTTP/1.1 400 bad request!';
             $response['body'] = json_encode([
                 'message' => $data['status'] . ", Invalid Status input, Please try again?",
@@ -173,7 +174,7 @@ class trainingsController
             return $response;
         }
 
-        $user_role = $this->userRoleModel->findCurrentUserRole($user_id);
+        $user_role = $this->userRoleModel->findCurrentUserRole($logged_user_id);
 
         if (sizeof($user_role) > 0 && strval($user_role[0]['role_id']) !== "4") {
             $response['status_code_header'] = 'HTTP/1.1 400 bad request!';

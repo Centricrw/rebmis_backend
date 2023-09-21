@@ -15,7 +15,7 @@ class CohortsModel
 
     public function getAllCohorts($trainingId)
     {
-        $statement = "SELECT C.cohortId, C.cohortName, C.cohortStart, C.cohortEnd, C.trainingId FROM cohorts C
+        $statement = "SELECT C.cohortId, C.courseLink, C.cohortName, C.cohortStart, C.cohortEnd, C.trainingId FROM cohorts C
         WHERE C.trainingId = ?";
         try {
             $statement = $this->db->prepare($statement);
