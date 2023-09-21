@@ -75,12 +75,12 @@ class CohortconditionModel
         }
     }
 
-    public function selectTraineeOnThatDistrict($training_id, $district_code)
+    public function selectTraineeOnThatDistrict($cohort_id, $district_code)
     {
-        $statement = "SELECT * FROM `trainees` WHERE `district_code` = :district_code AND `trainingId` = :trainingId";
+        $statement = "SELECT * FROM `trainees` WHERE `district_code` = :district_code AND `cohortId` = :cohort_id";
         try {
             $statement = $this->db->prepare($statement);
-            $statement->execute(array(":district_code" => $district_code, ":trainingId" => $training_id,
+            $statement->execute(array(":district_code" => $district_code, ":cohort_id" => $cohort_id,
             ));
             $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
             return $results;

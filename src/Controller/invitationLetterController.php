@@ -84,7 +84,7 @@ class InvitationLetterController
             return Errors::unprocessableEntityResponse($validateData['message']);
         }
         // checking if training id exists
-        $trainingExists = $this->trainingsModel->getOneTraining($data['trainingId']);
+        $trainingExists = $this->trainingsModel->getOneTraining($data['cohort_id']);
         if (sizeof($trainingExists) == 0) {
             return Errors::notFoundError("Training id not found, please try again?");
         }
@@ -93,7 +93,7 @@ class InvitationLetterController
         $data['id'] = $generated_invitation_tammplete_id;
         try {
             // checking if letter exists for that training
-            $invitationTammpleteExists = $this->invitationLetterModel->selectInvintationLetterByType($data['trainingId'], $data['letter_type']);
+            $invitationTammpleteExists = $this->invitationLetterModel->selectInvintationLetterByType($data['cohort_id'], $data['letter_type']);
             if (sizeof($invitationTammpleteExists) > 0) {
                 return Errors::badRequestError("This invitation letter already exists, please try again?");
             }
@@ -103,7 +103,7 @@ class InvitationLetterController
                 "id" => $data['id'],
                 "title" => $data['title'],
                 "body" => $data['body'],
-                "trainingId" => $data['trainingId'],
+                "cohort_id" => $data['cohort_id'],
                 "letter_type" => $data['letter_type'],
                 "message" => "Invitation letter tamplete created successfully!",
             ]);
@@ -134,15 +134,15 @@ class InvitationLetterController
 
     /**
      * all invitation tamplete letter assigned to training
-     * @param {STRING} training_id
+     * @param {STRING} cohort_id
      * @return {OBJECT} {results}
      */
-    public function getAllInvintationLetterAssignedToTraining($training_id)
+    public function getAllInvintationLetterAssignedToTraining($cohort_id)
     {
         // geting authorized user id
         $logged_user_id = AuthValidation::authorized()->id;
         try {
-            $results = $this->invitationLetterModel->selectInvintationLetterByTraining($training_id);
+            $results = $this->invitationLetterModel->selectInvintationLetterByCohort($cohort_id);
             $response['status_code_header'] = 'HTTP/1.1 200 OK';
             $response['body'] = json_encode($results);
             return $response;
@@ -192,15 +192,15 @@ class InvitationLetterController
             return Errors::notFoundError("Tamplete invitation latter id not found, please try again?");
         }
 
-        if ($invitationLetterExists[0]['trainingId'] !== $data['trainingId']) {
+        if ($invitationLetterExists[0]['cohort_id'] !== $data['cohort_id']) {
             // checking if training id exists
-            $trainingExists = $this->trainingsModel->getOneTraining($data['trainingId']);
+            $trainingExists = $this->trainingsModel->getOneTraining($data['cohort_id']);
             if (sizeof($trainingExists) == 0) {
                 return Errors::notFoundError("Training id not found, please try again?");
             }
 
             // checking if letter exists for that training
-            $invitationTammpleteExists = $this->invitationLetterModel->selectInvintationLetterByType($data['trainingId'], $data['letter_type']);
+            $invitationTammpleteExists = $this->invitationLetterModel->selectInvintationLetterByType($data['cohort_id'], $data['letter_type']);
             if (sizeof($invitationTammpleteExists) > 0) {
                 return Errors::badRequestError("This invitation letter already exists, please try again?");
             }
@@ -216,7 +216,7 @@ class InvitationLetterController
                 "id" => $data['id'],
                 "title" => $data['title'],
                 "body" => $data['body'],
-                "trainingId" => $data['trainingId'],
+                "cohort_id" => $data['cohort_id'],
                 "letter_type" => $data['letter_type'],
                 "status" => $data['status'],
                 "message" => "Invitation letter tamplete  updated successfully!",
@@ -228,9 +228,9 @@ class InvitationLetterController
     }
 
     // checking if invitetion letter exists for this training
-    function invitationExistsHandler($training_id, $letter_type)
+    function invitationExistsHandler($cohort_id, $letter_type)
     {
-        $invitationExists = $this->invitationLetterModel->selectInvintationLetterByTrainingIdAndType($training_id, $letter_type);
+        $invitationExists = $this->invitationLetterModel->selectInvintationLetterByCohortIdAndType($cohort_id, $letter_type);
         if (sizeof($invitationExists) == 0) {
             $response = Errors::notFoundError("This training does not have training letter for $letter_type, please contact admistrator?");
             return $response;
@@ -239,12 +239,12 @@ class InvitationLetterController
     }
 
     // get dde letter and traineers details
-    function getDDELetterAndDistrictTraineers($training_id, $userDetails, $district_code)
+    function getDDELetterAndDistrictTraineers($cohort_id, $userDetails, $district_code)
     {
-        $ddeInvitation = $this->invitationExistsHandler($training_id, "DDE");
-        $classTeacherInvitation = $this->invitationExistsHandler($training_id, "Class Teacher");
+        $ddeInvitation = $this->invitationExistsHandler($cohort_id, "DDE");
+        $classTeacherInvitation = $this->invitationExistsHandler($cohort_id, "Class Teacher");
         // checking if users is assigned to that training
-        $traineerExists = $this->cohortconditionModel->selectTraineeOnThatDistrict($training_id, $district_code);
+        $traineerExists = $this->cohortconditionModel->selectTraineeOnThatDistrict($cohort_id, $district_code);
         if (sizeof($traineerExists) == 0) {
             $response = Errors::notFoundError("Traineer not found on this training, please contact admistrator?");
             return $response;
@@ -253,12 +253,12 @@ class InvitationLetterController
 
     }
     // get Head teacher letter and traineers details
-    function getHeadTeacherLetterAndSchoolTraineers($training_id, $userDetails, $school_code)
+    function getHeadTeacherLetterAndSchoolTraineers($cohort_id, $userDetails, $school_code)
     {
-        $headTeacherInvitation = $this->invitationExistsHandler($training_id, "Head Teacher");
-        $classTeacherInvitation = $this->invitationExistsHandler($training_id, "Class Teacher");
+        $headTeacherInvitation = $this->invitationExistsHandler($cohort_id, "Head Teacher");
+        $classTeacherInvitation = $this->invitationExistsHandler($cohort_id, "Class Teacher");
         // checking if users is assigned to that training
-        $traineerExists = $this->cohortconditionModel->selectTraineesOnThatSchools($training_id, $school_code);
+        $traineerExists = $this->cohortconditionModel->selectTraineesOnThatSchools($cohort_id, $school_code);
         if (sizeof($traineerExists) == 0) {
             $response = Errors::notFoundError("Traineer not found on this training, please contact admistrator?");
             return $response;
@@ -266,20 +266,20 @@ class InvitationLetterController
         return $this->genarateTampleteInvitaioninPDF($userDetails, $headTeacherInvitation[0], $classTeacherInvitation[0], $traineerExists);
     }
     // get classTeacher details
-    function getTraineersDetails($training_id, $userDetails)
+    function getTraineersDetails($cohort_id, $userDetails)
     {
         // checking if users is assigned to that training
-        $traineerExists = $this->cohortconditionModel->selectTraineeByUserIDAndTrainingID($userDetails['user_id'], $training_id);
+        $traineerExists = $this->cohortconditionModel->selectTraineeByUserIDAndTrainingID($userDetails['user_id'], $cohort_id);
         if (sizeof($traineerExists) == 0) {
             $response = Errors::notFoundError("Traineer not found on this training, please contact admistrator?");
             return $response;
         }
-        $invitation = $this->invitationExistsHandler($training_id, "Class Teacher");
+        $invitation = $this->invitationExistsHandler($cohort_id, "Class Teacher");
         return $this->genarateTampleteInvitaioninPDF($userDetails, $invitation[0]);
     }
 
     // generate training letter handler
-    public function generateTeacherTrainingLetter($training_id)
+    public function generateTeacherTrainingLetter($cohort_id)
     {
         // getting authorized user id
         $logged_user_id = AuthValidation::authorized()->id;
@@ -297,15 +297,15 @@ class InvitationLetterController
         }
         // is DDE
         if ($user_role[0]['role_id'] == 3) {
-            return $this->getDDELetterAndDistrictTraineers($training_id, $userResult[0], $user_role[0]['district_code']);
+            return $this->getDDELetterAndDistrictTraineers($cohort_id, $userResult[0], $user_role[0]['district_code']);
         }
         // is Head Teacher
         if ($user_role[0]['role_id'] == 2) {
-            return $this->getHeadTeacherLetterAndSchoolTraineers($training_id, $userResult[0], $user_role[0]['school_code']);
+            return $this->getHeadTeacherLetterAndSchoolTraineers($cohort_id, $userResult[0], $user_role[0]['school_code']);
         }
         // is Class Teacher
         if ($user_role[0]['role_id'] == 1) {
-            return $this->getTraineersDetails($training_id, $userResult[0]);
+            return $this->getTraineersDetails($cohort_id, $userResult[0]);
         }
 
         $response = Errors::badRequestError("This user does not have training letter role, please contact admistrator?");
@@ -314,7 +314,7 @@ class InvitationLetterController
 
     /**
      * Genarate training tamplete invitation letter
-     * @param {OBJECT, OBJECT} $trainingId, $letter_type
+     * @param {OBJECT, OBJECT} $cohort_id, $letter_type
      * @return {OBJECT} {results}
      */
     public function genarateTampleteInvitaioninPDF($teacherDetails, $invitationDetails, $classTeacherInvitation = "", $traineers = [])
@@ -492,8 +492,8 @@ class InvitationLetterController
         if (empty($input['body'])) {
             return ["validated" => false, "message" => "body is required!"];
         }
-        if (empty($input['trainingId'])) {
-            return ["validated" => false, "message" => "trainingId is required!"];
+        if (empty($input['cohort_id'])) {
+            return ["validated" => false, "message" => "cohort_id is required!"];
         }
         if (empty($input['letter_type'])) {
             return ["validated" => false, "message" => "letter_type is required!"];
