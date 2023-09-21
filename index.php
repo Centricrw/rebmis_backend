@@ -1,7 +1,7 @@
 <?php
-// ini_set('display_errors', 1);
-// ini_set('display_startup_errors', 1);
-// error_reporting(E_ALL);
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     header('Access-Control-Allow-Origin: *');
@@ -85,6 +85,31 @@ $route->router("/elearning/{action}/{course_id}/{cohort_id}", "src/Controller/el
 $route->router("/trainingtype", "src/Controller/trainingtypeController.php");
 $route->router("/trainingtype/{action}", "src/Controller/trainingtypeController.php");
 $route->router("/trainingtype/{action}/{training_type_id}", "src/Controller/trainingtypeController.php");
+
+// UPDATING NEW PASSWORD OR CHANGE PASSWORD
+$route->router("/changepassword/{action}", "src/Controller/changePasswordController.php");
+
+// TRAINING TYPE
+$route->router("/invitation", "src/Controller/invitationLetterController.php");
+$route->router("/invitation/{action}", "src/Controller/invitationLetterController.php");
+$route->router("/invitation/{action}/{id}", "src/Controller/invitationLetterController.php");
+
+// ASSETS CATEGORY
+$route->router("/assetscategory", "src/Controller/assetCategoriesController.php");
+$route->router("/assetscategory/{assets_categories_id}", "src/Controller/assetCategoriesController.php");
+
+// ASSETS SUB CATEGORY
+$route->router("/assetssubcategory", "src/Controller/assetSubCategoriesController.php");
+$route->router("/assetssubcategory/{assets_categories_id}", "src/Controller/assetSubCategoriesController.php");
+
+// ASSETS BRANDS
+$route->router("/brands", "src/Controller/brandsController.php");
+$route->router("/brands/{id}", "src/Controller/brandsController.php");
+
+// ASSETS
+$route->router("/assets", "src/Controller/assetsController.php");
+$route->router("/assets/{id}", "src/Controller/assetsController.php");
+$route->router("/assets/{action}/{id}", "src/Controller/assetsController.php");
 
 //write it at the last
 //arg is 404 file location
