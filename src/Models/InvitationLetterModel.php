@@ -19,14 +19,14 @@ class InvitationLetterModel
      */
     public function insertNewInvitationTammplete($data, $created_by)
     {
-        $statement = "INSERT INTO `invintation_tamplete_letter`(`id`, `title`, `body`, `trainingId`, `letter_type`, `created_by`) VALUES (:id, :title, :body, :trainingId, :letter_type, :created_by)";
+        $statement = "INSERT INTO `invintation_tamplete_letter`(`id`, `title`, `body`, cohort_id, `letter_type`, `created_by`) VALUES (:id, :title, :body, :cohort_id, :letter_type, :created_by)";
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array(
                 ':id' => $data['id'],
                 ':title' => $data['title'],
                 ':body' => $data['body'],
-                ':trainingId' => $data['trainingId'],
+                ':cohort_id' => $data['cohort_id'],
                 ':letter_type' => $data['letter_type'],
                 ':created_by' => $created_by,
             ));
@@ -37,16 +37,16 @@ class InvitationLetterModel
     }
 
     /**
-     * get invitation letter by training id
-     * @param {STRING} {trainingId}
+     * get invitation letter by cohort id
+     * @param {STRING} {cohortId}
      * @return {OBJECT} {results}
      */
-    public function selectInvintationLetterByTraining($trainingId)
+    public function selectInvintationLetterByCohort($cohortId)
     {
-        $statement = "SELECT * FROM `invintation_tamplete_letter` WHERE trainingId = ?";
+        $statement = "SELECT * FROM `invintation_tamplete_letter` WHERE cohort_id = ?";
         try {
             $statement = $this->db->prepare($statement);
-            $statement->execute(array($trainingId));
+            $statement->execute(array($cohortId));
             $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
             return $results;
         } catch (\PDOException $e) {
@@ -73,17 +73,17 @@ class InvitationLetterModel
     }
 
     /**
-     * get ONE invitation letter by training id and type
-     * @param {STRING, STRING} $trainingId, $letter_type
+     * get ONE invitation letter by cohort id and type
+     * @param {STRING, STRING} $cohortId, $letter_type
      * @return {OBJECT} $results
      */
-    public function selectInvintationLetterByTrainingIdAndType($trainingId, $letter_type)
+    public function selectInvintationLetterByCohortIdAndType($cohort_id, $letter_type)
     {
-        $statement = "SELECT * FROM `invintation_tamplete_letter` WHERE trainingId = :trainingId AND letter_type = :letter_type  LIMIT 1";
+        $statement = "SELECT * FROM `invintation_tamplete_letter` WHERE cohort_id = :cohort_id AND letter_type = :letter_type  LIMIT 1";
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array(
-                ":trainingId" => $trainingId,
+                ":cohort_id" => $cohort_id,
                 ":letter_type" => $letter_type,
             ));
             $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
@@ -94,17 +94,17 @@ class InvitationLetterModel
     }
 
     /**
-     * get invitation letter by training id and type
-     * @param {STRING, STRING} {trainingId, letter_type}
+     * get invitation letter by cohort id and type
+     * @param {STRING, STRING} {cohort_id, letter_type}
      * @return {OBJECT} {results}
      */
-    public function selectInvintationLetterByType($trainingId, $letter_type)
+    public function selectInvintationLetterByType($cohort_id, $letter_type)
     {
-        $statement = "SELECT * FROM `invintation_tamplete_letter` WHERE trainingId = :trainingId AND letter_type = :letter_type LIMIT 1";
+        $statement = "SELECT * FROM `invintation_tamplete_letter` WHERE cohort_id = :cohort_id AND letter_type = :letter_type LIMIT 1";
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array(
-                ":trainingId" => $trainingId,
+                ":cohort_id" => $cohort_id,
                 ":letter_type" => $letter_type,
             ));
             $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
@@ -139,13 +139,13 @@ class InvitationLetterModel
      */
     public function updateInvintationLetter($data, $updated_by)
     {
-        $statement = "UPDATE `invintation_tamplete_letter` SET `title`=:title,`body`=:body, `trainingId`=:trainingId, `letter_type`=:letter_type,`updated_by`=:updated_by,`status`=:status WHERE `id`=:id";
+        $statement = "UPDATE `invintation_tamplete_letter` SET `title`=:title,`body`=:body, `cohort_id`=:cohort_id, `letter_type`=:letter_type,`updated_by`=:updated_by,`status`=:status WHERE `id`=:id";
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array(
                 ":title" => $data['title'],
                 ":body" => $data['body'],
-                ":trainingId" => $data['trainingId'],
+                ":cohort_id" => $data['cohort_id'],
                 ":letter_type" => $data['letter_type'],
                 ":updated_by" => $updated_by,
                 ":status" => $data['status'],
