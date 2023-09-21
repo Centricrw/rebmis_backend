@@ -61,12 +61,12 @@ class CohortconditionModel
         }
     }
 
-    public function selectTraineeByUserIDAndTrainingID($user_id, $training_id)
+    public function selectTraineeByUserIDAndCohortID($user_id, $cohort_id)
     {
-        $statement = "SELECT * FROM `trainees` WHERE `userId` = :userId AND `trainingId` = :trainingId";
+        $statement = "SELECT * FROM `trainees` WHERE `userId` = :userId AND `cohortId` = :cohortId";
         try {
             $statement = $this->db->prepare($statement);
-            $statement->execute(array(":userId" => $user_id, ":trainingId" => $training_id,
+            $statement->execute(array(":userId" => $user_id, ":cohortId" => $cohort_id,
             ));
             $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
             return $results;

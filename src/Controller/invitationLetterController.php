@@ -196,10 +196,10 @@ class InvitationLetterController
         }
 
         if ($invitationLetterExists[0]['cohort_id'] !== $data['cohort_id']) {
-            // checking if training id exists
-            $trainingExists = $this->trainingsModel->getOneTraining($data['cohort_id']);
-            if (sizeof($trainingExists) == 0) {
-                return Errors::notFoundError("Training id not found, please try again?");
+            // checking if cohort id exists
+            $cohortExists = $this->cohortsModel->getOneCohort($data['cohort_id']);
+            if (sizeof($cohortExists) == 0) {
+                return Errors::notFoundError("Cohort id not found, please try again?");
             }
 
             // checking if letter exists for that training
@@ -272,7 +272,7 @@ class InvitationLetterController
     function getTraineersDetails($cohort_id, $userDetails)
     {
         // checking if users is assigned to that training
-        $traineerExists = $this->cohortconditionModel->selectTraineeByUserIDAndTrainingID($userDetails['user_id'], $cohort_id);
+        $traineerExists = $this->cohortconditionModel->selectTraineeByUserIDAndCohortID($userDetails['user_id'], $cohort_id);
         if (sizeof($traineerExists) == 0) {
             $response = Errors::notFoundError("Traineer not found on this training, please contact admistrator?");
             return $response;
