@@ -307,7 +307,7 @@ class InvitationLetterController
         if ($user_role[0]['role_id'] == 1) {
             return $this->getTraineersDetails($cohort_id, $userResult[0]);
         }
-
+        
         $response = Errors::badRequestError("This user does not have training letter role, please contact admistrator?");
         return $response;
     }
