@@ -2,6 +2,7 @@
 namespace Src\Controller;
 
 use Src\Models\CohortconditionModel;
+use Src\Models\CohortsModel;
 use Src\Models\InvitationLetterModel;
 use Src\Models\TrainingsModel;
 use Src\Models\UserRoleModel;
@@ -17,6 +18,7 @@ class InvitationLetterController
     private $invitationLetterModel;
     private $usersModel;
     private $trainingsModel;
+    private $cohortsModel;
     private $userRoleModel;
     private $cohortconditionModel;
     private $request_method;
@@ -30,6 +32,7 @@ class InvitationLetterController
         $this->params = $params;
         $this->invitationLetterModel = new InvitationLetterModel($db);
         $this->trainingsModel = new TrainingsModel($db);
+        $this->cohortsModel = new CohortsModel($db);
         $this->usersModel = new UsersModel($db);
         $this->userRoleModel = new UserRoleModel($db);
         $this->cohortconditionModel = new CohortconditionModel($db);
@@ -83,10 +86,10 @@ class InvitationLetterController
         if (!$validateData['validated']) {
             return Errors::unprocessableEntityResponse($validateData['message']);
         }
-        // checking if training id exists
-        $trainingExists = $this->trainingsModel->getOneTraining($data['cohort_id']);
-        if (sizeof($trainingExists) == 0) {
-            return Errors::notFoundError("Training id not found, please try again?");
+        // checking if cohort id exists
+        $cohortExists = $this->cohortsModel->getOneCohort($data['cohort_id']);
+        if (sizeof($cohortExists) == 0) {
+            return Errors::notFoundError("Cohort id not found, please try again?");
         }
         // Generate training center id
         $generated_invitation_tammplete_id = UuidGenerator::gUuid();

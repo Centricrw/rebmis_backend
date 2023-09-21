@@ -55,4 +55,17 @@ class CohortsModel
         }
     }
 
+    public function getOneCohort($cohort_id)
+    {
+        $statement = "SELECT * FROM `cohorts` WHERE `cohortId` = :cohortId LIMIT 1";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(':cohortId' => $cohort_id));
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $result;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
 }

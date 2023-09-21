@@ -71,7 +71,7 @@ class TrainingsModel
             }
             return $result;
         } catch (\PDOException $e) {
-            exit($e->getMessage());
+            throw new Error($e->getMessage());
         }
     }
 
