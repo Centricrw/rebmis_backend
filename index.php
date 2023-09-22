@@ -59,6 +59,7 @@ $route->router("/cohortcondition/{action}", "src/Controller/cohortconditionContr
 $route->router("/cohortcondition/{action}/{id}", "src/Controller/cohortconditionController.php");
 
 // locations
+$route->router("/locations/{action}", "src/Controller/locationsController.php");
 $route->router("/locations/{action}/{id}", "src/Controller/locationsController.php");
 
 // role
@@ -110,6 +111,11 @@ $route->router("/brands/{id}", "src/Controller/brandsController.php");
 $route->router("/assets", "src/Controller/assetsController.php");
 $route->router("/assets/{id}", "src/Controller/assetsController.php");
 $route->router("/assets/{action}/{id}", "src/Controller/assetsController.php");
+
+// BATCH CATEGORY DISTRIBUTION
+$route->router("/batchdistribution", "src/Controller/assetsDistributionController.php");
+$route->router("/batchdistribution/{id}", "src/Controller/assetsDistributionController.php");
+$route->router("/batchdistribution/{action}/{id}", "src/Controller/assetsDistributionController.php");
 
 //write it at the last
 //arg is 404 file location
