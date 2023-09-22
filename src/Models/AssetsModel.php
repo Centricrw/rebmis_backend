@@ -63,6 +63,28 @@ class AssetsModel
     }
 
     /**
+     * get asset by category
+     * @param STRING $serialNumber
+     * @return OBJECT $results
+     */
+    public function selectAssetsByCategory($assetsCategoriesId)
+    {
+        $statement = "SELECT A.id, A.name, A.serial_number, C.assets_categories_id, C.assets_categories_name, A.assets_sub_categories_id, SC.name as assets_sub_categories_name, A.brand_id, B.name as brand_name, A.specification  FROM `assets` A
+        INNER JOIN `assets_categories` C ON A.assets_categories_id = C.assets_categories_id
+        INNER JOIN `assets_sub_categories` SC ON A.assets_sub_categories_id = SC.id
+        INNER JOIN `Brands` B ON A.brand_id = B.id
+        WHERE A.assets_categories_id = ? AND A.asset_state = ?";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array($assetsCategoriesId, "available"));
+            $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $results;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    /**
      * get ONE asset
      * @param NUMBER $id
      * @return OBJECT $results
@@ -103,6 +125,32 @@ class AssetsModel
 
     /**
      * update Asset
+     * @param STRING $assets_categories_id
+     * @param STRING $logged_user_id
+     * @param NUMBER $limit
+     * @param STRING $state
+     * @return VOID
+     */
+    public function bookAssetStateByCategory($assets_categories_id, $logged_user_id, $limit = 0, $state = "booked")
+    {
+        $current = $state == "booked" ? "available" : "booked";
+        $statement = "UPDATE `assets` SET `asset_state`=:asset_state, `updated_by`=:updated_by WHERE `assets_categories_id`=:assets_categories_id AND `asset_state` = :current LIMIT $limit";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
+                ':asset_state' => $state,
+                ':current' => $current,
+                ':updated_by' => $logged_user_id,
+                ':assets_categories_id' => $assets_categories_id,
+            ));
+            return $statement->rowCount();
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    /**
+     * update Asset
      * @param OBJECT $data
      * @param NUMBER $id
      * @return NUMBER $results
@@ -124,6 +172,36 @@ class AssetsModel
                 ':status' => $data['status'],
                 ':updated_by' => $logged_user_id,
                 ':id' => $id,
+            ));
+            return $statement->rowCount();
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    /**
+     * update Asset
+     * @param OBJECT $data
+     * @param NUMBER $id
+     * @return NUMBER $results
+     */
+    public function insertNewSchoolDistribution($data, $logged_user_id)
+    {
+        $statement = "INSERT INTO `assets_distriution_school`(`id`, `batch_id`, `level_code`, `school_code`, `assets_categories_id`, `assets_sub_categories_id`, `brand_id`, `specification`, `assets_number_limit`, `created_by`, `brand_name`, `assets_categories_name`, `assets_sub_categories_name`, `level_name`, `school_name`) VALUES (:id, :batch_id, :level_code, :school_code, :assets_categories_id, :assets_sub_categories_id, :brand_id, :specification, :assets_number_limit,:created_by, :brand_name, :assets_categories_name, :assets_sub_categories_name,:level_name,:school_name)";
+        try {
+            // Remove whitespaces from both sides of a string
+            $assets_name = trim($data['name']);
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
+                ':name' => strtolower($assets_name),
+                ':serial_number' => $data['serial_number'],
+                ':brand_id' => $data['brand_id'],
+                ':assets_categories_id' => $data['assets_categories_id'],
+                ':assets_sub_categories_id' => isset($data['assets_sub_categories_id']) ? $data['assets_sub_categories_id'] : null,
+                ':specification' => json_encode($data['specification']),
+                ':status' => $data['status'],
+                ':updated_by' => $logged_user_id,
+                ':id' => $data['id'],
             ));
             return $statement->rowCount();
         } catch (\PDOException $e) {

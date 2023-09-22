@@ -138,6 +138,32 @@ class LocationsModel
         }
     }
 
+    public function getAllschool()
+    {
+        $statement = "SELECT * FROM `schools`";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute();
+            $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $results;
+        } catch (\PDOException $e) {
+            exit($e->getMessage());
+        }
+    }
+
+    public function getAlllevels()
+    {
+        $statement = "SELECT * FROM `levels`";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute();
+            $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $results;
+        } catch (\PDOException $e) {
+            exit($e->getMessage());
+        }
+    }
+
     public function getAddressDetails($code, $table)
     {
         if ($table == "provinces") {
