@@ -178,34 +178,4 @@ class AssetsModel
             throw new Error($e->getMessage());
         }
     }
-
-    /**
-     * update Asset
-     * @param OBJECT $data
-     * @param NUMBER $id
-     * @return NUMBER $results
-     */
-    public function insertNewSchoolDistribution($data, $logged_user_id)
-    {
-        $statement = "INSERT INTO `assets_distriution_school`(`id`, `batch_id`, `level_code`, `school_code`, `assets_categories_id`, `assets_sub_categories_id`, `brand_id`, `specification`, `assets_number_limit`, `created_by`, `brand_name`, `assets_categories_name`, `assets_sub_categories_name`, `level_name`, `school_name`) VALUES (:id, :batch_id, :level_code, :school_code, :assets_categories_id, :assets_sub_categories_id, :brand_id, :specification, :assets_number_limit,:created_by, :brand_name, :assets_categories_name, :assets_sub_categories_name,:level_name,:school_name)";
-        try {
-            // Remove whitespaces from both sides of a string
-            $assets_name = trim($data['name']);
-            $statement = $this->db->prepare($statement);
-            $statement->execute(array(
-                ':name' => strtolower($assets_name),
-                ':serial_number' => $data['serial_number'],
-                ':brand_id' => $data['brand_id'],
-                ':assets_categories_id' => $data['assets_categories_id'],
-                ':assets_sub_categories_id' => isset($data['assets_sub_categories_id']) ? $data['assets_sub_categories_id'] : null,
-                ':specification' => json_encode($data['specification']),
-                ':status' => $data['status'],
-                ':updated_by' => $logged_user_id,
-                ':id' => $data['id'],
-            ));
-            return $statement->rowCount();
-        } catch (\PDOException $e) {
-            throw new Error($e->getMessage());
-        }
-    }
 }
