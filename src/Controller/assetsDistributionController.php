@@ -42,8 +42,9 @@ class AssetsDistributionController
             case "POST":
                 if (isset($this->params['id']) && $this->params['id'] == "school") {
                     $response = $this->createNewSchoolDistribution();
+                } else if (isset($this->params['id']) && $this->params['id'] == "numbers") {
+                    $response = $this->checkingBatchDistributionLimit();
                 } else {
-
                     $response = $this->createNewDistributionBatch();
                 }
                 break;
@@ -106,6 +107,43 @@ class AssetsDistributionController
      * @param OBJECT $data
      * @return OBJECT $results
      */
+    public function checkingBatchDistributionLimit()
+    {
+        // getting input data
+        $data = (array) json_decode(file_get_contents('php://input'), true);
+        // geting authorized user id
+        $logged_user_id = AuthValidation::authorized()->id;
+        try {
+            $gettingSchoolDistributionNumber = $this->assetsDistributionModel->selectSchoolDistributionByCategory($data);
+
+            $batchCategory = $this->assetsDistributionModel->selectDistributionBatchByCategory($data['batch_id'], $data['assets_categories_id']);
+            if (sizeof($batchCategory) == 0) {
+                return Errors::badRequestError("There is no batch found on this category, please try again?");
+            }
+            $sumOfAssetsAssignedToschools = 0;
+
+            foreach ($gettingSchoolDistributionNumber as $key => $value) {
+                $sumOfAssetsAssignedToschools += (int) $value['assets_number_limit'];
+            }
+            $results = new \stdClass();
+            $results->title = $batchCategory[0]['title'];
+            $results->assets_number_limit = $batchCategory[0]['assets_number_limit'];
+            $results->assets_number_remaining = $batchCategory[0]['assets_number_limit'] - $sumOfAssetsAssignedToschools;
+            $results->total_distributed = $sumOfAssetsAssignedToschools;
+            $response['status_code_header'] = 'HTTP/1.1 201 Created';
+            $response['body'] = json_encode($results);
+            return $response;
+
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
+        }
+    }
+
+    /**
+     * Create new school distribution asset
+     * @param OBJECT $data
+     * @return OBJECT $results
+     */
 
     public function createNewSchoolDistribution()
     {
@@ -120,7 +158,7 @@ class AssetsDistributionController
         $logged_user_id = AuthValidation::authorized()->id;
         try {
 
-            //! checking if the set limit is eqaul to the stock
+            //! checking if the school already has this category or subcategory
             // checking if batch category exists
             $batchCategoryExists = $this->assetsDistributionModel->selectDistributionSchool($data);
             if (sizeof($batchCategoryExists) > 0) {
@@ -181,7 +219,7 @@ class AssetsDistributionController
             }
             // checking if batch category exists
             if ($data['assets_categories_id'] != $bacthExists[0]['assets_categories_id']) {
-                $batchCategoryExists = $this->assetsDistributionModel->selectDistributionBatchByCategory($data['assets_categories_id']);
+                $batchCategoryExists = $this->assetsDistributionModel->selectDistributionBatchByCategory($id, $data['assets_categories_id']);
                 if (sizeof($batchCategoryExists) > 0) {
                     return Errors::badRequestError("This batch category already exists, please try again?");
                 }

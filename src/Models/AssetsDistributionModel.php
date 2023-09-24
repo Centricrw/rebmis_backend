@@ -41,14 +41,17 @@ class AssetsDistributionModel
      * @param STRING $id
      * @return OBJECT $results
      */
-    public function selectDistributionBatchByCategory($assetsCategoriesId)
+    public function selectDistributionBatchByCategory($batchId, $assetsCategoriesId)
     {
         $statement = "SELECT B.*, AC.assets_categories_name FROM `assets_distriution_batch` B
         INNER JOIN `assets_categories` AC ON AC.assets_categories_id = B.assets_categories_id
-        WHERE B.assets_categories_id = ? LIMIT 1";
+        WHERE B.assets_categories_id = :assets_categories_id AND B.id = :id LIMIT 1";
         try {
             $statement = $this->db->prepare($statement);
-            $statement->execute(array($assetsCategoriesId));
+            $statement->execute(array(
+                "assets_categories_id" => $assetsCategoriesId,
+                ":id" => $batchId,
+            ));
             $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
             return $results;
         } catch (\PDOException $e) {
@@ -116,6 +119,27 @@ class AssetsDistributionModel
                 ':id' => $id,
             ));
             return $statement->rowCount();
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    /**
+     * selecting all school that has batch and category
+     * @param OBJECT $data
+     * @return OBJECT $results
+     */
+    public function selectSchoolDistributionByCategory($data)
+    {
+        $statement = "SELECT * FROM `assets_distriution_school` WHERE `batch_id`= :batch_id and `assets_categories_id`= :assets_categories_id";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
+                ":batch_id" => $data['batch_id'],
+                ":assets_categories_id" => $data['assets_categories_id'],
+            ));
+            $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $results;
         } catch (\PDOException $e) {
             throw new Error($e->getMessage());
         }
