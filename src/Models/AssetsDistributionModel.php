@@ -20,17 +20,80 @@ class AssetsDistributionModel
      */
     public function insertNewDistributionBatch($data, $created_by)
     {
-        $statement = "INSERT INTO `assets_distriution_batch`(`id`, `title`, `assets_categories_id`, `assets_number_limit`, `created_by`) VALUES (:id, :title,:assets_categories_id, :assets_number_limit, :created_by)";
+        $statement = "INSERT INTO `assets_distriution_batch`(`id`, `title`, `created_by`) VALUES (:id, :title, :created_by)";
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array(
                 ':id' => $data['id'],
                 ':title' => $data['title'],
-                ':assets_categories_id' => $data['assets_categories_id'],
-                ':assets_number_limit' => $data['assets_number_limit'],
                 ':created_by' => $created_by,
             ));
             return $statement->rowCount();
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    /**
+     * Create new distribution batch details
+     * @param OBJECT $data
+     * @return VOID
+     */
+    public function insertNewBatchDetails($data)
+    {
+        $statement = "INSERT INTO `batch_details`(`id`, `batch_id`, `assets_categories_id`, `assets_number_limit`) VALUES (:id, :batch_id, :assets_categories_id, :assets_number_limit)";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
+                ':id' => $data['id'],
+                ':batch_id' => $data['batch_id'],
+                ':assets_categories_id' => $data['assets_categories_id'],
+                ':assets_number_limit' => $data['assets_number_limit'],
+            ));
+            return $statement->rowCount();
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    /**
+     * get batch details by batch_id
+     * @param OBJECT $batch
+     * @return OBJECT $results
+     */
+    function getBatchDetails($batch)
+    {
+        $batchDetails = "SELECT B.*, AC.assets_categories_name FROM `batch_details` B
+        INNER JOIN `assets_categories` AC ON AC.assets_categories_id = B.assets_categories_id
+        WHERE B.`batch_id` = ?";
+        try {
+            $statement = $this->db->prepare($batchDetails);
+            $statement->execute(array($batch['id']));
+            $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $batch['batch_details'] = $results;
+            return $batch;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    /**
+     * select batch details by batch_id and category_id
+     * @param STRING $batch_id
+     * @param STRING $category_id
+     * @return OBJECT $results
+     */
+    public function selectBatchDetailsByBatchIDAndCategory($batch_id, $category_id)
+    {
+        $statement = "SELECT * FROM `batch_details` WHERE `batch_id` = :batch_id AND `assets_categories_id` = :assets_categories_id";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
+                ':batch_id' => $batch_id,
+                ':assets_categories_id' => $category_id,
+            ));
+            $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $results;
         } catch (\PDOException $e) {
             throw new Error($e->getMessage());
         }
@@ -43,14 +106,14 @@ class AssetsDistributionModel
      */
     public function selectDistributionBatchByCategory($batchId, $assetsCategoriesId)
     {
-        $statement = "SELECT B.*, AC.assets_categories_name FROM `assets_distriution_batch` B
+        $statement = "SELECT B.*, AC.assets_categories_name FROM `batch_details` B
         INNER JOIN `assets_categories` AC ON AC.assets_categories_id = B.assets_categories_id
-        WHERE B.assets_categories_id = :assets_categories_id AND B.id = :id LIMIT 1";
+        WHERE B.assets_categories_id = :assets_categories_id AND B.batch_id = :batch_id LIMIT 1";
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array(
                 "assets_categories_id" => $assetsCategoriesId,
-                ":id" => $batchId,
+                ":batch_id" => $batchId,
             ));
             $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
             return $results;
@@ -66,14 +129,13 @@ class AssetsDistributionModel
      */
     public function selectDistributionBatchById($id)
     {
-        $statement = "SELECT B.*, AC.assets_categories_name FROM `assets_distriution_batch` B
-        INNER JOIN `assets_categories` AC ON AC.assets_categories_id = B.assets_categories_id
-        WHERE B.id = ? LIMIT 1";
+        $statement = "SELECT *FROM `assets_distriution_batch` WHERE id = ? LIMIT 1";
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array($id));
             $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
-            return $results;
+            $batchDetails = array_map(array($this, 'getBatchDetails'), $results);
+            return $batchDetails;
         } catch (\PDOException $e) {
             throw new Error($e->getMessage());
         }
@@ -86,13 +148,13 @@ class AssetsDistributionModel
      */
     public function selectAllDistributionBatch()
     {
-        $statement = "SELECT B.*, AC.assets_categories_name FROM `assets_distriution_batch` B
-        INNER JOIN `assets_categories` AC ON AC.assets_categories_id = B.assets_categories_id WHERE B.`status` = ?";
+        $statement = "SELECT * FROM `assets_distriution_batch` WHERE `status` = ?";
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array(1));
             $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
-            return $results;
+            $batchDetails = array_map(array($this, 'getBatchDetails'), $results);
+            return $batchDetails;
         } catch (\PDOException $e) {
             throw new Error($e->getMessage());
         }
