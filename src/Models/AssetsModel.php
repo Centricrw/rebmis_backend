@@ -71,7 +71,7 @@ class AssetsModel
     {
         $statement = "SELECT A.id, A.name, A.serial_number, C.assets_categories_id, C.assets_categories_name, A.assets_sub_categories_id, SC.name as assets_sub_categories_name, A.brand_id, B.name as brand_name, A.specification  FROM `assets` A
         INNER JOIN `assets_categories` C ON A.assets_categories_id = C.assets_categories_id
-        INNER JOIN `assets_sub_categories` SC ON A.assets_sub_categories_id = SC.id
+        LEFT JOIN `assets_sub_categories` SC ON A.assets_sub_categories_id = SC.id
         INNER JOIN `Brands` B ON A.brand_id = B.id
         WHERE A.assets_categories_id = ? AND A.asset_state = ?";
         try {
