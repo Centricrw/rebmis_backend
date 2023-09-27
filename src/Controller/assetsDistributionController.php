@@ -125,12 +125,11 @@ class AssetsDistributionController
         // geting authorized user id
         $logged_user_id = AuthValidation::authorized()->id;
         try {
-            $gettingSchoolDistributionNumber = $this->assetsDistributionModel->selectSchoolDistributionByCategory($data);
-
-            $batchCategory = $this->assetsDistributionModel->selectDistributionBatchByCategory($data['batch_id'], $data['assets_categories_id']);
+            $batchCategory = $this->assetsDistributionModel->selectDistributionBatchByCategory($data);
             if (sizeof($batchCategory) == 0) {
                 return Errors::badRequestError("There is no batch found on this category, please try again?");
             }
+            $gettingSchoolDistributionNumber = $this->assetsDistributionModel->selectSchoolDistributionByCategory($batchCategory[0]['id']);
             $sumOfAssetsAssignedToschools = 0;
 
             foreach ($gettingSchoolDistributionNumber as $key => $value) {
