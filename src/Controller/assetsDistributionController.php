@@ -104,9 +104,7 @@ class AssetsDistributionController
             }
 
             $response['status_code_header'] = 'HTTP/1.1 201 Created';
-            $response['body'] = json_encode([
-                "message" => "Batch category created successfully!",
-            ]);
+            $response['body'] = json_encode($data);
             return $response;
         } catch (\Throwable $th) {
             return Errors::databaseError($th->getMessage());
