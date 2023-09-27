@@ -133,20 +133,23 @@ class AssetsDistributionModel
     }
 
     /**
-     * get one distribution assets batch by category
-     * @param STRING $id
+     * get asset limits for batch definition
+     * @param OBJECT $data
      * @return OBJECT $results
      */
-    public function selectDistributionBatchByCategory($batchId, $assetsCategoriesId)
+    public function selectDistributionBatchByCategory($data)
     {
-        $statement = "SELECT B.*, AC.assets_categories_name FROM `batch_details` B
+        $statement = "SELECT B.*, AC.assets_categories_name, ADB.title FROM `batch_details` B
         INNER JOIN `assets_categories` AC ON AC.assets_categories_id = B.assets_categories_id
-        WHERE B.assets_categories_id = :assets_categories_id AND B.batch_id = :batch_id LIMIT 1";
+        INNER JOIN `assets_distriution_batch` ADB ON ADB.id = B.batch_id
+        WHERE B.assets_categories_id = :assets_categories_id AND B.assets_sub_categories_id = :assets_sub_categories_id AND B.brand_id = :brand_id AND B.batch_id = :batch_id LIMIT 1";
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array(
-                "assets_categories_id" => $assetsCategoriesId,
-                ":batch_id" => $batchId,
+                ":assets_categories_id" => $data['assets_categories_id'],
+                ":assets_sub_categories_id" => $data['assets_sub_categories_id'],
+                ":brand_id" => $data['brand_id'],
+                ":batch_id" => $data['batch_id'],
             ));
             $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
             return $results;
@@ -240,17 +243,16 @@ class AssetsDistributionModel
 
     /**
      * selecting all school that has batch and category
-     * @param OBJECT $data
+     * @param STRING $batch_details_id
      * @return OBJECT $results
      */
-    public function selectSchoolDistributionByCategory($data)
+    public function selectSchoolDistributionByCategory($batch_details_id)
     {
-        $statement = "SELECT * FROM `assets_distriution_school` WHERE `batch_id`= :batch_id and `assets_categories_id`= :assets_categories_id";
+        $statement = "SELECT * FROM `assets_distriution_school` WHERE `batch_details_id`= :batch_details_id";
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array(
-                ":batch_id" => $data['batch_id'],
-                ":assets_categories_id" => $data['assets_categories_id'],
+                ":batch_details_id" => $batch_details_id,
             ));
             $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
             return $results;
