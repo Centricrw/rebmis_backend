@@ -131,14 +131,18 @@ class AssetsDistributionController
             }
             $gettingSchoolDistributionNumber = $this->assetsDistributionModel->selectSchoolDistributionByCategory($batchCategory[0]['id']);
             $sumOfAssetsAssignedToschools = 0;
+            $totalAssetsLimits = 0;
 
             foreach ($gettingSchoolDistributionNumber as $key => $value) {
                 $sumOfAssetsAssignedToschools += (int) $value['assets_number_limit'];
             }
+            foreach ($batchCategory as $key => $value) {
+                $totalAssetsLimits += (int) $value['assets_number_limit'];
+            }
             $results = new \stdClass();
             $results->title = $batchCategory[0]['title'];
-            $results->assets_number_limit = $batchCategory[0]['assets_number_limit'];
-            $results->assets_number_remaining = $batchCategory[0]['assets_number_limit'] - $sumOfAssetsAssignedToschools;
+            $results->assets_number_limit = $totalAssetsLimits;
+            $results->assets_number_remaining = $totalAssetsLimits - $sumOfAssetsAssignedToschools;
             $results->total_distributed = $sumOfAssetsAssignedToschools;
             $response['status_code_header'] = 'HTTP/1.1 201 Created';
             $response['body'] = json_encode($results);
