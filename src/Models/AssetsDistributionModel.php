@@ -41,7 +41,7 @@ class AssetsDistributionModel
      */
     public function insertNewBatchDetails($data)
     {
-        $statement = "INSERT INTO `batch_details`(`id`, `batch_id`, `assets_categories_id`, `assets_number_limit`) VALUES (:id, :batch_id, :assets_categories_id, :assets_number_limit)";
+        $statement = "INSERT INTO `batch_details`(`id`, `batch_id`, `assets_categories_id`, `assets_number_limit`, `assets_sub_categories_id`, `brand_id`, `specification`) VALUES (:id, :batch_id, :assets_categories_id, :assets_number_limit, :assets_sub_categories_id, :brand_id, :specification)";
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array(
@@ -49,6 +49,34 @@ class AssetsDistributionModel
                 ':batch_id' => $data['batch_id'],
                 ':assets_categories_id' => $data['assets_categories_id'],
                 ':assets_number_limit' => $data['assets_number_limit'],
+                ':assets_sub_categories_id' => $data['assets_sub_categories_id'],
+                ':brand_id' => $data['brand_id'],
+                ':specification' => json_encode($data['specification']),
+            ));
+            return $statement->rowCount();
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    /**
+     * update distribution batch details
+     * @param OBJECT $data
+     * @return VOID
+     */
+    public function updateBatchDetails($data, $batchId)
+    {
+        $statement = "UPDATE `batch_details` SET `batch_id` = :batch_id, `assets_categories_id` = :assets_categories_id, `assets_number_limit` = :assets_number_limit, `assets_sub_categories_id` = :assets_sub_categories_id, `brand_id` = :brand_id, `specification` = :specification WHERE `id` = :id";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
+                ':id' => $batchId,
+                ':batch_id' => $data['batch_id'],
+                ':assets_categories_id' => $data['assets_categories_id'],
+                ':assets_number_limit' => $data['assets_number_limit'],
+                ':assets_sub_categories_id' => $data['assets_sub_categories_id'],
+                ':brand_id' => $data['brand_id'],
+                ':specification' => json_encode($data['specification']),
             ));
             return $statement->rowCount();
         } catch (\PDOException $e) {
@@ -63,6 +91,10 @@ class AssetsDistributionModel
      */
     function getBatchDetails($batch)
     {
+        $convertSpecification = function ($value) {
+            $value['specification'] = json_decode($value['specification']);
+            return $value;
+        };
         $batchDetails = "SELECT B.*, AC.assets_categories_name FROM `batch_details` B
         INNER JOIN `assets_categories` AC ON AC.assets_categories_id = B.assets_categories_id
         WHERE B.`batch_id` = ?";
@@ -70,7 +102,8 @@ class AssetsDistributionModel
             $statement = $this->db->prepare($batchDetails);
             $statement->execute(array($batch['id']));
             $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
-            $batch['batch_details'] = $results;
+            $resultsDetails = array_map($convertSpecification, $results);
+            $batch['batch_details'] = $resultsDetails;
             return $batch;
         } catch (\PDOException $e) {
             throw new Error($e->getMessage());
@@ -168,19 +201,38 @@ class AssetsDistributionModel
      */
     public function updateDistributionBatch($data, $id, $logged_user_id)
     {
-        $statement = "UPDATE `assets_distriution_batch` SET `title`=:title,`assets_categories_id`=:assets_categories_id,`assets_number_limit`=:assets_number_limit,`updated_by`=:updated_by,`status`=:status
+        $statement = "UPDATE `assets_distriution_batch` SET `title` = :title, `batch_status` = :batch_status,`updated_by` = :updated_by, `status` = :status
         WHERE `id` = :id";
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array(
                 ':title' => $data['title'],
-                ':assets_categories_id' => $data['assets_categories_id'],
-                ':assets_number_limit' => $data['assets_number_limit'],
+                ':batch_status' => $data['batch_status'],
                 ':status' => $data['status'],
                 ':updated_by' => $logged_user_id,
                 ':id' => $id,
             ));
             return $statement->rowCount();
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    /**
+     * selecting batch definition
+     * @param STRING $id
+     * @return OBJECT $results
+     */
+    public function selectBatchDefinitionBYId($id)
+    {
+        $statement = "SELECT * FROM `batch_details` WHERE `id`=:id LIMIT 1";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
+                ":id" => $id,
+            ));
+            $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $results;
         } catch (\PDOException $e) {
             throw new Error($e->getMessage());
         }
