@@ -125,20 +125,30 @@ class AssetsDistributionController
         // geting authorized user id
         $logged_user_id = AuthValidation::authorized()->id;
         try {
+            // function to add assets number limit
+            $sumAssetsNumberLimit = function ($carry, $item) {
+                $carry += (int) $item['assets_number_limit'];
+                return $carry;
+            };
+
+            // function to check batch definition details
             $batchCategory = $this->assetsDistributionModel->selectDistributionBatchByCategory($data);
             if (sizeof($batchCategory) == 0) {
                 return Errors::badRequestError("There is no batch found on this category, please try again?");
             }
-            $gettingSchoolDistributionNumber = $this->assetsDistributionModel->selectSchoolDistributionByCategory($batchCategory[0]['id']);
-            $sumOfAssetsAssignedToschools = 0;
 
-            foreach ($gettingSchoolDistributionNumber as $key => $value) {
-                $sumOfAssetsAssignedToschools += (int) $value['assets_number_limit'];
-            }
+            // getting school batch number limit
+            $gettingSchoolDistributionNumber = $this->assetsDistributionModel->selectSchoolDistributionByCategory($batchCategory[0]['id']);
+
+            // adding number limit
+            $sumOfAssetsAssignedToschools = array_reduce($gettingSchoolDistributionNumber, $sumAssetsNumberLimit, 0);
+            $totalAssetsLimits = array_reduce($batchCategory, $sumAssetsNumberLimit, 0);
+
+            // creating results object
             $results = new \stdClass();
             $results->title = $batchCategory[0]['title'];
-            $results->assets_number_limit = $batchCategory[0]['assets_number_limit'];
-            $results->assets_number_remaining = $batchCategory[0]['assets_number_limit'] - $sumOfAssetsAssignedToschools;
+            $results->assets_number_limit = $totalAssetsLimits;
+            $results->assets_number_remaining = $totalAssetsLimits - $sumOfAssetsAssignedToschools;
             $results->total_distributed = $sumOfAssetsAssignedToschools;
             $response['status_code_header'] = 'HTTP/1.1 201 Created';
             $response['body'] = json_encode($results);

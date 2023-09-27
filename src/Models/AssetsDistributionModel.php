@@ -135,14 +135,14 @@ class AssetsDistributionModel
     /**
      * get asset limits for batch definition
      * @param OBJECT $data
-     * @return OBJECT $results
+     * @return ARRAY $results
      */
     public function selectDistributionBatchByCategory($data)
     {
         $statement = "SELECT B.*, AC.assets_categories_name, ADB.title FROM `batch_details` B
         INNER JOIN `assets_categories` AC ON AC.assets_categories_id = B.assets_categories_id
         INNER JOIN `assets_distriution_batch` ADB ON ADB.id = B.batch_id
-        WHERE B.assets_categories_id = :assets_categories_id AND B.assets_sub_categories_id = :assets_sub_categories_id AND B.brand_id = :brand_id AND B.batch_id = :batch_id LIMIT 1";
+        WHERE B.assets_categories_id = :assets_categories_id AND B.assets_sub_categories_id = :assets_sub_categories_id AND B.brand_id = :brand_id AND B.batch_id = :batch_id";
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array(
@@ -244,7 +244,7 @@ class AssetsDistributionModel
     /**
      * selecting all school that has batch and category
      * @param STRING $batch_details_id
-     * @return OBJECT $results
+     * @return ARRAY $results
      */
     public function selectSchoolDistributionByCategory($batch_details_id)
     {
