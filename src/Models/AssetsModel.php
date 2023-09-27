@@ -63,6 +63,33 @@ class AssetsModel
     }
 
     /**
+     * get asset by category, brand, subcategory
+     * @param OBJECT $values
+     * @return OBJECT $results
+     */
+    public function selectAssetsByCategoryBrandSubCategory($values)
+    {
+        $statement = "SELECT A.id, A.name, A.serial_number, C.assets_categories_id, C.assets_categories_name, A.assets_sub_categories_id, SC.name as assets_sub_categories_name, A.brand_id, B.name as brand_name, A.specification  FROM `assets` A
+        INNER JOIN `assets_categories` C ON A.assets_categories_id = C.assets_categories_id
+        LEFT JOIN `assets_sub_categories` SC ON A.assets_sub_categories_id = SC.id
+        INNER JOIN `Brands` B ON A.brand_id = B.id
+        WHERE A.assets_categories_id = :assets_categories_id AND A.assets_sub_categories_id = :assets_sub_categories_id AND A.brand_id = :brand_id AND A.asset_state = :asset_state";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
+                ':assets_categories_id' => $values['assets_categories_id'],
+                ':assets_sub_categories_id' => $values['assets_sub_categories_id'],
+                ':brand_id' => $values['brand_id'],
+                ':asset_state' => "available",
+            ));
+            $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $results;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    /**
      * get asset by category
      * @param STRING $serialNumber
      * @return OBJECT $results
@@ -125,23 +152,25 @@ class AssetsModel
 
     /**
      * update Asset
-     * @param STRING $assets_categories_id
+     * @param OBJECT $value
      * @param STRING $logged_user_id
-     * @param NUMBER $limit
      * @param STRING $state
      * @return VOID
      */
-    public function bookAssetStateByCategory($assets_categories_id, $logged_user_id, $limit = 0, $state = "booked")
+    public function bookAssetStateByCategory($value, $logged_user_id, $state = "booked")
     {
+        $limit = (int) $value['assets_number_limit'];
         $current = $state == "booked" ? "available" : "booked";
-        $statement = "UPDATE `assets` SET `asset_state`=:asset_state, `updated_by`=:updated_by WHERE `assets_categories_id`=:assets_categories_id AND `asset_state` = :current LIMIT $limit";
+        $statement = "UPDATE `assets` SET `asset_state`=:asset_state, `updated_by`=:updated_by WHERE `assets_categories_id`=:assets_categories_id AND `assets_sub_categories_id`=:assets_sub_categories_id AND `brand_id`=:brand_id AND `asset_state` = :current LIMIT $limit";
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array(
                 ':asset_state' => $state,
                 ':current' => $current,
                 ':updated_by' => $logged_user_id,
-                ':assets_categories_id' => $assets_categories_id,
+                ':assets_categories_id' => $value['assets_categories_id'],
+                ':assets_sub_categories_id' => $value['assets_sub_categories_id'],
+                ':brand_id' => $value['brand_id'],
             ));
             return $statement->rowCount();
         } catch (\PDOException $e) {

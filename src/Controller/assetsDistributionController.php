@@ -40,7 +40,9 @@ class AssetsDistributionController
                 $response = $this->getAllDistributionBatch();
                 break;
             case "POST":
-                if (isset($this->params['id']) && $this->params['id'] == "school") {
+                if (isset($this->params['action']) && $this->params['action'] == "adddefinition") {
+                    $response = $this->addBatchDefinition($this->params['id']);
+                } else if (isset($this->params['id']) && $this->params['id'] == "school") {
                     $response = $this->createNewSchoolDistribution();
                 } else if (isset($this->params['id']) && $this->params['id'] == "numbers") {
                     $response = $this->checkingBatchDistributionLimit();
@@ -49,7 +51,11 @@ class AssetsDistributionController
                 }
                 break;
             case "PUT":
-                $response = $this->updateDistributionBatch($this->params['id']);
+                if (isset($this->params['action']) && $this->params['action'] == "updatedefinition") {
+                    $response = $this->updateBatchDefinition($this->params['id']);
+                } else {
+                    $response = $this->updateDistributionBatch($this->params['id']);
+                }
                 break;
             default:
                 $response = Errors::notFoundError("Route not found!");
@@ -91,7 +97,7 @@ class AssetsDistributionController
                     $value['batch_id'] = $generatedBatchCategoryId;
                     $insertBatchDetails = $this->assetsDistributionModel->insertNewBatchDetails($value);
                     if ($insertBatchDetails) {
-                        $this->assetsModel->bookAssetStateByCategory($value['assets_categories_id'], $logged_user_id, (int) $value['assets_number_limit']);
+                        $this->assetsModel->bookAssetStateByCategory($value, $logged_user_id);
                     }
 
                 }
@@ -205,6 +211,106 @@ class AssetsDistributionController
     }
 
     /**
+     * Update batch definition
+     * @param STRING $batchDefinitionId
+     * @return OBJECT $results
+     */
+
+    public function updateBatchDefinition($batchDefinitionId)
+    {
+        // getting input data
+        $data = (array) json_decode(file_get_contents('php://input'), true);
+        // Validate input if not empty
+        $validateInputData = self::validateBatchDetails($data, "update");
+        if (!$validateInputData['validated']) {
+            return Errors::unprocessableEntityResponse($validateInputData['message']);
+        }
+        // geting authorized user id
+        $logged_user_id = AuthValidation::authorized()->id;
+
+        try {
+            // checking if batch definition exists
+            $bacthDefinitionExists = $this->assetsDistributionModel->selectBatchDefinitionBYId($batchDefinitionId);
+            if (sizeof($bacthDefinitionExists) == 0) {
+                return Errors::notFoundError("Batch definition Id not found!, please try again?");
+            }
+
+            // checking if assets in that category exists
+            if ($data['assets_number_limit'] != $bacthDefinitionExists[0]['assets_number_limit']) {
+                $currentLimit = $bacthDefinitionExists[0]['assets_number_limit'];
+                $newLimit = $data['assets_number_limit'];
+                $currentIsGreater = $newLimit > $currentLimit ? 0 : 1;
+                $deffernce = $newLimit > $currentLimit ? (int) $newLimit - (int) $currentLimit : (int) $currentLimit - (int) $newLimit;
+                if (!$currentIsGreater) {
+                    // checking if the set limit is eqaul to the stock
+                    $assetsCategory = $this->assetsModel->selectAssetsByCategory($data['assets_categories_id']);
+                    $data['assets_number_limit'] = $deffernce;
+                    if ((int) $deffernce > sizeof($assetsCategory)) {
+                        return Errors::badRequestError("Assets number limit exceed which is in stock, please try again?");
+                    } else {
+                        $this->assetsModel->bookAssetStateByCategory($data, $logged_user_id);
+                    }
+                } else {
+                    $this->assetsModel->bookAssetStateByCategory($data, $logged_user_id, "available");
+                }
+            }
+
+            $this->assetsDistributionModel->updateBatchDetails($data, $batchDefinitionId);
+            $response['status_code_header'] = 'HTTP/1.1 201 Created';
+            $response['body'] = json_encode([
+                "message" => "New Batch definition updted successfully!",
+            ]);
+            return $response;
+
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
+        }
+    }
+
+    /**
+     * Update Add batch definition to batch
+     * @param STRING $batchId
+     * @return OBJECT $results
+     */
+
+    public function addBatchDefinition($batchId)
+    {
+        // getting input data
+        $data = (array) json_decode(file_get_contents('php://input'), true);
+        // Validate input if not empty
+        $validateInputData = self::validateBatchDetails($data);
+        if (!$validateInputData['validated']) {
+            return Errors::unprocessableEntityResponse($validateInputData['message']);
+        }
+        // geting authorized user id
+        $logged_user_id = AuthValidation::authorized()->id;
+        try {
+            // checking if batch id
+            $bacthExists = $this->assetsDistributionModel->selectDistributionBatchById($batchId);
+            if (sizeof($bacthExists) == 0) {
+                return Errors::notFoundError("Batch category Id not found!, please try again?");
+            }
+
+            $generatedBatchDetailsID = UuidGenerator::gUuid();
+            $data['id'] = $generatedBatchDetailsID;
+            $data['batch_id'] = $batchId;
+            $insertBatchDetails = $this->assetsDistributionModel->insertNewBatchDetails($data);
+            if ($insertBatchDetails) {
+                $this->assetsModel->bookAssetStateByCategory($data, $logged_user_id);
+            }
+
+            $response['status_code_header'] = 'HTTP/1.1 201 Created';
+            $response['body'] = json_encode([
+                "message" => "New Batch definition created successfully!",
+            ]);
+            return $response;
+
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
+        }
+    }
+
+    /**
      * Update Assets Category
      * @param OBJECT $data
      * @return OBJECT $results
@@ -217,36 +323,12 @@ class AssetsDistributionController
         // geting authorized user id
         $logged_user_id = AuthValidation::authorized()->id;
         try {
-            // checking if batch category exists
+            // checking if batch id
             $bacthExists = $this->assetsDistributionModel->selectDistributionBatchById($id);
             if (sizeof($bacthExists) == 0) {
                 return Errors::notFoundError("Batch category Id not found!, please try again?");
             }
-            // checking if batch category exists
-            if ($data['assets_categories_id'] != $bacthExists[0]['assets_categories_id']) {
-                $batchCategoryExists = $this->assetsDistributionModel->selectDistributionBatchByCategory($id, $data['assets_categories_id']);
-                if (sizeof($batchCategoryExists) > 0) {
-                    return Errors::badRequestError("This batch category already exists, please try again?");
-                }
-            }
-            // checking if assets in that category exists
-            if ($data['assets_number_limit'] != $bacthExists[0]['assets_number_limit']) {
-                $currentLimit = $bacthExists[0]['assets_number_limit'];
-                $newLimit = $data['assets_number_limit'];
-                $currentIsGreater = $newLimit > $currentLimit ? 0 : 1;
-                $deffernce = $newLimit > $currentLimit ? (int) $newLimit - (int) $currentLimit : (int) $currentLimit - (int) $newLimit;
-                if (!$currentIsGreater) {
-                    // checking if the set limit is eqaul to the stock
-                    $assetsCategory = $this->assetsModel->selectAssetsByCategory($data['assets_categories_id']);
-                    if ((int) $deffernce > sizeof($assetsCategory)) {
-                        return Errors::badRequestError("Assets number limit exceed which is in stock, please try again?");
-                    } else {
-                        $this->assetsModel->bookAssetStateByCategory($data['assets_categories_id'], $logged_user_id, (int) $deffernce);
-                    }
-                } else {
-                    $this->assetsModel->bookAssetStateByCategory($data['assets_categories_id'], $logged_user_id, (int) $deffernce, "available");
-                }
-            }
+
             $this->assetsDistributionModel->updateDistributionBatch($data, $id, $logged_user_id);
             $response['status_code_header'] = 'HTTP/1.1 201 Created';
             $response['body'] = json_encode([
@@ -258,6 +340,72 @@ class AssetsDistributionController
         }
     }
 
+    private function validateBatchDetails($input, $action = "new")
+    {
+        // ***** validate batch_id ********
+        if ($action !== "new") {
+            if (empty($input['batch_id'])) {
+                return ["validated" => false, "message" => "batch_id is required!, please try again"];
+            }
+            // checking if batch id
+            $bacthExists = $this->assetsDistributionModel->selectDistributionBatchById($input['batch_id']);
+            if (sizeof($bacthExists) == 0) {
+                return ["validated" => false, "message" => "Batch Id not found!, please try again?"];
+            }
+        }
+
+        // ***** validate assets_categories_id ********
+        if (empty($input['assets_categories_id'])) {
+            return ["validated" => false, "message" => "assets_categories_id is required!, please try again"];
+        }
+        // checking if category exists
+        $categoriesExists = $this->assetCategoriesModel->selectAssetsCategoryById($input['assets_categories_id']);
+        if (sizeof($categoriesExists) == 0) {
+            return ["validated" => false, "message" => "Category id '" . $input['assets_categories_id'] . "' not found, please try again?"];
+        }
+
+        // ****** validate assets_sub_categories_id *********
+        if (!empty($input['assets_sub_categories_id'])) {
+            // checking if category exists
+            $categoriesExists = $this->assetSubCategoriesModel->selectAssetsSubCategoryById($input['assets_sub_categories_id']);
+            if (sizeof($categoriesExists) == 0) {
+                return ["validated" => false, "message" => "Sub category id '" . $input['assets_sub_categories_id'] . "' not found, please try again?"];
+            }
+        }
+
+        //********* validate specification ***********
+        if (empty($input['specification'])) {
+            return ["validated" => false, "message" => "specification is required!, please try again"];
+        }
+        if (isset($input['specification']) && !is_array($input['specification'])) {
+            return ["validated" => false, "message" => "specification is Invalid!, please try again"];
+        }
+
+        //********* validate brand_id ***********
+        if (empty($input['brand_id'])) {
+            return ["validated" => false, "message" => "brand_id is required!, please try again"];
+        }
+        // checking if category exists
+        $categoriesExists = $this->brandsModel->selectBrandsById($input['brand_id']);
+        if (sizeof($categoriesExists) == 0) {
+            return ["validated" => false, "message" => "Brand id '" . $input['brand_id'] . "' not found, please try again?"];
+        }
+
+        //***********  validate assets_number_limit ********/
+        if (empty($input['assets_number_limit'])) {
+            return ["validated" => false, "message" => "assets_number_limit is required!, please try again"];
+        }
+        // checking if the set limit is eqaul to the stock
+        if ($action == "new") {
+            $assetsCategory = $this->assetsModel->selectAssetsByCategoryBrandSubCategory($input);
+            if ((int) $input['assets_number_limit'] > sizeof($assetsCategory)) {
+                return ["validated" => false, "message" => "Assets number limit exceed which is in stock on category id '" . $input['assets_categories_id'] . "', please try again?"];
+            }
+        }
+
+        return ["validated" => true, "message" => "OK"];
+    }
+
     private function validateDistributionBatchDetails($input)
     {
         // validate title
@@ -267,7 +415,7 @@ class AssetsDistributionController
 
         if (sizeof($input['batch_details']) > 0) {
             foreach ($input['batch_details'] as $key => $value) {
-                // validate assets_categories_id
+                // ***** validate assets_categories_id ********
                 if (empty($value['assets_categories_id'])) {
                     return ["validated" => false, "message" => "assets_categories_id is required!, please try again"];
                 }
@@ -277,12 +425,39 @@ class AssetsDistributionController
                     return ["validated" => false, "message" => "Category id '" . $value['assets_categories_id'] . "' not found, please try again?"];
                 }
 
-                // validate assets_categories_id
-                if (empty($value['assets_categories_id'])) {
-                    return ["validated" => false, "message" => "assets_categories_id is required!, please try again"];
+                // ****** validate assets_sub_categories_id *********
+                if (!empty($value['assets_sub_categories_id'])) {
+                    // checking if category exists
+                    $categoriesExists = $this->assetSubCategoriesModel->selectAssetsSubCategoryById($value['assets_sub_categories_id']);
+                    if (sizeof($categoriesExists) == 0) {
+                        return ["validated" => false, "message" => "Sub category id '" . $value['assets_sub_categories_id'] . "' not found, please try again?"];
+                    }
+                }
+
+                //********* validate specification ***********
+                if (empty($value['specification'])) {
+                    return ["validated" => false, "message" => "specification is required!, please try again"];
+                }
+                if (isset($value['specification']) && !is_array($value['specification'])) {
+                    return ["validated" => false, "message" => "specification is Invalid!, please try again"];
+                }
+
+                //********* validate brand_id ***********
+                if (empty($value['brand_id'])) {
+                    return ["validated" => false, "message" => "brand_id is required!, please try again"];
+                }
+                // checking if category exists
+                $categoriesExists = $this->brandsModel->selectBrandsById($value['brand_id']);
+                if (sizeof($categoriesExists) == 0) {
+                    return ["validated" => false, "message" => "Brand id '" . $value['brand_id'] . "' not found, please try again?"];
+                }
+
+                //***********  validate assets_number_limit ********/
+                if (empty($value['assets_number_limit'])) {
+                    return ["validated" => false, "message" => "assets_number_limit is required!, please try again"];
                 }
                 // checking if the set limit is eqaul to the stock
-                $assetsCategory = $this->assetsModel->selectAssetsByCategory($value['assets_categories_id']);
+                $assetsCategory = $this->assetsModel->selectAssetsByCategoryBrandSubCategory($value);
                 if ((int) $value['assets_number_limit'] > sizeof($assetsCategory)) {
                     return ["validated" => false, "message" => "Assets number limit exceed which is in stock on category id '" . $value['assets_categories_id'] . "', please try again?"];
                 }
