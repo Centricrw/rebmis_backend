@@ -243,17 +243,15 @@ class AssetsDistributionModel
 
     /**
      * selecting all school that has batch and category
-     * @param STRING $batch_details_id
+     * @param STRING $ids
      * @return ARRAY $results
      */
-    public function selectSchoolDistributionByCategory($batch_details_id)
+    public function selectSchoolDistributionByCategory($ids)
     {
-        $statement = "SELECT * FROM `assets_distriution_school` WHERE `batch_details_id`= :batch_details_id";
+        $statement = "SELECT * FROM `assets_distriution_school` WHERE `batch_details_id` IN ('$ids')";
         try {
             $statement = $this->db->prepare($statement);
-            $statement->execute(array(
-                ":batch_details_id" => $batch_details_id,
-            ));
+            $statement->execute();
             $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
             return $results;
         } catch (\PDOException $e) {

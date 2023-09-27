@@ -131,6 +131,12 @@ class AssetsDistributionController
                 return $carry;
             };
 
+            // function to add batch definition ids
+            $batchIds = function ($carry, $item) {
+                $carry = $carry == "" ? $item['id'] : $carry . ", " . $item['id'];
+                return $carry;
+            };
+
             // function to check batch definition details
             $batchCategory = $this->assetsDistributionModel->selectDistributionBatchByCategory($data);
             if (sizeof($batchCategory) == 0) {
@@ -138,7 +144,8 @@ class AssetsDistributionController
             }
 
             // getting school batch number limit
-            $gettingSchoolDistributionNumber = $this->assetsDistributionModel->selectSchoolDistributionByCategory($batchCategory[0]['id']);
+            $ids = array_reduce($batchCategory, $batchIds, "");
+            $gettingSchoolDistributionNumber = $this->assetsDistributionModel->selectSchoolDistributionByCategory($ids);
 
             // adding number limit
             $sumOfAssetsAssignedToschools = array_reduce($gettingSchoolDistributionNumber, $sumAssetsNumberLimit, 0);
