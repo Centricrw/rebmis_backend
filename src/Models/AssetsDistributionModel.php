@@ -135,7 +135,7 @@ class AssetsDistributionModel
     /**
      * get asset limits for batch definition
      * @param OBJECT $data
-     * @return OBJECT $results
+     * @return ARRAY $results
      */
     public function selectDistributionBatchByCategory($data)
     {
@@ -244,7 +244,7 @@ class AssetsDistributionModel
     /**
      * selecting all school that has batch and category
      * @param STRING $batch_details_id
-     * @return OBJECT $results
+     * @return ARRAY $results
      */
     public function selectSchoolDistributionByCategory($batch_details_id)
     {
