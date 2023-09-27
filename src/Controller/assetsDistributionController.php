@@ -316,9 +316,7 @@ class AssetsDistributionController
             }
 
             $response['status_code_header'] = 'HTTP/1.1 201 Created';
-            $response['body'] = json_encode([
-                "message" => "New Batch definition created successfully!",
-            ]);
+            $response['body'] = json_encode($data);
             return $response;
 
         } catch (\Throwable $th) {
