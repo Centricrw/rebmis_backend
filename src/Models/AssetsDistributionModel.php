@@ -260,6 +260,28 @@ class AssetsDistributionModel
     }
 
     /**
+     * selecting stock details
+     * @param STRING $ids
+     * @return ARRAY $results
+     */
+    public function selectAssetsDetails($data)
+    {
+        $statement = "SELECT * FROM `assets` WHERE assets_categories_id = :assets_categories_id AND assets_sub_categories_id = :assets_sub_categories_id AND brand_id = :brand_id";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
+                ":assets_categories_id" => $data['assets_categories_id'],
+                ":assets_sub_categories_id" => $data['assets_sub_categories_id'],
+                ":brand_id" => $data['brand_id'],
+            ));
+            $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $results;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    /**
      * checking if school already have distributed to this bacth
      * @param OBJECT $data
      * @return OBJECT $results
