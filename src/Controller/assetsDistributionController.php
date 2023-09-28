@@ -46,6 +46,8 @@ class AssetsDistributionController
                     $response = $this->createNewSchoolDistribution();
                 } else if (isset($this->params['id']) && $this->params['id'] == "numbers") {
                     $response = $this->checkingBatchDistributionLimit();
+                } else if (isset($this->params['id']) && $this->params['id'] == "assets") {
+                    $response = $this->getAssetsSummary();
                 } else {
                     $response = $this->createNewDistributionBatch();
                 }
@@ -218,6 +220,47 @@ class AssetsDistributionController
             $results = $this->assetsDistributionModel->selectAllDistributionBatch();
             $response['status_code_header'] = 'HTTP/1.1 200 OK';
             $response['body'] = json_encode($results);
+            return $response;
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
+        }
+    }
+
+    /**
+     * getting assets details
+     * @param NULL
+     * @return OBJECT $results
+     */
+    public function getAssetsSummary()
+    {
+
+        // getting input data
+        $data = (array) json_decode(file_get_contents('php://input'), true);
+        // geting authorized user id
+        $logged_user_id = AuthValidation::authorized()->id;
+        try {
+            $results = $this->assetsDistributionModel->selectAssetsDetails($data);
+
+            // creating results object
+            $resultsDetails = new \stdClass();
+            $resultsDetails->booked = 0;
+            $resultsDetails->available = 0;
+            $resultsDetails->assigned = 0;
+
+            foreach ($results as $key => $value) {
+                if ($value['asset_state'] == "booked") {
+                    $resultsDetails->booked += 1;
+                }
+                if ($value['asset_state'] == "available") {
+                    $resultsDetails->available += 1;
+                }
+                if ($value['asset_state'] == "assigned") {
+                    $resultsDetails->assigned += 1;
+                }
+            }
+
+            $response['status_code_header'] = 'HTTP/1.1 200 OK';
+            $response['body'] = json_encode($resultsDetails);
             return $response;
         } catch (\Throwable $th) {
             return Errors::databaseError($th->getMessage());
