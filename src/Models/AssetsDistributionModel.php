@@ -12,6 +12,7 @@ class AssetsDistributionModel
     {
         $this->db = $db;
     }
+
     /**
      * Create new distribution batch asset
      * @param OBJECT $data

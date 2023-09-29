@@ -41,10 +41,18 @@ class AssetCategoriesController
                 }
                 break;
             case "POST":
-                $response = $this->createNewAssets();
+                if (isset($this->params['id']) && $this->params['id'] == "schoolassets") {
+                    $response = $this->getSchoolAssetsSummary();
+                } else {
+                    $response = $this->createNewAssets();
+                }
                 break;
             case "PUT":
-                $response = $this->updateAssets($this->params['id']);
+                if (isset($this->params['id']) && $this->params['id'] == "engraving") {
+                    $response = $this->createNewAssetsToSchool();
+                } else {
+                    $response = $this->updateAssets($this->params['id']);
+                }
                 break;
             default:
                 $response = Errors::notFoundError("Route not found!");
@@ -209,6 +217,119 @@ class AssetCategoriesController
         } catch (\Throwable $th) {
             return Errors::databaseError($th->getMessage());
         }
+    }
+
+    /**
+     * get school assets summary
+     * @param OBJECT $data
+     * @return OBJECT $results
+     */
+
+    public function getSchoolAssetsSummary()
+    {
+        // getting input data
+        $data = (array) json_decode(file_get_contents('php://input'), true);
+        // geting authorized user id
+        $logged_user_id = AuthValidation::authorized()->id;
+        try {
+            $schoolSummary = function ($values) {
+                $results = $this->assetsModel->getSchoolSchoolAssets($values);
+                $CurrentAssets = sizeof($results);
+                $results[0]['specification'] = json_decode($results[0]['specification']);
+                $results[0]['school_current_assets'] = $CurrentAssets;
+                return $results[0];
+            };
+            $resultsDetails = array_map($schoolSummary, $data['schools']);
+            $response['status_code_header'] = 'HTTP/1.1 201 Created';
+            $response['body'] = json_encode($resultsDetails);
+            return $response;
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
+        }
+    }
+
+    /**
+     * Insert new asset to school
+     * @param OBJECT $data
+     * @return OBJECT $results
+     */
+
+    public function createNewAssetsToSchool()
+    {
+        // getting input data
+        $data = (array) json_decode(file_get_contents('php://input'), true);
+        // Validate input if not empty
+        $validateInputData = self::validateAssignAssetToSchool($data);
+        if (!$validateInputData['validated']) {
+            return Errors::unprocessableEntityResponse($validateInputData['message']);
+        }
+        // geting authorized user id
+        $logged_user_id = AuthValidation::authorized()->id;
+        try {
+            //! checking if asset already been assigned
+            // Generate assests Batch Category Id
+            $generatedSchoolAssetsId = UuidGenerator::gUuid();
+            $data['school_assets_id'] = $generatedSchoolAssetsId;
+            $this->assetsModel->insertNewAssetsToSchool($data, $logged_user_id);
+
+            $response['status_code_header'] = 'HTTP/1.1 201 Created';
+            $response['body'] = json_encode($data);
+            return $response;
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
+        }
+    }
+
+    private function validateAssignAssetToSchool($input)
+    {
+        // validate serial_number
+        if (empty($input['serial_number'])) {
+            return ["validated" => false, "message" => "serial_number is required!, please try again"];
+        }
+        if (!empty($input['serial_number'])) {
+            $serialNumberExists = $this->assetsModel->selectAssetsBySerialNumber($input['serial_number']);
+            if (sizeof($serialNumberExists) == 0) {
+                return ["validated" => false, "message" => "Serial Number not found, please try again?"];
+            }
+            if ($serialNumberExists[0]['asset_state'] == "assigned") {
+                return ["validated" => false, "message" => "This computer already assigned to a school!, please try again?"];
+            }
+        }
+
+        // validate assets_tag
+        if (empty($input['assets_tag'])) {
+            return ["validated" => false, "message" => "assets_tag is required!, please try again"];
+        }
+        if (!empty($input['assets_tag'])) {
+            $tagExists = $this->assetsModel->selectAssetsByTag($input['assets_tag']);
+            if (sizeof($tagExists) > 0) {
+                return ["validated" => false, "message" => "Asset tag already exists, please try again?"];
+            }
+        }
+
+        // validate level_code
+        if (empty($input['level_code'])) {
+            return ["validated" => false, "message" => "level_code is required!, please try again"];
+        }
+        if (!empty($input['level_code'])) {
+            $levelCodeExists = $this->assetsModel->getLevelByCode($input['level_code']);
+            if (sizeof($levelCodeExists) == 0) {
+                return ["validated" => false, "message" => "Level code not found!, please try again?"];
+            }
+        }
+
+        // validate school_code
+        if (empty($input['school_code'])) {
+            return ["validated" => false, "message" => "school_code is required!, please try again"];
+        }
+        if (!empty($input['school_code'])) {
+            $schoolCodeExists = $this->assetsModel->getSchoolByCode($input['school_code']);
+            if (sizeof($schoolCodeExists) == 0) {
+                return ["validated" => false, "message" => "School Code not found!, please try again?"];
+            }
+        }
+
+        return ["validated" => true, "message" => "OK"];
     }
 
 }
