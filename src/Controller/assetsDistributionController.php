@@ -184,23 +184,18 @@ class AssetsDistributionController
         // geting authorized user id
         $logged_user_id = AuthValidation::authorized()->id;
         try {
-
-            //! checking if the school already has this category or subcategory
+            //! checking if does not excced the limit
             // checking if batch category exists
             $batchCategoryExists = $this->assetsDistributionModel->selectDistributionSchool($data);
             if (sizeof($batchCategoryExists) > 0) {
-                return Errors::badRequestError("This school already hase batch distribution, please try again?");
+                return Errors::badRequestError("This school already has batch distribution, please try again?");
             }
-            //! remember to check if limit if is not big than they decided
-
             // Generate assests Batch Category Id
             $generatedSchoolDistributionId = UuidGenerator::gUuid();
-            $data['id'] = $generatedSchoolDistributionId;
+            $data['assets_school_distribution_id'] = $generatedSchoolDistributionId;
             $this->assetsDistributionModel->insertNewSchoolDistribution($data, $logged_user_id);
             $response['status_code_header'] = 'HTTP/1.1 201 Created';
-            $response['body'] = json_encode([
-                "message" => "New school distribution created successfully!",
-            ]);
+            $response['body'] = json_encode($data);
             return $response;
         } catch (\Throwable $th) {
             return Errors::databaseError($th->getMessage());
