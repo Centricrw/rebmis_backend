@@ -96,12 +96,15 @@ class AssetsDistributionModel
             $value['specification'] = json_decode($value['specification']);
             return $value;
         };
-        $batchDetails = "SELECT B.*, AC.assets_categories_name FROM `batch_details` B
+        $batchDetails = "SELECT B.*, AC.assets_categories_name, ADB.title, ASUB.name as assets_sub_categories_name, Br.name as brand_name  FROM `batch_details` B
         INNER JOIN `assets_categories` AC ON AC.assets_categories_id = B.assets_categories_id
-        WHERE B.`batch_id` = ?";
+        INNER JOIN `assets_distriution_batch` ADB ON ADB.id = B.batch_id
+        LEFT JOIN `assets_sub_categories` ASUB ON ASUB.id = B.assets_sub_categories_id
+        INNER JOIN `Brands` Br ON Br.id = B.brand_id
+        WHERE B.batch_id = :batch_id";
         try {
             $statement = $this->db->prepare($batchDetails);
-            $statement->execute(array($batch['id']));
+            $statement->execute(array(":batch_id" => $batch['id']));
             $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
             $resultsDetails = array_map($convertSpecification, $results);
             $batch['batch_details'] = $resultsDetails;
@@ -140,9 +143,11 @@ class AssetsDistributionModel
      */
     public function selectDistributionBatchByCategory($data)
     {
-        $statement = "SELECT B.*, AC.assets_categories_name, ADB.title FROM `batch_details` B
+        $statement = "SELECT B.*, AC.assets_categories_name, ADB.title, ASUB.name as assets_sub_categories_name, Br.name as brand_name  FROM `batch_details` B
         INNER JOIN `assets_categories` AC ON AC.assets_categories_id = B.assets_categories_id
         INNER JOIN `assets_distriution_batch` ADB ON ADB.id = B.batch_id
+        LEFT JOIN `assets_sub_categories` ASUB ON ASUB.id = B.assets_sub_categories_id
+        INNER JOIN `Brands` Br ON Br.id = B.brand_id
         WHERE B.assets_categories_id = :assets_categories_id AND B.assets_sub_categories_id = :assets_sub_categories_id AND B.brand_id = :brand_id AND B.batch_id = :batch_id";
         try {
             $statement = $this->db->prepare($statement);
