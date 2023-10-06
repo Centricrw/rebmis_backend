@@ -232,7 +232,7 @@ class AssetsDistributionController
         // geting authorized user id
         $logged_user_id = AuthValidation::authorized()->id;
         try {
-            $results = $this->assetsDistributionModel->selectAllDistributionBatch();
+            $results = $this->assetsDistributionModel->selectAllSchoolDistributionDetails($batchDefinitionId);
             $response['status_code_header'] = 'HTTP/1.1 200 OK';
             $response['body'] = json_encode($results);
             return $response;
