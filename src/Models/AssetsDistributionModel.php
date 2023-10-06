@@ -203,6 +203,27 @@ class AssetsDistributionModel
     }
 
     /**
+     * get All distribution assets batch
+     * @param STRING $batchDefinitionId
+     * @return OBJECT $results
+     */
+    public function selectAllSchoolDistributionDetails($batchDefinitionId)
+    {
+        $statement = "SELECT A.*, L.level_name, S.school_name FROM `assets_distriution_school` A
+        INNER JOIN `levels` L ON L.level_code = A.level_code
+        INNER JOIN `schools` S ON S.school_code = A.school_code
+        WHERE A.`batch_details_id` = :batchDefinitionId";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array("batchDefinitionId" => $batchDefinitionId));
+            $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $results;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    /**
      * update distribution assets batch
      * @param OBJECT $data
      * @param NUMBER $id
