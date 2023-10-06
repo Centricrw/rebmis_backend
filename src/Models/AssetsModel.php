@@ -250,6 +250,27 @@ class AssetsModel
             throw new Error($e->getMessage());
         }
     }
+    /**
+     * get school by school code
+     * @param STRING $schoolCode
+     * @return ARRAY
+     */
+    public function getSchoolAssetsBySchoolCode($schoolCode)
+    {
+        $statement = "SELECT A.*, AC.assets_categories_name, ASUB.name as assets_sub_categories_name, Br.name as brand_name FROM `assets` A
+        INNER JOIN `assets_categories` AC ON AC.assets_categories_id = A.assets_categories_id
+        LEFT JOIN `assets_sub_categories` ASUB ON ASUB.id = A.assets_sub_categories_id
+        INNER JOIN `Brands` Br ON Br.id = A.brand_id
+        WHERE A.`school_code` = :school_code";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(':school_code' => $schoolCode));
+            $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $results;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
 
     /**
      * get school by school code
