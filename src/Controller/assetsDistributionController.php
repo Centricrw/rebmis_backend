@@ -37,7 +37,11 @@ class AssetsDistributionController
     {
         switch ($this->request_method) {
             case 'GET':
-                $response = $this->getAllDistributionBatch();
+                if (isset($this->params['action']) && $this->params['action'] == "school") {
+                    $response = $this->getSchoolDistributionOnBatchDetails($this->params['id']);
+                } else {
+                    $response = $this->getAllDistributionBatch();
+                }
                 break;
             case "POST":
                 if (isset($this->params['action']) && $this->params['action'] == "adddefinition") {
@@ -205,6 +209,25 @@ class AssetsDistributionController
      * @return OBJECT $results
      */
     public function getAllDistributionBatch()
+    {
+        // geting authorized user id
+        $logged_user_id = AuthValidation::authorized()->id;
+        try {
+            $results = $this->assetsDistributionModel->selectAllDistributionBatch();
+            $response['status_code_header'] = 'HTTP/1.1 200 OK';
+            $response['body'] = json_encode($results);
+            return $response;
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
+        }
+    }
+
+    /**
+     * getting all school distribution on batch details
+     * @param STRING $batchDefinitionId
+     * @return OBJECT $results
+     */
+    public function getSchoolDistributionOnBatchDetails($batchDefinitionId)
     {
         // geting authorized user id
         $logged_user_id = AuthValidation::authorized()->id;

@@ -261,6 +261,10 @@ class AssetCategoriesController
             $schoolSummary = function ($values) {
                 $results = $this->assetsModel->getSchoolSchoolAssets($values);
                 $CurrentAssets = sizeof($results);
+                if ($CurrentAssets == 0) {
+                    $values['school_current_assets'] = 0;
+                    return $values;
+                };
                 $results[0]['specification'] = json_decode($results[0]['specification']);
                 $results[0]['school_current_assets'] = $CurrentAssets;
                 return $results[0];
