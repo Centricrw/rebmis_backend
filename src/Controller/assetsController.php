@@ -36,6 +36,8 @@ class AssetCategoriesController
             case 'GET':
                 if (isset($this->params['action']) && $this->params['action'] == "serial") {
                     $response = $this->getAssetBySerialNUmber($this->params['id']);
+                } else if (isset($this->params['action']) && $this->params['action'] == "school") {
+                    $response = $this->getSchoolAssetBySchoolCode($this->params['id']);
                 } else {
                     $response = $this->getAllAssets();
                 }
@@ -143,6 +145,30 @@ class AssetCategoriesController
     }
 
     /**
+     * getting all asset on school
+     * @param STRING $schoolCode
+     * @return OBJECT $results
+     */
+    public function getSchoolAssetBySchoolCode($schoolCode)
+    {
+        // geting authorized user id
+        $logged_user_id = AuthValidation::authorized()->id;
+        try {
+            $results = $this->assetsModel->getSchoolAssetsBySchoolCode($schoolCode);
+            $newResults = [];
+            foreach ($results as $key => $value) {
+                $value['specification'] = json_decode($value['specification']);
+                array_push($newResults, $value);
+            }
+            $response['status_code_header'] = 'HTTP/1.1 200 OK';
+            $response['body'] = json_encode($newResults);
+            return $response;
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
+        }
+    }
+
+    /**
      * getting all asset by serial number
      * @param STRING $serialNumber
      * @return OBJECT $results
@@ -235,6 +261,10 @@ class AssetCategoriesController
             $schoolSummary = function ($values) {
                 $results = $this->assetsModel->getSchoolSchoolAssets($values);
                 $CurrentAssets = sizeof($results);
+                if ($CurrentAssets == 0) {
+                    $values['school_current_assets'] = 0;
+                    return $values;
+                };
                 $results[0]['specification'] = json_decode($results[0]['specification']);
                 $results[0]['school_current_assets'] = $CurrentAssets;
                 return $results[0];
