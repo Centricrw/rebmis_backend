@@ -96,18 +96,18 @@ class AssetsDistributionController
             $data['id'] = $generatedBatchCategoryId;
             $insertBatch = $this->assetsDistributionModel->insertNewDistributionBatch($data, $logged_user_id);
 
-            if ($insertBatch && sizeof($data['batch_details']) > 0) {
-                foreach ($data['batch_details'] as $key => $value) {
-                    $generatedBatchDetailsID = UuidGenerator::gUuid();
-                    $value['id'] = $generatedBatchDetailsID;
-                    $value['batch_id'] = $generatedBatchCategoryId;
-                    $insertBatchDetails = $this->assetsDistributionModel->insertNewBatchDetails($value);
-                    if ($insertBatchDetails) {
-                        $this->assetsModel->bookAssetStateByCategory($value, $logged_user_id);
-                    }
+            // if ($insertBatch && sizeof($data['batch_details']) > 0) {
+            //     foreach ($data['batch_details'] as $key => $value) {
+            //         $generatedBatchDetailsID = UuidGenerator::gUuid();
+            //         $value['id'] = $generatedBatchDetailsID;
+            //         $value['batch_id'] = $generatedBatchCategoryId;
+            //         $insertBatchDetails = $this->assetsDistributionModel->insertNewBatchDetails($value);
+            //         if ($insertBatchDetails) {
+            //             $this->assetsModel->bookAssetStateByCategory($value, $logged_user_id);
+            //         }
 
-                }
-            }
+            //     }
+            // }
 
             $response['status_code_header'] = 'HTTP/1.1 201 Created';
             $response['body'] = json_encode($data);
