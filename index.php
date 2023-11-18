@@ -117,6 +117,9 @@ $route->router("/batchdistribution", "src/Controller/assetsDistributionControlle
 $route->router("/batchdistribution/{id}", "src/Controller/assetsDistributionController.php");
 $route->router("/batchdistribution/{action}/{id}", "src/Controller/assetsDistributionController.php");
 
+// ICTFOCAL TEACHERS
+$route->router("/ictfocalteachers/{action}", "src/Controller/ictfocaltechersController.php");
+
 //write it at the last
 //arg is 404 file location
 $route->notFound("404.php");
