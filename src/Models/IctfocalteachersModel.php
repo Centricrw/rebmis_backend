@@ -14,13 +14,15 @@ class IctfocalteachersModel
     }
 
 
-    public function getCandidates($schools)
+    public function getCandidates($data)
     {
+        $cohort_id = $data['cohortId'];
+        $schools = $data['schools'];
         $newSchools = [];
         foreach ($schools as $school) {
             $newSchool = [];
             $newSchool['schoolCode']=$school;
-            $newSchool['teachers'] = $this->getSchoolTeachers($school); 
+            $newSchool['teachers'] = $this->getSchoolTeachers($school, $cohort_id); 
             array_push($newSchools, $newSchool);
         }
         return $newSchools;
@@ -41,7 +43,7 @@ class IctfocalteachersModel
         }
     }
 
-    private function getSchoolTeachers($schoolCode)
+    private function getSchoolTeachers($schoolCode, $cohortId)
     {
         $statement = 'SELECT U.staff_code, U.full_name, UR.custom_roles FROM user_to_role UR INNER JOIN users U ON U.user_id = UR.user_id WHERE UR.school_code = ? AND UR.role_id = ?';
         try {
