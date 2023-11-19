@@ -30,12 +30,13 @@ class IctfocalteachersModel
 
     public function addFocalTeacher($data)
     {
-        $schoolCode = $data['schoolCode'];
+        $schoolCode = $data['school_code'];
         $teacherCode = $data['staff_code'];
-        $statement = "'UPDATE UR SET UR.custom_roles = 'FOCAL_TEACHER' FROM user_to_role UR INNER JOIN users U ON U.user_id = UR.user_id WHERE U.user_id = '57101122041' AND UR.school_code = '571011'";
+        $cohort_id = $data['cohort_id'];
+        $statement = "INSERT INTO user_to_role_custom (cohort_id, school_code, staff_code, custom_role) VALUES ()";
         try {
             $statement = $this->db->prepare($statement);
-            $statement->execute();
+            $statement->execute($schoolCode, $teacherCode, $cohort_id);
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             return $result;
         } catch (\PDOException $e) {
