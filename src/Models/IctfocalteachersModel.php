@@ -16,7 +16,7 @@ class IctfocalteachersModel
 
     public function getCandidates($data)
     {
-        $cohort_id = $data['cohortId'];
+        $cohort_id = $data['cohort_id'];
         $schools = $data['schools'];
         $newSchools = [];
         foreach ($schools as $school) {
