@@ -28,8 +28,27 @@ class IctfocalteachersModel
         return $newSchools;
     }
 
+    public function removeFocalTeacher($data)
+    {
+        $schoolCode = $data['school_code'];
+        $teacherCode = $data['staff_code'];
+        $cohort_id = $data['cohort_id'];
+        $statement = "DELETE FROM user_to_role_custom WHERE cohort_id= :cohort_id AND school_code= :schoolCode AND custom_role= 'FOCAL_TEACHER'";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
+                ':schoolCode' => $schoolCode,
+                ':cohort_id' => $cohort_id));
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $result;
+        } catch (\PDOException $e) {
+            exit($e->getMessage());
+        }
+    }
+
     public function addFocalTeacher($data)
     {
+        $this->removeFocalTeacher($data);
         $schoolCode = $data['school_code'];
         $teacherCode = $data['staff_code'];
         $cohort_id = $data['cohort_id'];
@@ -42,6 +61,21 @@ class IctfocalteachersModel
                 ':cohort_id' => $cohort_id));
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             return $data;
+        } catch (\PDOException $e) {
+            exit($e->getMessage());
+        }   
+    }
+
+    public function checkFocalTeacher($data){
+        $schoolCode = $data['school_code'];
+        $teacherCode = $data['staff_code'];
+        $cohort_id = $data['cohort_id'];
+        $statement = "SELECT custom_role FROM user_to_role_custom WHERE cohort_id = ? AND school_code = ? AND staff_code = ?";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array($cohort_id, $schoolCode, $teacherCode));
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+        return $result;
         } catch (\PDOException $e) {
             exit($e->getMessage());
         }
