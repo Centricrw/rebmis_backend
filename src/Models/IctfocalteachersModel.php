@@ -28,8 +28,27 @@ class IctfocalteachersModel
         return $newSchools;
     }
 
+    public function removeFocalTeacher($data)
+    {
+        $schoolCode = $data['school_code'];
+        $teacherCode = $data['staff_code'];
+        $cohort_id = $data['cohort_id'];
+        $statement = "DELETE FROM user_to_role_custom WHERE cohort_id= :cohort_id AND school_code= :schoolCode AND custom_role= 'FOCAL_TEACHER'";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
+                ':schoolCode' => $schoolCode,
+                ':cohort_id' => $cohort_id));
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $result;
+        } catch (\PDOException $e) {
+            exit($e->getMessage());
+        }
+    }
+
     public function addFocalTeacher($data)
     {
+        $this->removeFocalTeacher($data);
         $schoolCode = $data['school_code'];
         $teacherCode = $data['staff_code'];
         $cohort_id = $data['cohort_id'];
@@ -44,12 +63,27 @@ class IctfocalteachersModel
             return $data;
         } catch (\PDOException $e) {
             exit($e->getMessage());
+        }   
+    }
+
+    public function checkFocalTeacher($data){
+        $schoolCode = $data['school_code'];
+        $teacherCode = $data['staff_code'];
+        $cohort_id = $data['cohort_id'];
+        $statement = "SELECT custom_role FROM user_to_role_custom WHERE cohort_id = ? AND school_code = ? AND staff_code = ?";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array($cohort_id, $schoolCode, $teacherCode));
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+        return $result;
+        } catch (\PDOException $e) {
+            exit($e->getMessage());
         }
     }
 
     private function getSchoolTeachers($schoolCode, $cohortId)
     {
-        $statement = 'SELECT U.staff_code, U.full_name, UR.custom_roles FROM user_to_role UR INNER JOIN users U ON U.user_id = UR.user_id WHERE UR.school_code = ? AND UR.role_id = ?';
+        $statement = 'SELECT U.staff_code, U.full_name, IFNULL((SELECT custom_role FROM user_to_role_custom WHERE cohort_id = '.$cohortId.' AND school_code = '.$schoolCode.' AND staff_code = U.staff_code LIMIT 1),NULL) custom_roles FROM user_to_role UR INNER JOIN users U ON U.user_id = UR.user_id WHERE UR.school_code = ? AND UR.role_id = ?';
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array($schoolCode, 1));
