@@ -16,7 +16,7 @@ class IctfocalteachersModel
 
     public function getCandidates($data)
     {
-        $cohort_id = $data['cohortId'];
+        $cohort_id = $data['cohort_id'];
         $schools = $data['schools'];
         $newSchools = [];
         foreach ($schools as $school) {
@@ -33,12 +33,15 @@ class IctfocalteachersModel
         $schoolCode = $data['school_code'];
         $teacherCode = $data['staff_code'];
         $cohort_id = $data['cohort_id'];
-        $statement = "INSERT INTO user_to_role_custom (cohort_id, school_code, staff_code, custom_role) VALUES ()";
+        $statement = "INSERT INTO user_to_role_custom (cohort_id, school_code, staff_code, custom_role) VALUES (:cohort_id, :schoolCode, :teacherCode, 'FOCAL_TEACHER')";
         try {
             $statement = $this->db->prepare($statement);
-            $statement->execute($schoolCode, $teacherCode, $cohort_id);
+            $statement->execute(array(
+                ':schoolCode' => $schoolCode,
+                ':teacherCode' => $teacherCode,
+                ':cohort_id' => $cohort_id));
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
-            return $result;
+            return $data;
         } catch (\PDOException $e) {
             exit($e->getMessage());
         }
