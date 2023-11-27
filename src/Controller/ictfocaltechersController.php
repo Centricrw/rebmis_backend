@@ -41,6 +41,9 @@ class ictfocalteachersController
                     elseif ($this->params['action'] == "checkFocalTeacher") {
                         $response = $this->checkFocalTeacher();
                     }
+                    elseif ($this->params['action'] == "resetTeacherPwd") {
+                        $response = $this->resetTeacherPwd();
+                    }
                 }
             break;
             default:
@@ -93,6 +96,19 @@ class ictfocalteachersController
         $data = (array) json_decode(file_get_contents('php://input'), true);
         try {
             $result = $this->ictfocalteachersModel->checkFocalTeacher($data);
+            $response['status_code_header'] = 'HTTP/1.1 201 Created';
+            $response['body'] = json_encode($result);
+            return $response;
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
+        }
+    }
+
+    public function resetTeacherPwd(){
+        // getting input data
+        $data = (array) json_decode(file_get_contents('php://input'), true);
+        try {
+            $result = $this->ictfocalteachersModel->resetTeacherPwd($data);
             $response['status_code_header'] = 'HTTP/1.1 201 Created';
             $response['body'] = json_encode($result);
             return $response;
