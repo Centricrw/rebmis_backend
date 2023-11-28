@@ -56,4 +56,18 @@ class RolesModel
             exit($e->getMessage());
         }
     }
+
+    public function findRoleByName($role)
+    {
+        $statement = "SELECT * FROM `roles` WHERE `role` = ? AND `status` = ?";
+
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array($role, 1));
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $result;
+        } catch (\PDOException $e) {
+            exit($e->getMessage());
+        }
+    }
 }

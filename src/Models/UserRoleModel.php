@@ -36,6 +36,41 @@ class UserRoleModel
             throw new Error($e->getMessage());
         }
     }
+
+    public function insertIntoUserToRoleCustom($data)
+    {
+        $statement = "INSERT INTO user_to_role_custom (`cohort_id`, `school_code`, `staff_code`, `custom_role`) VALUES (:cohort_id,:school_code, :staff_code, :custom_role)";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
+                ':cohort_id' => $data['cohort_id'],
+                ':school_code' => $data['school_code'],
+                ':staff_code' => $data['staff_code'],
+                ':custom_role' => $data['custom_role'],
+            ));
+            return $statement->rowCount();
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    public function selectUserToRoleCustom($data)
+    {
+        $statement = "SELECT * FROM `user_to_role_custom` WHERE `cohort_id`=:cohort_id AND `school_code` = :school_code AND `staff_code` = :staff_code";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
+                ':cohort_id' => $data['cohort_id'],
+                ':school_code' => $data['school_code'],
+                ':staff_code' => $data['staff_code'],
+            ));
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $result;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
     public function update($data, $user_id)
     {
         $statement = "
