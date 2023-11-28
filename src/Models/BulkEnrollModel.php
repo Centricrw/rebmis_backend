@@ -19,7 +19,7 @@ class BulkEnrollModel
         foreach ($schools as $school) {
             $newSchool = [];
             $newSchool['schoolCode'] = $school;
-            $newSchool['teachers'] = $this->getSchoolTeachers($school, $cohort_id);
+            //! $newSchool['teachers'] = $this->getSchoolTeachers($school, $cohort_id);
             array_push($newSchools, $newSchool);
         }
         //print_r($newSchools);
