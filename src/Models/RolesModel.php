@@ -1,6 +1,8 @@
 <?php
 namespace Src\Models;
 
+use Error;
+
 class RolesModel
 {
 
@@ -40,12 +42,7 @@ class RolesModel
 
     public function findById($role_id)
     {
-        $statement = "
-        SELECT
-            *
-        FROM
-            roles WHERE role_id = ? AND status = ?
-    ";
+        $statement = "SELECT * FROM roles WHERE role_id = ? AND status = ? ";
 
         try {
             $statement = $this->db->prepare($statement);
@@ -53,7 +50,21 @@ class RolesModel
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             return $result;
         } catch (\PDOException $e) {
-            exit($e->getMessage());
+            throw new Error($e->getMessage());
+        }
+    }
+
+    public function findRoleByName($role)
+    {
+        $statement = "SELECT * FROM `roles` WHERE `role` = ? AND `status` = ?";
+
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array($role, 1));
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $result;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
         }
     }
 }

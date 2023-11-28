@@ -1,8 +1,6 @@
 <?php
 namespace Src\Models;
 
-use Error;
-
 class BulkEnrollModel
 {
 
@@ -13,7 +11,6 @@ class BulkEnrollModel
         $this->db = $db;
     }
 
-
     public function bulkEnroll($data)
     {
         $cohort_id = $data['cohort_id'];
@@ -21,8 +18,8 @@ class BulkEnrollModel
         $newSchools = [];
         foreach ($schools as $school) {
             $newSchool = [];
-            $newSchool['schoolCode']=$school;
-            $newSchool['teachers'] = $this->getSchoolTeachers($school, $cohort_id); 
+            $newSchool['schoolCode'] = $school;
+            //! $newSchool['teachers'] = $this->getSchoolTeachers($school, $cohort_id);
             array_push($newSchools, $newSchool);
         }
         //print_r($newSchools);
