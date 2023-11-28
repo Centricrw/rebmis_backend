@@ -44,6 +44,12 @@ class bulkEnrollController
                         $response = $this->bulkEnroll();
                     }
                 }
+            case 'GET':
+                if (sizeof($this->params) > 0) {
+                    if ($this->params['action'] == "retrievedata") {
+                        $response = $this->bulkEnrollRetrieveJson();
+                    }
+                }
                 break;
             default:
                 $response = Errors::notFoundError("Route not found!");
@@ -218,13 +224,18 @@ class bulkEnrollController
             $data = json_decode(file_get_contents('php://input'), true);
             $created_by_user_id = AuthValidation::authorized()->id;
             $cohort_id = $data['cohort_id'];
+
             // checking if cohort exists
             $cohortExists = $this->cohortsModel->getOneCohort($cohort_id);
             if (sizeof($cohortExists) == 0) {
                 return Errors::notFoundError("Cohort id not found, please try again?");
             }
+
             // Validate data
             $this->bulkEnrollInputValidation($data["teachers"]);
+
+            // temparary array
+            $temp_success_array = array();
 
             // Process enrollment
             foreach ($data["teachers"] as $key => $teacherData) {
@@ -238,7 +249,12 @@ class bulkEnrollController
                     // insert user to user custom role
                     $this->createUserRoleCUstom($teacherData, $cohort_id);
                 }
-                $data["teachers"][$key]["status"] = "success";
+                $teacherData["status"] = "success";
+                array_push($temp_success_array, $teacherData);
+
+                // save data to json file
+                $encodeData = json_encode($temp_success_array, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+                file_put_contents("./public/bulk_enroll_data.json", $encodeData);
             }
 
             // Prepare response
@@ -247,6 +263,30 @@ class bulkEnrollController
             return $response;
         } catch (InvalidDataException $e) {
             return Errors::badRequestError($e->getMessage());
+        } catch (\Throwable $e) {
+            return Errors::databaseError($e->getMessage());
+        }
+    }
+
+    /**
+     * retrieve Json teachers
+     * @return JSON
+     */
+    public function bulkEnrollRetrieveJson()
+    {
+        try {
+            // authization
+            $created_by_user_id = AuthValidation::authorized()->id;
+            // fetching data from json file
+            $json_data = file_get_contents("./public/bulk_enroll_data.json");
+
+            // decode the $json_data
+            $decoded_data = json_decode($json_data);
+
+            // Prepare response
+            $response['status_code_header'] = 'HTTP/1.1 200 Ok';
+            $response['body'] = json_encode($decoded_data);
+            return $response;
         } catch (\Throwable $e) {
             return Errors::databaseError($e->getMessage());
         }
