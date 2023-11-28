@@ -83,17 +83,17 @@ class UserRoleModel
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array(
+                ':country_id' => empty($data['country_id']) ? 1 : $data['country_id'],
+                ':district_code' => empty($data['district_code']) ? null : $data['district_code'],
+                ':sector_code' => empty($data['sector_code']) ? null : $data['sector_code'],
+                ':school_code' => empty($data['school_code']) ? null : $data['school_code'],
+                ':qualification_id' => empty($data['qualification_id']) ? null : $data['qualification_id'],
+                ':academic_year_id' => empty($data['academic_year_id']) ? null : $data['academic_year_id'],
+                ':stakeholder_id' => empty($data['stakeholder_id']) ? null : $data['stakeholder_id'],
                 ':user_id' => $data['user_id'],
                 ':role_id' => $data['role_id'],
-                ':country_id' => $data['country_id'],
-                ':district_code' => $data['district_code'],
-                ':sector_code' => $data['sector_code'],
-                ':school_code' => $data['school_code'],
-                ':qualification_id' => $data['qualification_id'],
-                ':academic_year_id' => $data['academic_year_id'],
-                ':stakeholder_id' => $data['stakeholder_id'],
                 ':updated_by' => $user_id,
-                ':status' => 1,
+                ':status' => "Active",
             ));
             return $statement->rowCount();
         } catch (\PDOException $e) {
@@ -141,13 +141,8 @@ class UserRoleModel
 
     public function disableRole($user_id, $updated_by, $target, $status)
     {
-        $sql = "
-          UPDATE
-            user_to_role
-          SET
-            status=:status,updated_by=:updated_by,updated_at=:updated_at
-          WHERE
-            user_id=:user_id AND status=:target;
+        $sql = "UPDATE user_to_role SET `status`=:status, `updated_by`=:updated_by, `updated_at`=:updated_at
+          WHERE `user_id`=:user_id AND `status`=:target;
       ";
         try {
             $statement = $this->db->prepare($sql);
