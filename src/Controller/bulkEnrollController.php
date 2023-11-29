@@ -42,12 +42,16 @@ class bulkEnrollController
                 if (sizeof($this->params) > 0) {
                     if ($this->params['action'] == "bulkenroll") {
                         $response = $this->bulkEnroll();
+                    } else {
+                        $response = Errors::notFoundError("Route not found!");
                     }
                 }
             case 'GET':
                 if (sizeof($this->params) > 0) {
                     if ($this->params['action'] == "retrievedata") {
                         $response = $this->bulkEnrollRetrieveJson();
+                    } else {
+                        $response = Errors::notFoundError("Route not found!");
                     }
                 }
                 break;
