@@ -4,6 +4,7 @@ namespace Src\Controller;
 use Src\Models\BulkEnrollModel;
 use Src\Models\CohortsModel;
 use Src\Models\RolesModel;
+use Src\Models\TeacherStudyHierarchy;
 use Src\Models\UserRoleModel;
 use Src\Models\UsersModel;
 use Src\System\AuthValidation;
@@ -22,6 +23,7 @@ class bulkEnrollController
     private $userRoleModel;
     private $rolesModel;
     private $cohortsModel;
+    private $teacherStudyHierarchy;
 
     public function __construct($db, $request_method, $params)
     {
@@ -33,6 +35,7 @@ class bulkEnrollController
         $this->userRoleModel = new UserRoleModel($db);
         $this->rolesModel = new RolesModel($db);
         $this->cohortsModel = new CohortsModel($db);
+        $this->teacherStudyHierarchy = new TeacherStudyHierarchy($db);
     }
 
     function processRequest()
@@ -138,9 +141,10 @@ class bulkEnrollController
         ];
 
         // Check if user already exists
-        $existingUser = $this->usersModel->findOneUser($userData['staff_code']);
+        $existingUser = $this->usersModel->findOneUser($userData['staff_code'], $userData['phone_number']);
         if (sizeof($existingUser) > 0) {
             //* update user
+            print_r($existingUser);
             $this->usersModel->updateUser($insertedData, $existingUser[0]['user_id'], $created_by_user_id);
             return $existingUser;
         }
@@ -148,7 +152,7 @@ class bulkEnrollController
         // Check if user phone number, email, nid exists
         $phoneNumberExists = $this->usersModel->findExistPhoneNumberEmailNid($userData['phone_number'], $userData['email'], $userData['nid']);
         if (sizeof($phoneNumberExists) > 0) {
-            throw new InvalidDataException($userData['name'] . "has already exist Phone number, nid or email");
+            throw new InvalidDataException($userData['name'] . " has already exist Phone number, nid or email");
         }
 
         // Encrypting default password
@@ -184,6 +188,7 @@ class bulkEnrollController
             "sector_code" => substr($data["school_code"], 0, 4),
             "school_code" => $data["school_code"],
             "created_by" => $created_by_user_id,
+            "qualification_id" => ($data["qualification"] == "A0" ? "1" : $data["qualification"] == "A1") ? "2" : "3",
         ];
         // check if user already have access role
         $userHasActiveRole = $this->userRoleModel->findCurrentUserRole($user_id);
@@ -219,6 +224,30 @@ class bulkEnrollController
     }
 
     /**
+     * handleTeacherStudyHierarchy
+     */
+    function handleTeacherStudyHierarchy($data)
+    {
+        $dataToInsert = [
+            "staff_code" => $data['staff_code'],
+            "study_hierarchy_id" => 22,
+        ];
+        $teacherHeirarchyExists = $this->teacherStudyHierarchy->findTeacherStudyHierarchy($dataToInsert);
+        if (sizeof($teacherHeirarchyExists) == 0) {
+            $this->teacherStudyHierarchy->insertNewTeacherStudyHierarchy($dataToInsert);
+        }
+        return $data;
+    }
+
+    /**
+     * handleAvailableRoles
+     */
+    function handleAvailableRoles($availableRoles)
+    {
+        return $availableRoles["role"];
+    }
+
+    /**
      * Handle bulk enrollment of teachers
      * @return Response
      */
@@ -229,6 +258,10 @@ class bulkEnrollController
             $data = json_decode(file_get_contents('php://input'), true);
             $created_by_user_id = AuthValidation::authorized()->id;
             $cohort_id = isset($data['cohort_id']) ? $data['cohort_id'] : null;
+
+            // getting available roles
+            $availableRoles = $this->rolesModel->findAll();
+            $currentRoles = array_map(array($this, "handleAvailableRoles"), $availableRoles);
 
             // checking if cohort exists
             $cohortExists = $this->cohortsModel->getOneCohort($cohort_id);
@@ -248,12 +281,15 @@ class bulkEnrollController
                 $processUser = $this->createNewUserHandler($teacherData, $created_by_user_id);
                 if ($processUser) {
                     // process user to role
-                    $this->createUserAccessToRole($teacherData, $created_by_user_id, $processUser[0]["user_id"]);
+                    $tempUserId = isset($processUser[0]["user_id"]) ? $processUser[0]["user_id"] : $processUser["user_id"];
+                    $this->createUserAccessToRole($teacherData, $created_by_user_id, $tempUserId);
                 }
-                if (str_contains($teacherData["role"], 'Focal')) {
+                if (!in_array($teacherData["role"], $currentRoles)) {
                     // insert user to user custom role
                     $this->createUserRoleCUstom($teacherData, $cohort_id);
                 }
+                // handle Teacher Study Hierarchy
+                $this->handleTeacherStudyHierarchy($teacherData);
                 $teacherData["status"] = "success";
                 array_push($temp_success_array, $teacherData);
 
@@ -269,6 +305,7 @@ class bulkEnrollController
         } catch (InvalidDataException $e) {
             return Errors::badRequestError($e->getMessage());
         } catch (\Throwable $e) {
+            print_r($e);
             return Errors::databaseError($e->getMessage());
         }
     }

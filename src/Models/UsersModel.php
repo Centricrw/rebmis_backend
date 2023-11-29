@@ -232,13 +232,13 @@ class UsersModel
             exit($e->getMessage());
         }
     }
-    public function findOneUser($user_id, $status = 1)
+    public function findOneUser($user_id, $phone_number = "", $status = 1)
     {
-        $statement = "SELECT * FROM users WHERE user_id = ? OR staff_code = ?  AND status = ? LIMIT 1";
+        $statement = "SELECT * FROM users WHERE user_id = ? OR staff_code = ? OR phone_numbers = ? OR username = ?  AND status = ? LIMIT 1";
 
         try {
             $statement = $this->db->prepare($statement);
-            $statement->execute(array($user_id, $user_id, $status));
+            $statement->execute(array($user_id, $user_id, $phone_number, $phone_number, $status));
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             return $result;
         } catch (\PDOException $e) {
