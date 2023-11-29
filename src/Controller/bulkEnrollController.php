@@ -247,14 +247,6 @@ class bulkEnrollController
     }
 
     /**
-     * handleAvailableRoles
-     */
-    function handleAvailableRoles($availableRoles)
-    {
-        return $availableRoles["role"];
-    }
-
-    /**
      * Handle bulk enrollment of teachers
      * @return Response
      */
@@ -265,10 +257,6 @@ class bulkEnrollController
             $data = json_decode(file_get_contents('php://input'), true);
             $created_by_user_id = AuthValidation::authorized()->id;
             $cohort_id = isset($data['cohort_id']) ? $data['cohort_id'] : null;
-
-            // getting available roles
-            $availableRoles = $this->rolesModel->findAll();
-            $currentRoles = array_map(array($this, "handleAvailableRoles"), $availableRoles);
 
             // checking if cohort exists
             $cohortExists = $this->cohortsModel->getOneCohort($cohort_id);
@@ -291,12 +279,12 @@ class bulkEnrollController
                     $tempUserId = isset($processUser[0]["user_id"]) ? $processUser[0]["user_id"] : $processUser["user_id"];
                     $this->createUserAccessToRole($teacherData, $created_by_user_id, $tempUserId);
                 }
-                if (!in_array($teacherData["role"], $currentRoles)) {
+                if (str_contains(strtolower($teacherData["role"]), 'focal') || str_contains(strtolower($teacherData["role"]), 'ssl')) {
                     // insert user to user custom role
                     $this->createUserRoleCUstom($teacherData, $cohort_id);
-                    // handle Teacher Study Hierarchy
-                    $this->handleTeacherStudyHierarchy($teacherData);
                 }
+                // handle Teacher Study Hierarchy
+                $this->handleTeacherStudyHierarchy($teacherData);
                 $teacherData["status"] = "success";
                 array_push($temp_success_array, $teacherData);
 
