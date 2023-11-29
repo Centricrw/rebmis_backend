@@ -140,8 +140,16 @@ class bulkEnrollController
             "resident_district_id" => substr($userData["staff_code"], 0, 2),
         ];
 
+        // checking if username Exists
+        $userNameExists = $this->usersModel->findByUsernameShort($userData['phone_number']);
+        if (sizeof($userNameExists) > 0) {
+            //* update user
+            $this->usersModel->updateUser($insertedData, $userNameExists[0]['user_id'], $created_by_user_id);
+            return $userNameExists;
+        }
+
         // Check if user already exists
-        $existingUser = $this->usersModel->findOneUser($userData['staff_code'], $userData['phone_number']);
+        $existingUser = $this->usersModel->findOneUserShort($userData['staff_code'], $userData['phone_number']);
         if (sizeof($existingUser) > 0) {
             //* update user
             $this->usersModel->updateUser($insertedData, $existingUser[0]['user_id'], $created_by_user_id);
@@ -190,7 +198,7 @@ class bulkEnrollController
             "qualification_id" => ($data["qualification"] == "A0" ? "1" : $data["qualification"] == "A1") ? "2" : "3",
         ];
         // check if user already have access role
-        $userHasActiveRole = $this->userRoleModel->findCurrentUserRole($user_id);
+        $userHasActiveRole = $this->userRoleModel->findCurrentUserRoleShort($user_id);
         if (sizeof($userHasActiveRole) > 0) {
             //* Disable user to role
             $this->userRoleModel->disableRole($user_id, $created_by_user_id, "Active", "TRANSFERD");
@@ -213,7 +221,7 @@ class bulkEnrollController
             "custom_role" => $data['role'],
         ];
         // checking user already has customer role
-        $userCustomeRoleExists = $this->userRoleModel->selectUserToRoleCustom($dataToInsert);
+        $userCustomeRoleExists = $this->userRoleModel->selectUserToRoleCustomShort($dataToInsert);
         if (sizeof($userCustomeRoleExists) > 0) {
             //! update user costomer role
             return true;
@@ -286,9 +294,9 @@ class bulkEnrollController
                 if (!in_array($teacherData["role"], $currentRoles)) {
                     // insert user to user custom role
                     $this->createUserRoleCUstom($teacherData, $cohort_id);
+                    // handle Teacher Study Hierarchy
+                    $this->handleTeacherStudyHierarchy($teacherData);
                 }
-                // handle Teacher Study Hierarchy
-                $this->handleTeacherStudyHierarchy($teacherData);
                 $teacherData["status"] = "success";
                 array_push($temp_success_array, $teacherData);
 

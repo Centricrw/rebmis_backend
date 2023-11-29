@@ -46,7 +46,7 @@ class TeacherStudyHierarchy
 
     public function findTeacherStudyHierarchy($data)
     {
-        $statement = "SELECT * FROM `teacher_study_hierarchy` WHERE `teacher_code`=:teacher_code AND `study_hierarchy_id`=:study_hierarchy_id";
+        $statement = "SELECT `teacher_study_hierarchy_id` FROM `teacher_study_hierarchy` WHERE `teacher_code`=:teacher_code AND `study_hierarchy_id`=:study_hierarchy_id";
 
         try {
             $statement = $this->db->prepare($statement);
