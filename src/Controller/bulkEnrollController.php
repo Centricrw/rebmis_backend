@@ -227,7 +227,7 @@ class bulkEnrollController
             // Get input data
             $data = json_decode(file_get_contents('php://input'), true);
             $created_by_user_id = AuthValidation::authorized()->id;
-            $cohort_id = $data['cohort_id'];
+            $cohort_id = isset($data['cohort_id']) ? $data['cohort_id'] : null;
 
             // checking if cohort exists
             $cohortExists = $this->cohortsModel->getOneCohort($cohort_id);
