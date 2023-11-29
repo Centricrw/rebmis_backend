@@ -56,7 +56,7 @@ class RolesModel
 
     public function findRoleByName($role)
     {
-        $statement = "SELECT * FROM `roles` WHERE `role` = ? AND `status` = ?";
+        $statement = "SELECT `role_id` FROM `roles` WHERE `role` = ? AND `status` = ?";
 
         try {
             $statement = $this->db->prepare($statement);

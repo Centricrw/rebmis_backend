@@ -229,22 +229,52 @@ class UsersModel
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             return $result;
         } catch (\PDOException $e) {
-            exit($e->getMessage());
+            throw new Error($e->getMessage());
         }
     }
-    public function findOneUser($user_id, $phone_number = "", $status = 1)
+
+    public function findByUsernameShort($username)
     {
-        $statement = "SELECT * FROM users WHERE user_id = ? OR staff_code = ? OR phone_numbers = ? OR username = ?  AND status = ? LIMIT 1";
+        $statement = "SELECT `user_id` FROM users WHERE username = ? AND status = ? LIMIT 1";
 
         try {
             $statement = $this->db->prepare($statement);
-            $statement->execute(array($user_id, $user_id, $phone_number, $phone_number, $status));
+            $statement->execute(array($username, 1));
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             return $result;
         } catch (\PDOException $e) {
             throw new Error($e->getMessage());
         }
     }
+
+    public function findOneUser($user_id, $phone_number = "", $status = 1)
+    {
+        $statement = "SELECT * FROM users WHERE user_id = ? OR staff_code = ? OR phone_numbers = ?  AND status = ? LIMIT 1";
+
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array($user_id, $user_id, $phone_number, $status));
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $result;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    public function findOneUserShort($user_id, $phone_number = "", $status = 1)
+    {
+        $statement = "SELECT `user_id` FROM users WHERE user_id = ? OR staff_code = ? OR phone_numbers = ?  AND status = ? LIMIT 1";
+
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array($user_id, $user_id, $phone_number, $status));
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $result;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
     public function changeStatus($user_id, $updated_by, $status)
     {
         $sql = "

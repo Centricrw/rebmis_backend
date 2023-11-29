@@ -71,6 +71,23 @@ class UserRoleModel
         }
     }
 
+    public function selectUserToRoleCustomShort($data)
+    {
+        $statement = "SELECT `staff_code` FROM `user_to_role_custom` WHERE `cohort_id`=:cohort_id AND `school_code` = :school_code AND `staff_code` = :staff_code";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
+                ':cohort_id' => $data['cohort_id'],
+                ':school_code' => $data['school_code'],
+                ':staff_code' => $data['staff_code'],
+            ));
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $result;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
     public function update($data, $user_id)
     {
         $statement = "
@@ -118,6 +135,24 @@ class UserRoleModel
             throw new Error($e->getMessage());
         }
     }
+
+    public function findCurrentUserRoleShort($user_id, $status = "Active")
+    {
+        $sql = "SELECT `user_id` FROM `user_to_role` WHERE `user_id`=:user_id AND `status`=:status";
+        try {
+            $statement = $this->db->prepare($sql);
+            $statement->execute(array(
+                ':user_id' => $user_id,
+                ':status' => $status,
+            ));
+
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $result;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
     public function findCurrentSchoolTeachers($school_code)
     {
         $sql = "
