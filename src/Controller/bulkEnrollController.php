@@ -108,7 +108,7 @@ class bulkEnrollController
             }
 
             // Validate other keys
-            $requiredKeys = ['qualification', 'role', 'school_code', 'staff_code', 'status'];
+            $requiredKeys = ['qualification', 'school_code', 'staff_code'];
 
             foreach ($requiredKeys as $requiredKey) {
                 if (!isset($item[$requiredKey]) || empty($item[$requiredKey])) {
