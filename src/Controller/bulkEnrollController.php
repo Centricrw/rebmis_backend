@@ -46,6 +46,7 @@ class bulkEnrollController
                         $response = Errors::notFoundError("Route not found!");
                     }
                 }
+                break;
             case 'GET':
                 if (sizeof($this->params) > 0) {
                     if ($this->params['action'] == "retrievedata") {
