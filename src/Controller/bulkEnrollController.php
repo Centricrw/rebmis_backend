@@ -130,9 +130,9 @@ class bulkEnrollController
             "phone_numbers" => $userData["phone_number"],
             "username" => $userData["phone_number"],
             "created_by" => $created_by_user_id,
-            "first_name" => $names[0],
-            "middle_name" => $names[1],
-            "last_name" => isset($names[2]) ? $names[2] : "",
+            "first_name" => isset($names[0]) ? $names[0] : "",
+            "middle_name" => isset($names[2]) ? $names[2] : "",
+            "last_name" => isset($names[1]) ? $names[1] : "",
             "resident_district_id" => substr($userData["staff_code"], 0, 2),
         ];
 
@@ -145,7 +145,7 @@ class bulkEnrollController
         }
 
         // Check if user phone number, email, nid exists
-        $phoneNumberExists = $this->usersModel->findExistPhoneNumberEmailNid($userData['phone_numbers'], $userData['email'], $userData['nid']);
+        $phoneNumberExists = $this->usersModel->findExistPhoneNumberEmailNid($userData['phone_number'], $userData['email'], $userData['nid']);
         if (sizeof($phoneNumberExists) > 0) {
             throw new InvalidDataException($userData['name'] . "has already exist Phone number, nid or email");
         }
