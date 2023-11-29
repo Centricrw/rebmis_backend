@@ -144,7 +144,6 @@ class bulkEnrollController
         $existingUser = $this->usersModel->findOneUser($userData['staff_code'], $userData['phone_number']);
         if (sizeof($existingUser) > 0) {
             //* update user
-            print_r($existingUser);
             $this->usersModel->updateUser($insertedData, $existingUser[0]['user_id'], $created_by_user_id);
             return $existingUser;
         }
