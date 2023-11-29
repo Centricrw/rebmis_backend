@@ -43,7 +43,7 @@ class bulkEnrollController
                     if ($this->params['action'] == "bulkenroll") {
                         $response = $this->bulkEnroll();
                     } else {
-                        $response = Errors::notFoundError("Route not found 12!");
+                        $response = Errors::notFoundError("Route not found!");
                     }
                 }
                 break;
@@ -52,7 +52,7 @@ class bulkEnrollController
                     if ($this->params['action'] == "retrievedata") {
                         $response = $this->bulkEnrollRetrieveJson();
                     } else {
-                        $response = Errors::notFoundError("Route not found 12!");
+                        $response = Errors::notFoundError("Route not found!");
                     }
                 }
                 break;
