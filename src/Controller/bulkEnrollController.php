@@ -279,7 +279,7 @@ class bulkEnrollController
                     $tempUserId = isset($processUser[0]["user_id"]) ? $processUser[0]["user_id"] : $processUser["user_id"];
                     $this->createUserAccessToRole($teacherData, $created_by_user_id, $tempUserId);
                 }
-                if (str_contains(strtolower($teacherData["role"]), 'focal') || str_contains(strtolower($teacherData["role"]), 'ssl')) {
+                if (str_contains(isset($teacherData["role"]) && strtolower($teacherData["role"]), 'focal') || str_contains(strtolower($teacherData["role"]), 'ssl')) {
                     // insert user to user custom role
                     $this->createUserRoleCUstom($teacherData, $cohort_id);
                 }
@@ -300,7 +300,7 @@ class bulkEnrollController
         } catch (InvalidDataException $e) {
             return Errors::badRequestError($e->getMessage());
         } catch (\Throwable $e) {
-            print_r($e);
+            // print_r($e);
             return Errors::databaseError($e->getMessage());
         }
     }
