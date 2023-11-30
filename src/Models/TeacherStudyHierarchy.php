@@ -38,7 +38,7 @@ class TeacherStudyHierarchy
                 ':study_hierarchy_id' => $data['study_hierarchy_id'],
                 ':grade_group' => isset($data['grade_group']) ? $data['grade_group'] : null,
             ));
-            return $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $statement->rowCount();
         } catch (\PDOException $e) {
             throw new Error($e->getMessage());
         }
