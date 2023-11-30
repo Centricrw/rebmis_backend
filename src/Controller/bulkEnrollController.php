@@ -279,7 +279,8 @@ class bulkEnrollController
                     $tempUserId = isset($processUser[0]["user_id"]) ? $processUser[0]["user_id"] : $processUser["user_id"];
                     $this->createUserAccessToRole($teacherData, $created_by_user_id, $tempUserId);
                 }
-                if (isset($teacherData["role"]) && str_contains(strtolower($teacherData["role"]), 'focal') || str_contains(strtolower($teacherData["role"]), 'ssl')) {
+
+                if (isset($teacherData["role"]) && strpos(strtolower($teacherData["role"]), "focal") || strpos(strtolower($teacherData["role"]), "ssl")) {
                     // insert user to user custom role
                     $this->createUserRoleCUstom($teacherData, $cohort_id);
                 }
