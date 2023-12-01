@@ -62,7 +62,7 @@ class UsersModel
           dob=:dob,rssb_number=:rssb_number,nationality_id=:nationality_id,
           bank_account=:bank_account,bank_id=:bank_id,
           specialization_id=:specialization_id,village_code=:village_code,
-          education_domain_id=:education_domain_id,education_sub_dommain_id=:education_sub_dommain_id,graduation_date=:graduation_date,hired_date=:hired_date,
+          education_domain_id=:education_domain_id,education_sub_dommain_id=:education_sub_dommain_id,graduation_date=:graduation_date,hired_date=:hired_date,nid=:nid,username=:username,resident_district_id=:resident_district_id,
           contract_type=:contract_type,updated_by=:updated_by,updated_at=:updated_at
           WHERE user_id = :user_id AND status =:status;
       ";
@@ -70,27 +70,30 @@ class UsersModel
 
             $statement = $this->db->prepare($sql);
             $statement->execute(array(
-                ':first_name' => $data['first_name'],
-                ':middle_name' => $data['middle_name'],
-                ':last_name' => $data['last_name'],
-                ':full_name' => $data['full_name'],
-                ':phone_numbers' => $data['phone_numbers'],
-                ':email' => $data['email'],
                 ':staff_code' => $data['staff_code'],
-                ':sex' => $data['sex'],
-                ':marital_status' => $data['marital_status'],
-                ':dob' => $data['dob'],
-                ':rssb_number' => $data['rssb_number'],
-                ':nationality_id' => $data['nationality_id'],
-                ':bank_account' => $data['bank_account'],
-                ':bank_id' => $data['bank_id'],
-                ':specialization_id' => $data['specialization_id'],
-                ':village_code' => $data['village_code'],
-                ':education_domain_id' => $data['education_domain_id'],
-                ':education_sub_dommain_id' => $data['education_sub_dommain_id'],
-                ':graduation_date' => $data['graduation_date'],
-                ':hired_date' => $data['hired_date'],
-                ':contract_type' => $data['contract_type'],
+                ':bank_id' => empty($data['bank_id']) ? null : $data['bank_id'],
+                ':village_code' => empty($data['village_code']) ? null : $data['village_code'],
+                ':full_name' => $data['full_name'],
+                ':sex' => $data['gender'],
+                ':dob' => empty($data['dob']) ? null : $data['dob'],
+                ':marital_status' => empty($data['marital_status']) ? null : $data['marital_status'],
+                ':nid' => $data['nid'],
+                ':email' => $data['email'],
+                ':phone_numbers' => $data['phone_numbers'],
+                ':rssb_number' => empty($data['rssb_number']) ? null : $data['rssb_number'],
+                ':education_domain_id' => empty($data['education_domain_id']) ? null : $data['education_domain_id'],
+                ':education_sub_dommain_id' => empty($data['education_sub_dommain_id']) ? null : $data['education_sub_dommain_id'],
+                ':graduation_date' => empty($data['graduation_date']) ? null : $data['graduation_date'],
+                ':hired_date' => empty($data['hired_date']) ? null : $data['hired_date'],
+                ':contract_type' => empty($data['contract_type']) ? null : $data['contract_type'],
+                ':bank_account' => empty($data['bank_account']) ? null : $data['bank_account'],
+                ':nationality_id' => empty($data['nationality_id']) ? 1 : $data['nationality_id'],
+                ':username' => $data['phone_numbers'],
+                ':first_name' => $data['first_name'],
+                ':middle_name' => empty($data['middle_name']) ? null : $data['middle_name'],
+                ':last_name' => $data['last_name'],
+                ':specialization_id' => empty($data['specialization_id']) ? null : $data['specialization_id'],
+                ':resident_district_id' => $data['resident_district_id'],
                 ':user_id' => $user_id,
                 ':updated_by' => $updated_by,
                 ':updated_at' => date("Y-m-d H:i:s"),
@@ -226,22 +229,52 @@ class UsersModel
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             return $result;
         } catch (\PDOException $e) {
-            exit($e->getMessage());
+            throw new Error($e->getMessage());
         }
     }
-    public function findOneUser($user_id, $status = 1)
+
+    public function findByUsernameShort($username)
     {
-        $statement = "SELECT * FROM users WHERE user_id = ? OR staff_code = ?  AND status = ? LIMIT 1";
+        $statement = "SELECT `user_id` FROM users WHERE username = ? AND status = ? LIMIT 1";
 
         try {
             $statement = $this->db->prepare($statement);
-            $statement->execute(array($user_id, $user_id, $status));
+            $statement->execute(array($username, 1));
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             return $result;
         } catch (\PDOException $e) {
             throw new Error($e->getMessage());
         }
     }
+
+    public function findOneUser($user_id, $phone_number = "", $status = 1)
+    {
+        $statement = "SELECT * FROM users WHERE user_id = ? OR staff_code = ? OR phone_numbers = ?  AND status = ? LIMIT 1";
+
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array($user_id, $user_id, $phone_number, $status));
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $result;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    public function findOneUserShort($user_id, $phone_number = "", $status = 1)
+    {
+        $statement = "SELECT `user_id` FROM users WHERE user_id = ? OR staff_code = ? OR phone_numbers = ?  AND status = ? LIMIT 1";
+
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array($user_id, $user_id, $phone_number, $status));
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $result;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
     public function changeStatus($user_id, $updated_by, $status)
     {
         $sql = "
