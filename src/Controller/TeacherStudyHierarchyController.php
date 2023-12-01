@@ -27,11 +27,7 @@ class TeacherStudyHierarchyController
     {
         switch ($this->request_method) {
             case 'POST':
-                if ($this->params['action'] == "location") {
-                    $response = $this->getStudyHierarchy();
-                } else {
-                    $response = Errors::notFoundError("Route not found!");
-                }
+                $response = $this->assignTeacherCourseToSchool();
                 break;
             case 'GET':
                 if (sizeof($this->params) > 0) {
