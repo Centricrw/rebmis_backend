@@ -301,7 +301,7 @@ class bulkEnrollController
         } catch (InvalidDataException $e) {
             return Errors::badRequestError($e->getMessage());
         } catch (\Throwable $e) {
-            print_r($e);
+            // print_r($e);
             return Errors::databaseError($e->getMessage());
         }
     }
