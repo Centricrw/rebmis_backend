@@ -12,6 +12,7 @@ use Src\Models\UsersModel;
 use Src\System\AuthValidation;
 use Src\System\Encrypt;
 use Src\System\Errors;
+use Src\System\InvalidDataException;
 use Src\System\UuidGenerator;
 use Src\Validations\UserValidation;
 
@@ -89,6 +90,37 @@ class AuthController
             echo $response['body'];
         }
     }
+    /**
+     * Validate imported teachers
+     * @param string $nid
+     * @param string $phoneNumber
+     * @param string $userName
+     * @param string $email
+     * @throws InvalidDataException
+     */
+    function checkingIfUserNameNidPhoneNumberEmailExists($nid, $phoneNumber, $userName, $email)
+    {
+        // Check if user phone number, email, nid exists
+        $emailExists = $this->usersModel->findExistEmailShort($email);
+        if (sizeof($emailExists) > 0) {
+            throw new InvalidDataException("Email already exist, please try again?");
+        }
+        // Check if user phone number, email, nid exists
+        $phoneNumberExists = $this->usersModel->findExistPhoneNumberShort($phoneNumber);
+        if (sizeof($phoneNumberExists) > 0) {
+            throw new InvalidDataException("Phone number already exist, please try again?");
+        }
+        // Check if user phone number, email, nid exists
+        $nidExists = $this->usersModel->findExistNidShort($nid);
+        if (sizeof($nidExists) > 0) {
+            throw new InvalidDataException("NID already exist, please try again?");
+        }
+        // Check if user phone number, email, nid exists
+        $userNameExists = $this->usersModel->findByUsername($userName);
+        if (sizeof($userNameExists) > 0) {
+            throw new InvalidDataException("Username already exist, please try again?");
+        }
+    }
 
     function createAccount()
     {
@@ -103,11 +135,8 @@ class AuthController
 
         try {
 
-            // Check if user phone number, email, nid exists
-            $phoneNumberExists = $this->usersModel->findExistPhoneNumberEmailNid($data['phone_numbers'], $data['email'], $data['nid']);
-            if (sizeof($phoneNumberExists) > 0) {
-                return Errors::ExistError("Phone number, nid or email already exist");
-            }
+            // Check if user phone number, username , email, nid exists
+            $this->checkingIfUserNameNidPhoneNumberEmailExists($data["nid"], $data["phone_numbers"], $data["username"], $data["email"]);
 
             // Encrypting default password
             $default_password = 12345;
@@ -129,6 +158,8 @@ class AuthController
                 'results' => $results,
             ]);
             return $response;
+        } catch (InvalidDataException $e) {
+            return Errors::existError($e->getMessage());
         } catch (\Throwable $th) {
             return Errors::databaseError($th->getMessage());
         }

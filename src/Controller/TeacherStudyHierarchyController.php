@@ -2,10 +2,9 @@
 namespace Src\Controller;
 
 use Src\Models\SchoolLocationModal;
-use Src\System\AuthValidation;
 use Src\System\Errors;
 
-class schoolLocationController
+class TeacherStudyHierarchyController
 {
     private $db;
     private $schoolLocationModal;
@@ -45,26 +44,7 @@ class schoolLocationController
         }
     }
 
-    public function getSchoolLocation()
-    {
-        try {
-            // getting input data
-            $data = (array) json_decode(file_get_contents('php://input'), true);
-            // geting authorized user id
-            $user_id = AuthValidation::authorized()->id;
-
-            // getting school location by passing location
-            $result = $this->schoolLocationModal->findSchoolLocation($data);
-
-            $response['status_code_header'] = 'HTTP/1.1 201 Created';
-            $response['body'] = json_encode($result);
-            return $response;
-        } catch (\Throwable $th) {
-            return Errors::databaseError($th->getMessage());
-        }
-    }
-
 }
 
-$controller = new schoolLocationController($this->db, $request_method, $params);
+$controller = new TeacherStudyHierarchyController($this->db, $request_method, $params);
 $controller->processRequest();

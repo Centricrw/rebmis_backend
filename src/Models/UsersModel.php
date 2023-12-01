@@ -219,6 +219,48 @@ class UsersModel
         }
     }
 
+    public function findExistPhoneNumberShort($phone_number)
+    {
+        $statement = "SELECT `user_id`, `full_name` FROM users WHERE phone_numbers=? LIMIT 1";
+
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array($phone_number));
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $result;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    public function findExistEmailShort($email)
+    {
+        $statement = "SELECT `user_id`, `full_name` FROM users WHERE email=? LIMIT 1";
+
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array($email));
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $result;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    public function findExistNidShort($nid)
+    {
+        $statement = "SELECT `user_id`, `full_name` FROM users WHERE nid=? LIMIT 1";
+
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array($nid));
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $result;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
     public function findByUsername($username)
     {
         $statement = "SELECT * FROM users WHERE username = ? AND status = ? LIMIT 1";
