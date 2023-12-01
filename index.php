@@ -123,6 +123,14 @@ $route->router("/ictfocalteachers/{action}", "src/Controller/ictfocaltechersCont
 // BULKENROLL TEACHERS
 $route->router("/bulkenroll/{action}", "src/Controller/bulkEnrollController.php");
 
+// SCHOOL LOCATION
+$route->router("/schoollocation/{action}", "src/Controller/schoolLocationController.php");
+
+// TEACHER STUDY HIERARCHY
+$route->router("/studyhierarchy", "src/Controller/TeacherStudyHierarchyController.php");
+$route->router("/studyhierarchy/{action}", "src/Controller/TeacherStudyHierarchyController.php");
+$route->router("/studyhierarchy/{action}/{user_id}", "src/Controller/TeacherStudyHierarchyController.php");
+
 //write it at the last
 //arg is 404 file location
 $route->notFound("404.php");

@@ -3,7 +3,7 @@ namespace Src\Models;
 
 use Error;
 
-class TeacherStudyHierarchy
+class TeacherStudyHierarchyModel
 {
 
     private $db = null;
