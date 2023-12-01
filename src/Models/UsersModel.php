@@ -18,7 +18,7 @@ class UsersModel
         try {
             $statement = $this->db->prepare($query);
             $statement->execute(array(
-                ':staff_code' => $data['user_id'],
+                ':staff_code' => isset($data['staff_code']) && !empty($data['staff_code']) ? $data['staff_code'] : $data['user_id'],
                 ':staff_category_id' => empty($data['staff_category_id']) ? null : $data['staff_category_id'],
                 ':full_name' => $data['full_name'],
                 ':sex' => $data['gender'],
@@ -37,7 +37,7 @@ class UsersModel
                 ':bank_account' => empty($data['bank_account']) ? null : $data['bank_account'],
                 ':nationality_id' => empty($data['nationality_id']) ? 1 : $data['nationality_id'],
                 ':user_id' => $data['user_id'],
-                ':username' => $data['phone_numbers'],
+                ':username' => isset($data['username']) && !empty($data['username']) ? $data['username'] : $data['phone_numbers'],
                 ':password' => $data['password'],
                 ':created_by' => $data['created_by'],
                 ':first_name' => $data['first_name'],
@@ -296,6 +296,20 @@ class UsersModel
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array($user_id, $user_id, $phone_number, $status));
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $result;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    public function findUserByStaffcode($staff_code)
+    {
+        $statement = "SELECT * FROM users WHERE staff_code = ? LIMIT 1";
+
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array($staff_code));
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             return $result;
         } catch (\PDOException $e) {

@@ -66,9 +66,7 @@ class AuthController
                 break;
             case 'PATCH':
                 if (sizeof($this->params) > 0) {
-                    if ($this->params['action'] == "assignaccess") {
-                        $response = $this->assignAccessToUser($this->params['user_id']);
-                    } elseif ($this->params['action'] == "password") {
+                    if ($this->params['action'] == "password") {
                         $response = $this->login();
                     } elseif ($this->params['action'] == "profile") {
                         $response = $this->updateAccount($this->params['user_id']);
@@ -136,7 +134,16 @@ class AuthController
         try {
 
             // Check if user phone number, username , email, nid exists
-            $this->checkingIfUserNameNidPhoneNumberEmailExists($data["nid"], $data["phone_numbers"], $data["username"], $data["email"]);
+            $username = isset($data["username"]) && !empty($data["username"]) ? $data["username"] : $data["phone_numbers"];
+            $this->checkingIfUserNameNidPhoneNumberEmailExists($data["nid"], $data["phone_numbers"], $username, $data["email"]);
+
+            // checkking if staff_code exists
+            if (isset($data["staff_code"]) && !empty($data['staff_code'])) {
+                $userStaffCodeExist = $this->usersModel->findUserByStaffcode($data["staff_code"]);
+                if (sizeof($userStaffCodeExist) > 0) {
+                    return Errors::notFoundError("User staff code already exists!, please try again?");
+                }
+            }
 
             // Encrypting default password
             $default_password = 12345;
@@ -220,41 +227,6 @@ class AuthController
         return $response;
     }
 
-    // Assign access to user
-    function assignAccessToUser($user_id)
-    {
-        try {
-            $data = (array) json_decode(file_get_contents('php://input'), true);
-            // geting authorized user id
-            $created_by_user_id = AuthValidation::authorized()->id;
-            // Check if user is registered
-            $user = $this->usersModel->findOneUser($user_id, 1);
-            if (sizeof($user) == 0) {
-                return Errors::notFoundError("User not found!, please try again?");
-            }
-            // check if login is the same getting accesse
-            if ($created_by_user_id == $user_id) {
-                return Errors::badRequestError("You can not give yourself access!, please contact administrator?");
-            }
-            // Generate user id
-            $role_to_user_id = UuidGenerator::gUuid();
-            // check if user already have access role
-            $userHasActiveRole = $this->userRoleModel->findCurrentUserRole($user_id);
-            if (sizeof($userHasActiveRole) > 0) {
-                return Errors::badRequestError("This user has already active role, please disable the first one or contact administrator?");
-            }
-            $data['role_to_user_id'] = $role_to_user_id;
-            $data['user_id'] = $user_id;
-            $this->userRoleModel->insertIntoUserToRole($data, $created_by_user_id);
-            $response['status_code_header'] = 'HTTP/1.1 200 OK';
-            $response['body'] = json_encode([
-                "message" => "Change updated!",
-            ]);
-            return $response;
-        } catch (\Throwable $th) {
-            return Errors::databaseError($th->getMessage());
-        }
-    }
     // Get all users
     function getCurrentUser()
     {
