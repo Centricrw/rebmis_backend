@@ -2,6 +2,7 @@
 namespace Src\Controller;
 
 use Src\Models\AuthModel;
+use Src\Models\CohortconditionModel;
 use Src\Models\RolesModel;
 use Src\Models\SchoolLocationsModel;
 use Src\Models\SchoolsModel;
@@ -29,6 +30,7 @@ class AuthController
     private $stakeholdersModel;
     private $request_method;
     private $params;
+    private $cohortconditionModel;
 
     public function __construct($db, $request_method, $params)
     {
@@ -43,6 +45,7 @@ class AuthController
         $this->schoolsModel = new SchoolsModel($db);
         $this->sectorsModel = new SectorsModel($db);
         $this->stakeholdersModel = new StakeholdersModel($db);
+        $this->cohortconditionModel = new CohortconditionModel($db);
     }
 
     function processRequest()
@@ -120,6 +123,42 @@ class AuthController
         }
     }
 
+    /**
+     * add tot training handler
+     * @param object $data
+     * @throws InvalidDataException
+     */
+    function addNewUserToTraininghandler($data)
+    {
+        // checking if cohortId is provided
+        if (!isset($data["cohortId"]) || empty($data["cohortId"])) {
+            throw new InvalidDataException("Cohort Id is required, please try again?");
+        }
+
+        // checking if training is provided
+        if (!isset($data["trainingId"]) || empty($data["trainingId"])) {
+            throw new InvalidDataException("Training Id is required, please try again?");
+        }
+
+        // checking if cohort condition Id is provided
+        if (!isset($data["cohortconditionId"]) || empty($data["cohortconditionId"])) {
+            throw new InvalidDataException("Cohort Condition Id is required, please try again?");
+        }
+
+        // checking if school code is provided
+        if (!isset($data["school_code"]) || empty($data["school_code"])) {
+            throw new InvalidDataException("School code is required, please try again?");
+        }
+
+        // get cohort condition details
+        $conditionDetails = $this->cohortconditionModel->selectCohortConditionById($data['cohortconditionId']);
+        //count avaible traineers
+        $availableTraineers = $this->cohortconditionModel->countTraineersOnCondition($data);
+        if (sizeof($availableTraineers) == (int) $conditionDetails[0]['capacity']) {
+            throw new InvalidDataException("Needed Traineers completed!");
+        }
+    }
+
     function createAccount()
     {
 
@@ -136,6 +175,10 @@ class AuthController
             // Check if user phone number, username , email, nid exists
             $username = isset($data["username"]) && !empty($data["username"]) ? $data["username"] : $data["phone_numbers"];
             $this->checkingIfUserNameNidPhoneNumberEmailExists($data["nid"], $data["phone_numbers"], $username, $data["email"]);
+            // checking is user training data completed
+            if (isset($data["addToTraining"]) && $data["addToTraining"]) {
+                $this->addNewUserToTraininghandler($data);
+            }
 
             // checkking if staff_code exists
             if (isset($data["staff_code"]) && !empty($data['staff_code'])) {
@@ -158,10 +201,20 @@ class AuthController
 
             $results = $this->usersModel->insertNewUser($data);
 
+            // insert user to training
+            if ($data["addToTraining"]) {
+                // Generate traineer id
+                $generated_traineer_id = UuidGenerator::gUuid();
+                $data['traineesId'] = $generated_traineer_id;
+                $data['traineePhone'] = $data["phone_numbers"];
+                $this->cohortconditionModel->InsertApprovedSelectedTraineers($data, $created_by_user_id);
+            }
+
             $response['status_code_header'] = 'HTTP/1.1 201 Created';
             $response['body'] = json_encode([
                 'message' => "Created",
                 'user_id' => $user_id,
+                'traineesId' => isset($data['traineesId']) ? $data['traineesId'] : null,
                 'results' => $results,
             ]);
             return $response;
