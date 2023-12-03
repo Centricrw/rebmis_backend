@@ -3,7 +3,7 @@ namespace Src\Models;
 
 use Error;
 
-class TeacherStudyHierarchy
+class TeacherStudyHierarchyModel
 {
 
     private $db = null;
@@ -53,6 +53,40 @@ class TeacherStudyHierarchy
             $statement->execute(array(
                 ':teacher_code' => $data['staff_code'],
                 ':study_hierarchy_id' => $data['study_hierarchy_id'],
+            ));
+            return $statement->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    public function findAllTeacherStudyHierarchy($staff_code)
+    {
+        $statement = "SELECT TSH.*, SH.* FROM `teacher_study_hierarchy` TSH
+        INNER JOIN study_hierarchy SH ON TSH.study_hierarchy_id = SH.studyhierarchyid WHERE TSH.`teacher_code`=:teacher_code ";
+
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
+                ':teacher_code' => $staff_code,
+            ));
+            return $statement->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    public function findCourseHierarchyAssignedTeachers($studyHierarchyId)
+    {
+        $statement = "SELECT TSH.*, SH.*, US.full_name, US.email, US.phone_numbers FROM `teacher_study_hierarchy` TSH
+        INNER JOIN study_hierarchy SH ON TSH.study_hierarchy_id = SH.studyhierarchyid
+        INNER JOIN users US ON TSH.teacher_code = US.staff_code
+        WHERE TSH.`study_hierarchy_id`=:study_hierarchy_id ";
+
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
+                ':study_hierarchy_id' => $studyHierarchyId,
             ));
             return $statement->fetchAll(\PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {

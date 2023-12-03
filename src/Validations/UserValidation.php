@@ -6,14 +6,19 @@ class UserValidation
 
     public static function assignUserToSchool($input)
     {
-        if (empty($input['role_id'])) {
-            return false;
+        if (!isset($input['role_id']) || empty($input['role_id'])) {
+            return ["validated" => false, "message" => "User role is not provided!"];
         }
-        if (empty($input['user_id'])) {
-            return false;
+        if (!isset($input['school_code']) || empty($input['school_code'])) {
+            return ["validated" => false, "message" => "School code is not provided!"];
         }
+        if (!isset($input['qualification_id']) || empty($input['qualification_id'])) {
+            return ["validated" => false, "message" => "qualification is not provided!"];
+        }
+        return ["validated" => true, "message" => "OK"];
         return true;
     }
+
     public static function ValidateNewInsertedUser($input)
     {
         if (empty($input['nid']) || !preg_match('/^[0-9]{16}$/', $input['nid'])) {
@@ -24,6 +29,9 @@ class UserValidation
         }
         if (empty($input['last_name'])) {
             return ["validated" => false, "message" => "Last name not provided!"];
+        }
+        if (!isset($input['addToTraining']) || empty($input['addToTraining'])) {
+            return ["validated" => false, "message" => "addToTraining not provided!"];
         }
         if (empty($input['full_name'])) {
             return ["validated" => false, "message" => "Full name not provided!"];

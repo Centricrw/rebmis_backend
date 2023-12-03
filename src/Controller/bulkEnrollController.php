@@ -4,7 +4,7 @@ namespace Src\Controller;
 use Src\Models\BulkEnrollModel;
 use Src\Models\CohortsModel;
 use Src\Models\RolesModel;
-use Src\Models\TeacherStudyHierarchy;
+use Src\Models\TeacherStudyHierarchyModel;
 use Src\Models\UserRoleModel;
 use Src\Models\UsersModel;
 use Src\System\AuthValidation;
@@ -23,7 +23,7 @@ class bulkEnrollController
     private $userRoleModel;
     private $rolesModel;
     private $cohortsModel;
-    private $teacherStudyHierarchy;
+    private $teacherStudyHierarchyModel;
 
     public function __construct($db, $request_method, $params)
     {
@@ -35,7 +35,7 @@ class bulkEnrollController
         $this->userRoleModel = new UserRoleModel($db);
         $this->rolesModel = new RolesModel($db);
         $this->cohortsModel = new CohortsModel($db);
-        $this->teacherStudyHierarchy = new TeacherStudyHierarchy($db);
+        $this->teacherStudyHierarchyModel = new TeacherStudyHierarchyModel($db);
     }
 
     function processRequest()
@@ -239,9 +239,9 @@ class bulkEnrollController
             "staff_code" => $data['staff_code'],
             "study_hierarchy_id" => 22,
         ];
-        $teacherHeirarchyExists = $this->teacherStudyHierarchy->findTeacherStudyHierarchy($dataToInsert);
+        $teacherHeirarchyExists = $this->teacherStudyHierarchyModel->findTeacherStudyHierarchy($dataToInsert);
         if (sizeof($teacherHeirarchyExists) == 0) {
-            $this->teacherStudyHierarchy->insertNewTeacherStudyHierarchy($dataToInsert);
+            $this->teacherStudyHierarchyModel->insertNewTeacherStudyHierarchy($dataToInsert);
         }
         return $data;
     }
@@ -301,7 +301,7 @@ class bulkEnrollController
         } catch (InvalidDataException $e) {
             return Errors::badRequestError($e->getMessage());
         } catch (\Throwable $e) {
-            print_r($e);
+            // print_r($e);
             return Errors::databaseError($e->getMessage());
         }
     }

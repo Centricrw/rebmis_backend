@@ -14,7 +14,7 @@ class UserRoleModel
     }
     public function insertIntoUserToRole($data, $user_id)
     {
-        $statement = "INSERT INTO user_to_role (role_to_user_id, role_id,qualification_id, start_date_in_the_school, school_code, user_id, country_id, district_code, sector_code, academic_year_id, stakeholder_id, created_by) VALUES (:role_to_user_id, :role_id, :qualification_id, :start_date_in_the_school, :school_code, :user_id, :country_id, :district_code, :sector_code, :academic_year_id, :stakeholder_id, :created_by)";
+        $statement = "INSERT INTO user_to_role (role_to_user_id, role_id,qualification_id, position_code, start_date_in_the_school, school_code, user_id, country_id, district_code, sector_code, academic_year_id, stakeholder_id, created_by) VALUES (:role_to_user_id, :role_id, :qualification_id, :position_code, :start_date_in_the_school, :school_code, :user_id, :country_id, :district_code, :sector_code, :academic_year_id, :stakeholder_id, :created_by)";
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array(
@@ -26,6 +26,7 @@ class UserRoleModel
                 ':sector_code' => empty($data['sector_code']) ? null : $data['sector_code'],
                 ':school_code' => empty($data['school_code']) ? null : $data['school_code'],
                 ':qualification_id' => empty($data['qualification_id']) ? null : $data['qualification_id'],
+                ':position_code' => empty($data['position_code']) ? null : $data['position_code'],
                 ':academic_year_id' => empty($data['academic_year_id']) ? null : $data['academic_year_id'],
                 ':start_date_in_the_school' => empty($data['start_date_in_the_school']) ? null : $data['start_date_in_the_school'],
                 ':stakeholder_id' => empty($data['stakeholder_id']) ? null : $data['stakeholder_id'],
