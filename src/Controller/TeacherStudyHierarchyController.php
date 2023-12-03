@@ -30,8 +30,10 @@ class TeacherStudyHierarchyController
                 $response = $this->assignTeacherCourseToSchool();
                 break;
             case 'GET':
-                if (sizeof($this->params) > 0) {
-                    $response = $this->getStudyHierarchy();
+                if (sizeof($this->params) > 0 && $this->params['action'] == "teacher" && isset($this->params['user_id'])) {
+                    $response = $this->getTeacherStudyHierarchy($this->params['user_id']);
+                } else if (sizeof($this->params) > 0 && $this->params['action'] == "course" && isset($this->params['user_id'])) {
+                    $response = $this->getCourseTeachersStudyHierarchy($this->params['user_id']);
                 } else {
                     $response = $this->getStudyHierarchy();
                 }
@@ -43,6 +45,48 @@ class TeacherStudyHierarchyController
         header($response['status_code_header']);
         if ($response['body']) {
             echo $response['body'];
+        }
+    }
+
+    /**
+     * getting study hierarchy
+     * @param null
+     * @return array $response
+     */
+    public function getCourseTeachersStudyHierarchy($studyHierarchyId)
+    {
+        // geting authorized user id
+        $logged_user_id = AuthValidation::authorized()->id;
+
+        try {
+            // getting study hierarchy
+            $results = $this->teacherStudyHierarchyModel->findCourseHierarchyAssignedTeachers($studyHierarchyId);
+            $response['status_code_header'] = 'HTTP/1.1 200 OK';
+            $response['body'] = json_encode($results);
+            return $response;
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
+        }
+    }
+
+    /**
+     * getting teacher study hierarchy
+     * @param null
+     * @return array $response
+     */
+    public function getTeacherStudyHierarchy($staff_code)
+    {
+        // geting authorized user id
+        $logged_user_id = AuthValidation::authorized()->id;
+
+        try {
+            // getting study hierarchy
+            $results = $this->teacherStudyHierarchyModel->findAllTeacherStudyHierarchy($staff_code);
+            $response['status_code_header'] = 'HTTP/1.1 200 OK';
+            $response['body'] = json_encode($results);
+            return $response;
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
         }
     }
 

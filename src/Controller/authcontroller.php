@@ -175,6 +175,7 @@ class AuthController
             // Check if user phone number, username , email, nid exists
             $username = isset($data["username"]) && !empty($data["username"]) ? $data["username"] : $data["phone_numbers"];
             $this->checkingIfUserNameNidPhoneNumberEmailExists($data["nid"], $data["phone_numbers"], $username, $data["email"]);
+
             // checking is user training data completed
             if (isset($data["addToTraining"]) && $data["addToTraining"]) {
                 $this->addNewUserToTraininghandler($data);

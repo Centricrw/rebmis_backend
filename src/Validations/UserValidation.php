@@ -30,6 +30,9 @@ class UserValidation
         if (empty($input['last_name'])) {
             return ["validated" => false, "message" => "Last name not provided!"];
         }
+        if (!isset($input['addToTraining']) || empty($input['addToTraining'])) {
+            return ["validated" => false, "message" => "addToTraining not provided!"];
+        }
         if (empty($input['full_name'])) {
             return ["validated" => false, "message" => "Full name not provided!"];
         }
