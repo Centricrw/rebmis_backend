@@ -180,14 +180,16 @@ class CohortconditionModel
     public function getTrainees($conditionId, $userDistrictCode = "")
     {
         if (isset($userDistrictCode) && $userDistrictCode !== "") {
-            $statement = "SELECT T.*, S.school_name, SL.sector_name, SL.district_name FROM trainees T
+            $statement = "SELECT T.*, S.school_name, SL.sector_name, SL.district_name, UR.role_id, UR.qualification_id, UR.position_code FROM trainees T
             INNER JOIN schools S ON S.school_code = T.school_code
             INNER JOIN school_location SL ON SL.village_id = S.region_code
+            LEFT JOIN user_to_role UR ON T.userId = UR.user_id
             WHERE T.cohortId = ? AND T.district_code = $userDistrictCode";
         } else {
-            $statement = "SELECT T.*, S.school_name, SL.sector_name, SL.district_name FROM trainees T
+            $statement = "SELECT T.*, S.school_name, SL.sector_name, SL.district_name, UR.role_id, UR.qualification_id, UR.position_code FROM trainees T
             INNER JOIN schools S ON S.school_code = T.school_code
             INNER JOIN school_location SL ON SL.village_id = S.region_code
+            LEFT JOIN user_to_role UR ON T.userId = UR.user_id
             WHERE T.cohortId = ?";
         }
         try {
