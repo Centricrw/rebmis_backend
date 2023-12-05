@@ -1,8 +1,6 @@
 <?php
 namespace Src\Models;
 
-use Error;
-
 class IctfocalteachersModel
 {
 
@@ -13,7 +11,6 @@ class IctfocalteachersModel
         $this->db = $db;
     }
 
-
     public function getCandidates($data)
     {
         $cohort_id = $data['cohort_id'];
@@ -21,8 +18,8 @@ class IctfocalteachersModel
         $newSchools = [];
         foreach ($schools as $school) {
             $newSchool = [];
-            $newSchool['schoolCode']=$school;
-            $newSchool['teachers'] = $this->getSchoolTeachers($school, $cohort_id); 
+            $newSchool['schoolCode'] = $school;
+            $newSchool['teachers'] = $this->getSchoolTeachers($school, $cohort_id);
             array_push($newSchools, $newSchool);
         }
         //print_r($newSchools);
@@ -40,8 +37,7 @@ class IctfocalteachersModel
             $statement->execute(array(
                 ':schoolCode' => $schoolCode,
                 ':cohort_id' => $cohort_id));
-            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
-            return $result;
+            return $statement->rowCount();
         } catch (\PDOException $e) {
             exit($e->getMessage());
         }
@@ -60,14 +56,14 @@ class IctfocalteachersModel
                 ':schoolCode' => $schoolCode,
                 ':teacherCode' => $teacherCode,
                 ':cohort_id' => $cohort_id));
-            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
-            return $data;
+            return $statement->rowCount();
         } catch (\PDOException $e) {
             exit($e->getMessage());
-        }   
+        }
     }
 
-    public function checkFocalTeacher($data){
+    public function checkFocalTeacher($data)
+    {
         $schoolCode = $data['school_code'];
         $teacherCode = $data['staff_code'];
         $cohort_id = $data['cohort_id'];
@@ -76,7 +72,7 @@ class IctfocalteachersModel
             $statement = $this->db->prepare($statement);
             $statement->execute(array($cohort_id, $schoolCode, $teacherCode));
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
-        return $result;
+            return $result;
         } catch (\PDOException $e) {
             exit($e->getMessage());
         }
@@ -100,7 +96,7 @@ class IctfocalteachersModel
 
     private function getSchoolTeachers($schoolCode, $cohortId)
     {
-        $statement = 'SELECT U.staff_code, U.full_name, IFNULL((SELECT custom_role FROM user_to_role_custom WHERE cohort_id = '.$cohortId.' AND school_code = '.$schoolCode.' AND staff_code = U.staff_code LIMIT 1),NULL) custom_roles FROM user_to_role UR INNER JOIN users U ON U.user_id = UR.user_id WHERE UR.school_code = ? AND UR.role_id = ?';
+        $statement = 'SELECT U.staff_code, U.full_name, IFNULL((SELECT custom_role FROM user_to_role_custom WHERE cohort_id = ' . $cohortId . ' AND school_code = ' . $schoolCode . ' AND staff_code = U.staff_code LIMIT 1),NULL) custom_roles FROM user_to_role UR INNER JOIN users U ON U.user_id = UR.user_id WHERE UR.school_code = ? AND UR.role_id = ?';
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array($schoolCode, 1));
