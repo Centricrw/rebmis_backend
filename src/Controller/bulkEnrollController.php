@@ -117,7 +117,7 @@ class bulkEnrollController
             }
 
             // Validate other keys
-            $requiredKeys = ['qualification', 'school_code', 'staff_code', 'hierarchy_code'];
+            $requiredKeys = ['qualification', 'school_code', 'staff_code'];
 
             foreach ($requiredKeys as $requiredKey) {
                 if (!isset($item[$requiredKey]) || empty($item[$requiredKey])) {
@@ -244,13 +244,15 @@ class bulkEnrollController
      */
     function handleTeacherStudyHierarchy($data)
     {
-        $dataToInsert = [
-            "staff_code" => $data['staff_code'],
-            "study_hierarchy_id" => $data['hierarchy_code'],
-        ];
-        $teacherHeirarchyExists = $this->teacherStudyHierarchyModel->findTeacherStudyHierarchy($dataToInsert);
-        if (sizeof($teacherHeirarchyExists) == 0) {
-            $this->teacherStudyHierarchyModel->insertNewTeacherStudyHierarchy($dataToInsert);
+        if (isset($data['hierarchy_code']) && !empty($data['hierarchy_code'])) {
+            $dataToInsert = [
+                "staff_code" => $data['staff_code'],
+                "study_hierarchy_id" => $data['hierarchy_code'],
+            ];
+            $teacherHeirarchyExists = $this->teacherStudyHierarchyModel->findTeacherStudyHierarchy($dataToInsert);
+            if (sizeof($teacherHeirarchyExists) == 0) {
+                $this->teacherStudyHierarchyModel->insertNewTeacherStudyHierarchy($dataToInsert);
+            }
         }
         return $data;
     }
