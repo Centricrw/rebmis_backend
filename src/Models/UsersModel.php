@@ -204,10 +204,12 @@ class UsersModel
 
     public function findExistPhoneNumberEmailNid($phone_number, $email, $nid)
     {
-        $statement = "SELECT U.*, R.role_id, R.role, UR.position_code, P.position_name,
-        Q.qualification_id, Q.qualification_name FROM users U
+        $statement = "SELECT U.*,
+        R.role_id, R.role, UR.position_code, P.position_name,
+        Q.qualification_id, Q.qualification_name, SCL.school_code, SCL.school_name, SCL.school_category, SCL.school_status FROM users U
         INNER JOIN user_to_role UR ON U.user_id = UR.user_id
         INNER JOIN roles R ON UR.role_id = R.role_id
+        LEFT JOIN schools SCL ON UR.school_code = SCL.school_code
         LEFT JOIN positions P ON UR.position_code = P.position_code
         LEFT JOIN qualifications Q ON UR.qualification_id = Q.qualification_id
         WHERE UR.status = 'Active' AND U.phone_numbers=? OR U.email = ? OR U.nid = ? LIMIT 1";

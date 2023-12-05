@@ -59,6 +59,15 @@ class bulkEnrollController
                     }
                 }
                 break;
+            case 'DELETE':
+                if (sizeof($this->params) > 0) {
+                    if ($this->params['action'] == "deletejson") {
+                        $response = $this->bulkEnrollDeleteJson();
+                    } else {
+                        $response = Errors::notFoundError("Route not found!");
+                    }
+                }
+                break;
             default:
                 $response = Errors::notFoundError("Route not found!");
                 break;
@@ -108,7 +117,7 @@ class bulkEnrollController
             }
 
             // Validate other keys
-            $requiredKeys = ['qualification', 'school_code', 'staff_code'];
+            $requiredKeys = ['qualification', 'school_code', 'staff_code', 'hierarchy_code'];
 
             foreach ($requiredKeys as $requiredKey) {
                 if (!isset($item[$requiredKey]) || empty($item[$requiredKey])) {
@@ -237,7 +246,7 @@ class bulkEnrollController
     {
         $dataToInsert = [
             "staff_code" => $data['staff_code'],
-            "study_hierarchy_id" => 22,
+            "study_hierarchy_id" => $data['hierarchy_code'],
         ];
         $teacherHeirarchyExists = $this->teacherStudyHierarchyModel->findTeacherStudyHierarchy($dataToInsert);
         if (sizeof($teacherHeirarchyExists) == 0) {
@@ -280,12 +289,17 @@ class bulkEnrollController
                     $this->createUserAccessToRole($teacherData, $created_by_user_id, $tempUserId);
                 }
 
-                if (isset($teacherData["role"]) && strpos(strtolower($teacherData["role"]), "focal") || strpos(strtolower($teacherData["role"]), "ssl")) {
+                if (isset($teacherData["role"]) && strpos(strtolower($teacherData["role"]), "focal")) {
                     // insert user to user custom role
                     $this->createUserRoleCUstom($teacherData, $cohort_id);
+                } else if (isset($teacherData["role"]) && strtolower($teacherData["role"]) == "ssl") {
+                    // insert user to user custom role
+                    $this->createUserRoleCUstom($teacherData, $cohort_id);
+                } else {
+                    // handle Teacher Study Hierarchy
+                    $this->handleTeacherStudyHierarchy($teacherData);
                 }
-                // handle Teacher Study Hierarchy
-                $this->handleTeacherStudyHierarchy($teacherData);
+
                 $teacherData["status"] = "success";
                 array_push($temp_success_array, $teacherData);
 
@@ -324,6 +338,29 @@ class bulkEnrollController
             // Prepare response
             $response['status_code_header'] = 'HTTP/1.1 200 Ok';
             $response['body'] = json_encode($decoded_data);
+            return $response;
+        } catch (\Throwable $e) {
+            return Errors::databaseError($e->getMessage());
+        }
+    }
+
+    /**
+     * retrieve Json teachers
+     * @return JSON
+     */
+    public function bulkEnrollDeleteJson()
+    {
+        try {
+            // authization
+            $created_by_user_id = AuthValidation::authorized()->id;
+
+            // save data to json file
+            $encodeData = json_encode([], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+            file_put_contents("./public/bulk_enroll_data.json", $encodeData);
+
+            // Prepare response
+            $response['status_code_header'] = 'HTTP/1.1 200 Ok';
+            $response['body'] = json_encode([]);
             return $response;
         } catch (\Throwable $e) {
             return Errors::databaseError($e->getMessage());
