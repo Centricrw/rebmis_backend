@@ -244,7 +244,7 @@ class bulkEnrollController
      */
     function handleTeacherStudyHierarchy($data)
     {
-        if (isset($data['hierarchy_code'])) {
+        if (isset($data['hierarchy_code']) && !empty($data['hierarchy_code'])) {
             $dataToInsert = [
                 "staff_code" => $data['staff_code'],
                 "study_hierarchy_id" => $data['hierarchy_code'],
