@@ -52,20 +52,20 @@ class elearningEnrollmentController
         // GET USER DATA
         
         $userMis = $this->usersModel->findUserByStaffcode($staff_code);
-        $firstname = $userMis['first_name'];
-        $lastname = $userMis['last_name'];
-        $username = $userMis['staff_code'];
-        $email = $userMis['email'];
+        $firstname = $userMis->first_name;
+        $lastname = $userMis->last_name;
+        $username = $userMis->staff_code;
+        $email = $userMis->email;
         $password = 'Education@123';
         try {
-            $link = "https://elearning.reb.rw/sandbox/local/custom_service/userregister.php?firstname='.$firstname.'&lastname='.$lastname.'&username='.$username.'&email='.$email.'&password='.$password.'";
+            $link = 'https://elearning.reb.rw/sandbox/local/custom_service/userregister.php?firstname='.$firstname.'&lastname='.$lastname.'&username='.$username.'&email='.$email.'&password='.$password.'';
             $preresult = get_meta_tags($link)['keywords'];
             if($preresult){
                 //$this->elearningModel->connectCourse($cohort_id, $link);
                 $result = $userMis;
             }
             else{
-                $result = $link;
+                $result = $userMis;
             }
             $response['status_code_header'] = 'HTTP/1.1 201 Created';
             $response['body'] = json_encode($result);
