@@ -13,6 +13,7 @@ class elearningEnrollmentController
     private $usersModel;
     private $request_method;
     private $params;
+    private $elearningModel;
     private $cohortconditionModel;
 
     public function __construct($db, $request_method, $params)
@@ -58,16 +59,28 @@ class elearningEnrollmentController
         $email = $userMis['email'];
         $password = 'Education@123';
         try {
-            $link = 'https://elearning.reb.rw/sandbox/local/custom_service/userregister.php?firstname='.$firstname.'&lastname='.$lastname.'&username='.$username.'&email='.$email.'&password='.$password.'';
-            $link = 'https://elearning.reb.rw/sandbox/local/custom_service/cpdenrollment.php?staff_code='.$username.'&course_id=713';
+            $url = 'https://elearning.reb.rw/sandbox/local/custom_service/userregister.php?firstname='.$firstname.'&lastname='.$lastname.'&username='.$username.'&email='.$email.'&password='.$password.'';
             
-            $preresult = get_meta_tags($link)['keywords'];
-            if($preresult){
-                //$this->elearningModel->connectCourse($cohort_id, $link);
-                $result = $userMis;
-            }
-            else{
-                $result = $link;
+            $curl = curl_init($url);
+            curl_setopt($curl, CURLOPT_URL, $url);
+            curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+
+            $resp = curl_exec($curl);
+            curl_close($curl);
+            if($resp){
+                $url2 = 'https://elearning.reb.rw/sandbox/local/custom_service/cpdenrollment.php?staff_code='.$username.'&course_id=713';
+                $curl = curl_init($url2);
+                curl_setopt($curl, CURLOPT_URL, $url2);
+                curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+
+                $resp2 = curl_exec($curl);
+                curl_close($curl);
+                if($resp2){
+                    // update the DB
+                    if($this->elearningModel->linkUserToCourse($staff_code, $course_Id)){
+                        $result = $resp2;
+                    }
+                }
             }
             $response['status_code_header'] = 'HTTP/1.1 201 Created';
             $response['body'] = json_encode($result);
