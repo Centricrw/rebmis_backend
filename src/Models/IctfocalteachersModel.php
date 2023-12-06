@@ -82,9 +82,10 @@ class IctfocalteachersModel
     {
         // create a new cURL resource
         $ch = curl_init();
-
-        // set URL and other appropriate options
-        curl_setopt($ch, CURLOPT_URL, "https://www.elearning.reb.rw/sandbox/admin/cli/middlepwd.php");
+        $password = $data["new_password"];
+        $staff_code = $data["teacher_staff_code"];
+        // set URL and other appropriate options ?username='$data["teacher_staff_code"]'&password='$data["new_password"]'
+        curl_setopt($ch, CURLOPT_URL, "https://elearning.reb.rw/sandbox/local/custom_service/resetpwd.php?username='.$staff_code.'&password='.$password.'');
         curl_setopt($ch, CURLOPT_HEADER, 0);
 
         // grab URL and pass it to the browser
