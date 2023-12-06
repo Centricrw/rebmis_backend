@@ -59,7 +59,7 @@ class elearningEnrollmentController
         $password = 'Education@123';
         try {
             $link = 'https://elearning.reb.rw/sandbox/local/custom_service/userregister.php?firstname='.$firstname.'&lastname='.$lastname.'&username='.$username.'&email='.$email.'&password='.$password.'';
-            $link = 'https://elearning.reb.rw/sandbox/local/custom_service/cpdenrollment.php?staff_code='.$username.'&course_id='.$course_Id.'';
+            $link = 'https://elearning.reb.rw/sandbox/local/custom_service/cpdenrollment.php?staff_code='.$username.'&course_id=713';
             
             $preresult = get_meta_tags($link)['keywords'];
             if($preresult){
