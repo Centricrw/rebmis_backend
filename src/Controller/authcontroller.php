@@ -361,16 +361,13 @@ class AuthController
         if (!self::validateCredential($input)) {
             return Errors::unprocessableEntityResponse();
         }
-        $userAuthData = $this->usersModel->findByUsername($input['username']);
+        $userAuthData = $this->usersModel->findByUsernamePhoneNumberAndStaffCode($input['username']);
         if (sizeof($userAuthData) == 0) {
-            $userAuthData = $this->usersModel->findUserByPhoneNumber($input['username']);
-            if (sizeof($userAuthData) == 0) {
-                $response['status_code_header'] = 'HTTP/1.1 400 bad request!';
-                $response['body'] = json_encode([
-                    'message' => "Wrong username or password, Please try again?",
-                ]);
-                return $response;
-            }
+            $response['status_code_header'] = 'HTTP/1.1 400 bad request!';
+            $response['body'] = json_encode([
+                'message' => "Wrong username or password, Please try again?",
+            ]);
+            return $response;
         }
         $input_password = Encrypt::saltEncryption($input['password']);
         // Password compare
@@ -422,7 +419,7 @@ class AuthController
             }
             if ($user_role[0]['district_code'] != null) {
                 $district = $this->schoolLocationsModel->findDistrictByCode($user_role[0]['district_code']);
-                $rlt->district = $district[0];
+                $rlt->district = !isset($district[0]) && empty($district[0]) ? null : $district[0];
             } else {
                 $rlt->district = null;
             }
