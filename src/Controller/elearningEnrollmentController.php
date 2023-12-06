@@ -54,7 +54,7 @@ class elearningEnrollmentController
         $userMis = $this->usersModel->findUserByStaffcode($staff_code);
         $firstname = $userMis['first_name'];
         $lastname = $userMis['last_name'];
-        $username = $userMis['username'];
+        $username = $userMis['staff_code'];
         $email = $userMis['email'];
         $password = 'Education@123';
         try {
@@ -65,7 +65,7 @@ class elearningEnrollmentController
                 $result = $userMis;
             }
             else{
-                $result = $userMis;
+                $result = $link;
             }
             $response['status_code_header'] = 'HTTP/1.1 201 Created';
             $response['body'] = json_encode($result);
