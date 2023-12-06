@@ -195,4 +195,25 @@ class UserRoleModel
             exit($e->getMessage());
         }
     }
+
+    public function updateUserToRoleStatus($user_id, $updated_by, $currentStatus, $NewStatus)
+    {
+        $sql = "UPDATE user_to_role SET `status`=:status, `updated_by`=:updated_by, `updated_at`=:updated_at
+          WHERE `user_id`=:user_id AND `status`=:target;
+      ";
+        try {
+            $statement = $this->db->prepare($sql);
+            $statement->execute(array(
+                ':user_id' => $user_id,
+                ':updated_by' => $updated_by,
+                ':updated_at' => date("Y-m-d H:i:s"),
+                ':target' => $currentStatus,
+                ':status' => $NewStatus,
+            ));
+
+            return $statement->rowCount();
+        } catch (\PDOException $e) {
+            exit($e->getMessage());
+        }
+    }
 }

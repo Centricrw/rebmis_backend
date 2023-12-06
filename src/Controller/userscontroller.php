@@ -18,6 +18,7 @@ use Src\Models\UsersModel;
 use Src\System\AuthValidation;
 use Src\System\Errors;
 use Src\System\UuidGenerator;
+use Src\Validations\BasicValidation;
 use Src\Validations\UserValidation;
 use \Firebase\JWT\JWT;
 
@@ -85,6 +86,8 @@ class UsersController
                     $response = $this->suspendUser($this->params['user_id']);
                 } elseif ($this->params['action'] == "activate") {
                     $response = $this->activateUser($this->params['user_id']);
+                } elseif ($this->params['action'] == "status") {
+                    $response = $this->changeStatusUserToRoleHandler($this->params['user_id']);
                 } elseif ($this->params['action'] == "assignaccess") {
                     $response = $this->assignAccessToUser($this->params['user_id']);
                 } else {
@@ -126,8 +129,10 @@ class UsersController
         $created_by = AuthValidation::decodedData($jwt_data)->data->id;
 
         // Validate input if not empty
-        if (!UserValidation::assignUserToSchool($input)) {
-            return Errors::unprocessableEntityResponse();
+        // validation
+        $validateUserInputData = UserValidation::assignUserToSchool($input);
+        if (!$validateUserInputData['validated']) {
+            return Errors::unprocessableEntityResponse($validateUserInputData['message']);
         }
         $input['role_to_user_id'] = $role_to_user_id;
 
@@ -362,6 +367,54 @@ class UsersController
             return Errors::notAuthorized();
         }
     }
+
+    /**
+     * checking user status
+     * @param string $user_id
+     * @return array $response
+     */
+    function changeStatusUserToRoleHandler($user_id)
+    {
+        try {
+            $data = (array) json_decode(file_get_contents('php://input'), true);
+            // validation
+            $validateThisValues = [
+                "current_status" => "Current status is required",
+                "new_status" => "New Status is required",
+            ];
+            $validateUserInputData = BasicValidation::validate($data, $validateThisValues);
+            if (!$validateUserInputData['validated']) {
+                return Errors::unprocessableEntityResponse($validateUserInputData['message']);
+            }
+
+            // checking if not === 'New','Active','Disabled','TRANSFERD','TERMINATED','SUSPENDED','Upgraded'
+            $validStatus = ['New', 'Active', 'Disabled', 'TRANSFERD', 'TERMINATED', 'SUSPENDED', 'Upgraded'];
+            if (!in_array($data["new_status"], $validStatus)) {
+                return Errors::unprocessableEntityResponse("New status has invalid status, must be one this New, Active, Disabled, TRANSFERD, TERMINATED, SUSPENDED and Upgraded");
+            }
+
+            if (!in_array($data["current_status"], $validStatus)) {
+                return Errors::unprocessableEntityResponse("Current status has invalid status, must be one this New, Active, Disabled, TRANSFERD, TERMINATED, SUSPENDED and Upgraded");
+            }
+
+            // geting authorized user id
+            $logged_user_id = AuthValidation::authorized()->id;
+
+            $user = $this->usersModel->findOneUser($user_id);
+            if (sizeof($user) == 0) {
+                return Errors::notFoundError("Action failed, you can not suspend this user is already suspended!");
+            }
+
+            $this->userRoleModel->updateUserToRoleStatus($user_id, $logged_user_id, $data['current_status'], $data["new_status"]);
+
+            $response['status_code_header'] = 'HTTP/1.1 200 OK';
+            $response['body'] = json_encode(["message" => "User Status updated successfuly!"]);
+            return $response;
+        } catch (\Throwable $e) {
+            return Errors::databaseError($e->getMessage());
+        }
+    }
+
     // Suspend a user by id
     function activateUser($user_id)
     {

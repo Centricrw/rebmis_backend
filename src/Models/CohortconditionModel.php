@@ -180,19 +180,21 @@ class CohortconditionModel
     public function getTrainees($conditionId, $userDistrictCode = "")
     {
         if (isset($userDistrictCode) && $userDistrictCode !== "") {
-            $statement = "SELECT T.*, S.school_name, SL.sector_name, SL.district_name FROM trainees T
+            $statement = "SELECT T.*, S.school_name, SL.sector_name, SL.district_name, UR.role_id, UR.qualification_id, UR.position_code, UR.status FROM trainees T
             INNER JOIN schools S ON S.school_code = T.school_code
             INNER JOIN school_location SL ON SL.village_id = S.region_code
-            WHERE T.cohortId = ? AND T.district_code = $userDistrictCode";
+            INNER JOIN user_to_role UR ON T.userId = UR.user_id
+            WHERE T.cohortId = ? AND UR.status = ? AND T.district_code = $userDistrictCode";
         } else {
-            $statement = "SELECT T.*, S.school_name, SL.sector_name, SL.district_name FROM trainees T
+            $statement = "SELECT T.*, S.school_name, SL.sector_name, SL.district_name, UR.role_id, UR.qualification_id, UR.position_code, UR.status FROM trainees T
             INNER JOIN schools S ON S.school_code = T.school_code
             INNER JOIN school_location SL ON SL.village_id = S.region_code
-            WHERE T.cohortId = ?";
+            INNER JOIN user_to_role UR ON T.userId = UR.user_id
+            WHERE T.cohortId = ? AND UR.status = ?";
         }
         try {
             $statement = $this->db->prepare($statement);
-            $statement->execute(array($conditionId));
+            $statement->execute(array($conditionId, "Active"));
             $teachers = $statement->fetchAll(\PDO::FETCH_ASSOC);
             return $teachers;
         } catch (\PDOException $e) {
