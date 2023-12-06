@@ -30,10 +30,11 @@ class ElearningModel
         }
     }
 
-    public function linkUserToCourse($course_id, $staff_code)
+    public function linkUserToCourse($staff_code, $course_id)
     {
-        $statement = "UPDATE trainees SET course_id = :course_id WHERE userId = (SELECT user_id FROM users WHERE staff_code =:staff_code)";
-
+        //return ($course_id.'and'.$staff_code);
+        $statement = "UPDATE trainees SET course_id = :course_id WHERE userId = :staff_code";
+        //return $statement;
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array(
