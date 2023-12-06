@@ -62,7 +62,7 @@ class elearningEnrollmentController
             $preresult = get_meta_tags($link)['keywords'];
             if($preresult){
                 //$this->elearningModel->connectCourse($cohort_id, $link);
-                $result = trim($preresult, 'moodle, Course:');
+                $result = $userMis;
             }
             else{
                 $result = 'No course available';
