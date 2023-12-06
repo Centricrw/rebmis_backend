@@ -1,4 +1,6 @@
 composer.phar
+composer.lock
+.htaccess
 /vendor/
 #helper.txt
 #/database/
