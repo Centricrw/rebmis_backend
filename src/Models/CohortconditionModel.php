@@ -184,14 +184,14 @@ class CohortconditionModel
             INNER JOIN schools S ON S.school_code = T.school_code
             INNER JOIN school_location SL ON SL.village_id = S.region_code
             INNER JOIN user_to_role UR ON T.userId = UR.user_id
-            INNER JOIN user U ON U.user_id = UR.user_id
+            INNER JOIN users U ON U.user_id = UR.user_id
             WHERE T.cohortId = ? AND UR.status = ? AND T.district_code = $userDistrictCode";
         } else {
             $statement = "SELECT T.*, S.school_name, SL.sector_name, SL.district_name, UR.role_id, UR.qualification_id, UR.position_code, UR.status, U.staff_code FROM trainees T
             INNER JOIN schools S ON S.school_code = T.school_code
             INNER JOIN school_location SL ON SL.village_id = S.region_code
             INNER JOIN user_to_role UR ON T.userId = UR.user_id
-            INNER JOIN user U ON U.user_id = UR.user_id
+            INNER JOIN users U ON U.user_id = UR.user_id
             WHERE T.cohortId = ? AND UR.status = ?";
         }
         try {
