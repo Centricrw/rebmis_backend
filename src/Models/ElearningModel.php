@@ -30,4 +30,20 @@ class ElearningModel
         }
     }
 
+    public function linkUserToCourse($course_id, $staff_code)
+    {
+        $statement = "UPDATE trainees SET course_id = :course_id WHERE userId = (SELECT user_id FROM users WHERE staff_code =:staff_code)";
+
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
+                ':course_id' => $course_id,
+                ':staff_code' => $staff_code,
+            ));
+            return $statement->rowCount();
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
 }
