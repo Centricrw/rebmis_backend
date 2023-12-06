@@ -51,14 +51,16 @@ class elearningEnrollmentController
         error_reporting(E_ERROR | E_PARSE);
         // GET USER DATA
         
-        $userMis = $this->usersModel->findUserByStaffcode($staff_code);
-        $firstname = $userMis->first_name;
-        $lastname = $userMis->last_name;
-        $username = $userMis->staff_code;
-        $email = $userMis->email;
+        $userMis = ($this->usersModel->findUserByStaffcode($staff_code))[0];
+        $firstname = $userMis['first_name'];
+        $lastname = $userMis['last_name'];
+        $username = $userMis['staff_code'];
+        $email = $userMis['email'];
         $password = 'Education@123';
         try {
             $link = 'https://elearning.reb.rw/sandbox/local/custom_service/userregister.php?firstname='.$firstname.'&lastname='.$lastname.'&username='.$username.'&email='.$email.'&password='.$password.'';
+            $link = 'https://elearning.reb.rw/sandbox/local/custom_service/cpdenrollment.php?staff_code='.$username.'&course_id='.$course_Id.'';
+            
             $preresult = get_meta_tags($link)['keywords'];
             if($preresult){
                 //$this->elearningModel->connectCourse($cohort_id, $link);
