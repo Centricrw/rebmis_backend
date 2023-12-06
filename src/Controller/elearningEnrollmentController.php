@@ -78,7 +78,11 @@ class elearningEnrollmentController
                 if($resp2){
                     // update the DB
                     if($this->elearningModel->linkUserToCourse($staff_code, $course_Id)){
-                        $result = $resp2;
+                        $obj1 = new \stdClass;
+                        $obj1->staff_code = $username;
+                        $obj->status = 'enrolled';
+
+                        $result = $obj;
                     }
                 }
             }
