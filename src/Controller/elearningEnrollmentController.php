@@ -65,7 +65,7 @@ class elearningEnrollmentController
                 $result = $userMis;
             }
             else{
-                $result = 'No course available';
+                $result = $userMis;
             }
             $response['status_code_header'] = 'HTTP/1.1 201 Created';
             $response['body'] = json_encode($result);
