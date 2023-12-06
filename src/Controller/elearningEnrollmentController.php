@@ -64,7 +64,7 @@ class elearningEnrollmentController
             $curl = curl_init($url);
             curl_setopt($curl, CURLOPT_URL, $url);
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-
+            $result = 'no';
             $resp = curl_exec($curl);
             curl_close($curl);
             if($resp){
@@ -77,13 +77,15 @@ class elearningEnrollmentController
                 curl_close($curl);
                 if($resp2){
                     // update the DB
-                    if($this->elearningModel->linkUserToCourse($staff_code, $course_Id)){
+                    $this->elearningModel->linkUserToCourse($staff_code, $course_Id);
+                    
                         $obj1 = new \stdClass;
                         $obj1->staff_code = $username;
-                        $obj->status = 'enrolled';
+                        $obj1->status = 'enrolled';
 
-                        $result = $obj;
-                    }
+                        $result = $obj1;
+                    
+                    
                 }
             }
             $response['status_code_header'] = 'HTTP/1.1 201 Created';
