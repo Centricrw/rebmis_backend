@@ -280,6 +280,25 @@ class UsersModel
         }
     }
 
+    public function findByUsernamePhoneNumberAndStaffCode($username)
+    {
+        $statement = "SELECT * FROM `users` WHERE `username` = :username OR `phone_numbers` = :phone_numbers OR `staff_code` = :staff_code  AND `status` = :status LIMIT 1";
+
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
+                ":username" => $username,
+                ":phone_numbers" => $username,
+                ":staff_code" => $username,
+                ":status" => 1,
+            ));
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $result;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
     public function findByUsernameShort($username)
     {
         $statement = "SELECT `user_id` FROM users WHERE username = ? AND status = ? LIMIT 1";
