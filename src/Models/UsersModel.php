@@ -101,7 +101,7 @@ class UsersModel
             ));
             return $statement->rowCount();
         } catch (\PDOException $e) {
-            exit($e->getMessage());
+            throw new Error($e->getMessage());
         }
     }
 
@@ -259,6 +259,20 @@ class UsersModel
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array($nid));
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $result;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    public function findExistStaffCodeShort($staffCode)
+    {
+        $statement = "SELECT `user_id`, `staff_code`, `full_name` FROM users WHERE staff_code=? LIMIT 1";
+
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array($staffCode));
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             return $result;
         } catch (\PDOException $e) {

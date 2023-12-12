@@ -228,55 +228,67 @@ class AuthController
 
     function updateAccount($user_id)
     {
-        $rlt = new \stdClass();
-        $jwt_data = new \stdClass();
-
-        $all_headers = getallheaders();
-        if (isset($all_headers['Authorization'])) {
-            $jwt_data->jwt = $all_headers['Authorization'];
-        }
-        // Decoding jwt
-        if (empty($jwt_data->jwt)) {
-            return Errors::notAuthorized();
-        }
-
-        if (!AuthValidation::isValidJwt($jwt_data)) {
-            return Errors::notAuthorized();
-        }
-        $updated_by = AuthValidation::decodedData($jwt_data)->data->id;
-
-        $data = (array) json_decode(file_get_contents('php://input'), true);
-
-        if (!UserValidation::updateUser($data)) {
-            return Errors::unprocessableEntityResponse();
-        }
-
-        // // Check if user is registered
-        $user = $this->usersModel->findOneUser($user_id, 1);
-        if (sizeof($user) <= 0) {
-            return Errors::notFoundError("User not found");
+        $inputData = (array) json_decode(file_get_contents('php://input'), true);
+        // geting authorized user id
+        $loggedUserId = AuthValidation::authorized()->id;
+        $validateUserInputData = UserValidation::validateUserUpdateInput($inputData);
+        if (!$validateUserInputData['validated']) {
+            return Errors::unprocessableEntityResponse($validateUserInputData['message']);
         }
 
         // Check if user is registered
-        if (empty($user[0]['username']) && empty($data['username'])) {
-            // Check if username is registered
-            // $user = $this->usersModel->findExistUserName($data['username'], $user_id, 1);
-            // if (sizeof($user) > 0) {
-            //     return Errors::ExistError("Username is already exist");
-            // }
-            // Encrypting default password
-            $default_password = 12345;
-            $default_password = Encrypt::saltEncryption($default_password);
-            $data['password'] = $default_password;
+        $userExists = $this->usersModel->findOneUser($user_id, 1);
+        if (sizeof($userExists) <= 0) {
+            return Errors::notFoundError("User not found");
+        }
+        $user = $userExists[0];
 
-            $this->usersModel->changeUsernameAndPassword($data, $user_id, $updated_by);
+        // checking if the user changed phone number, username, email, nid
+        // checking phone number
+        if ($user['phone_numbers'] !== $inputData['phone_numbers']) {
+            $phoneNumberExists = $this->usersModel->findExistPhoneNumberShort($inputData['phone_numbers']);
+            if (sizeof($phoneNumberExists) > 0) {
+                return Errors::badRequestError("Phone number already exist, please try again?");
+            }
         }
 
-        $this->usersModel->updateUser($data, $user_id, $updated_by);
+        // checking username
+        if ($user['username'] !== $inputData['username']) {
+            $userNameExists = $this->usersModel->findByUsername($inputData['username']);
+            if (sizeof($userNameExists) > 0) {
+                return Errors::badRequestError("Phone number already exist, please try again?");
+            }
+        }
 
-        $response['status_code_header'] = 'HTTP/1.1 201 Created';
+        // Check if user email exists
+        if ($user['email'] !== $inputData['email']) {
+            $emailExists = $this->usersModel->findExistEmailShort($inputData['email']);
+            if (sizeof($emailExists) > 0) {
+                return Errors::badRequestError("Email already exist, please try again?");
+            }
+        }
+
+        // Check if user nid exists
+        if ($user['nid'] !== $inputData['nid']) {
+            $nidExists = $this->usersModel->findExistNidShort($inputData['nid']);
+            if (sizeof($nidExists) > 0) {
+                return Errors::badRequestError("NID already exist, please try again?");
+            }
+        }
+
+        // Check if user nid exists
+        if ($user['staff_code'] !== $inputData['staff_code']) {
+            $nidExists = $this->usersModel->findExistStaffCodeShort($inputData['staff_code']);
+            if (sizeof($nidExists) > 0) {
+                return Errors::badRequestError("Staff code already exist, please try again?");
+            }
+        }
+
+        $this->usersModel->updateUser($inputData, $user_id, $loggedUserId);
+
+        $response['status_code_header'] = 'HTTP/1.1 200 OK';
         $response['body'] = json_encode([
-            'message' => "Updated",
+            'message' => "Updated 1234",
         ]);
         return $response;
     }

@@ -50,11 +50,46 @@ class UserValidation
         }
         return ["validated" => true, "message" => "OK"];
     }
-    public static function updateUser($input)
+
+    public static function validateUserUpdateInput($input)
     {
-        if (empty($input['nid'])) {
-            return false;
+        if (empty($input['nid']) || !preg_match('/^[0-9]{16}$/', $input['nid'])) {
+            return ["validated" => false, "message" => "Invalid nid or not provided!, please try again"];
         }
-        return true;
+
+        if (empty($input['first_name'])) {
+            return ["validated" => false, "message" => "First name not provided!"];
+        }
+
+        if (empty($input['last_name'])) {
+            return ["validated" => false, "message" => "Last name not provided!"];
+        }
+
+        if (empty($input['phone_numbers']) || !preg_match('/^0[7][0-9]{8}$/', $input['phone_numbers'])) {
+            return ["validated" => false, "message" => "Inavalid phone number or not provided!, please try again?"];
+        }
+
+        if (empty($input['sex']) || ($input['sex'] != "FEMALE" && $input['sex'] != "MALE")) {
+            return ["validated" => false, "message" => "Sex must be FEMALE, MALE or Other and required!"];
+        }
+
+        if (empty($input['email']) || !filter_var($input['email'], FILTER_VALIDATE_EMAIL)) {
+            return ["validated" => false, "message" => "Invalid Email or not provided!, please try again?"];
+        }
+
+        if (!isset($input['username']) || empty($input['username'])) {
+            return ["validated" => false, "message" => "Username is not provided!, please try again?"];
+        }
+
+        if (!isset($input['staff_code']) || empty($input['staff_code'])) {
+            return ["validated" => false, "message" => "Staff code is not provided!, please try again?"];
+        }
+
+        if (empty($input['full_name'])) {
+            return ["validated" => false, "message" => "Full name not provided!"];
+        }
+
+        return ["validated" => true, "message" => "OK"];
     }
+
 }
