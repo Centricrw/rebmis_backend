@@ -74,7 +74,7 @@ class UsersModel
                 ':bank_id' => empty($data['bank_id']) ? null : $data['bank_id'],
                 ':village_code' => empty($data['village_code']) ? null : $data['village_code'],
                 ':full_name' => $data['full_name'],
-                ':sex' => $data['gender'],
+                ':sex' => $data['sex'],
                 ':dob' => empty($data['dob']) ? null : $data['dob'],
                 ':marital_status' => empty($data['marital_status']) ? null : $data['marital_status'],
                 ':nid' => $data['nid'],
