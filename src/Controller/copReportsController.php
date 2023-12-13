@@ -1,6 +1,7 @@
 <?php
 namespace Src\Controller;
 
+use DateTime;
 use Src\Models\CohortsModel;
 use Src\Models\CopReportsModel;
 use Src\System\AuthValidation;
@@ -51,32 +52,44 @@ class CopReportsController
         }
     }
 
+    function validateDate($date, $format = 'Y-m-d')
+    {
+        $d = DateTime::createFromFormat($format, $date);
+        return $d && $d->format($format) == $date;
+    }
+
     /**
      * Validate copreports details
-     * @param array $item
+     * @param array $element
      * @throws InvalidDataException
      */
-    function validatingCopReportsDetails(array $item)
+    function validatingCopReportsDetails(array $element)
     {
-        // Validate cop_report_details
-        if (!isset($item["cop_report_details"]) || !is_array($item["cop_report_details"])) {
-            throw new InvalidDataException("On cop_report_details is either not set or empty");
+        // Validate cop_report_id
+        if (!isset($element["cop_report_id"]) || empty($element["cop_report_id"])) {
+            throw new InvalidDataException("On cop_report_id is either not set or empty");
         }
 
-        // validate cop_report_details data
-        foreach ($item["cop_report_details"] as $index => $element) {
-            $details = $item["cop_report_details"];
-            $titleDetails = isset($details[$index]["cop_report_details_title"]) ? $details[$index]["cop_report_details_title"] : "details index " . $index;
-
-            // Validate cop_report_details_title
-            if (!isset($element["cop_report_details_title"]) || !is_array($element["cop_report_details_title"])) {
-                throw new InvalidDataException("On " . $titleDetails . " cop_report_details_title is either not set or empty");
+        if (isset($element["cop_report_id"])) {
+            $trainingExists = $this->copReportsModel->getCopReportsByID($element["cop_report_id"]);
+            if (sizeof($trainingExists) == 0) {
+                throw new InvalidDataException("On cop_report_id not found, please try again?");
             }
+        }
 
-            // Validate number_of_weeks
-            if (!isset($element["number_of_weeks"]) || !is_array($element["number_of_weeks"])) {
-                throw new InvalidDataException("On " . $titleDetails . " number_of_weeks is either not set or empty");
-            }
+        // Validate cop_report_details_title
+        if (!isset($element["cop_report_details_title"]) || empty($element["cop_report_details_title"])) {
+            throw new InvalidDataException("On cop_report_details_title is either not set or empty");
+        }
+
+        // Validate start_date
+        if (!isset($element["start_date"]) || !$this->validateDate($element["start_date"])) {
+            throw new InvalidDataException("Invalid start date format must be 'YYYY-MM-DD'");
+        }
+
+        // Validate end_date
+        if (!isset($element["end_date"]) || !$this->validateDate($element["end_date"])) {
+            throw new InvalidDataException("Invalid end date format must be 'YYYY-MM-DD'");
         }
     }
 
@@ -147,7 +160,7 @@ class CopReportsController
     }
 
     /**
-     * Create new cop reports
+     * Create new cop reports details
      * @param VOID
      * @return OBJECT $results
      */
@@ -160,6 +173,24 @@ class CopReportsController
         $logged_user_id = AuthValidation::authorized()->id;
 
         try {
+            // validation
+            $this->validatingCopReportsDetails($inputData);
+
+            // check if title exists
+            $copReportTitleExists = $this->copReportsModel->getCopReportsDetailsByTitle($inputData);
+            if (sizeof($copReportTitleExists) > 0) {
+                return Errors::existError("Title allready exists!, please try again?");
+            }
+
+            // create new cop details
+            $inputData['cop_report_details_id'] = UuidGenerator::gUuid();
+            $inputData['created_by'] = $logged_user_id;
+            $result = $this->copReportsModel->createNewCopReportDetails($inputData);
+
+            // response
+            $response['status_code_header'] = 'HTTP/1.1 201 Created';
+            $response['body'] = json_encode($result);
+            return $response;
 
         } catch (InvalidDataException $e) {
             return Errors::unprocessableEntityResponse($e->getMessage());
