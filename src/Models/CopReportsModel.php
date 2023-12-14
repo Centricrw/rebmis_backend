@@ -132,6 +132,22 @@ class CopReportsModel
         }
     }
 
+    public function getAllCopReportsDetailsByCopReportId($copReportId)
+    {
+        $statement = "SELECT * FROM `cop_report_details` WHERE `cop_report_id` = :cop_report_id";
+
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
+                ':cop_report_id' => $copReportId,
+            ));
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $result;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
     public function getCopReportsDetailsByTitle($data)
     {
         $statement = "SELECT * FROM `cop_report_details` WHERE `cop_report_id` = :cop_report_id AND `cop_report_details_title` = :cop_report_details_title LIMIT 1";
@@ -141,23 +157,6 @@ class CopReportsModel
             $statement->execute(array(
                 ':cop_report_id' => $data['cop_report_id'],
                 ':cop_report_details_title' => $data['cop_report_details_title'],
-            ));
-            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
-            return $result;
-        } catch (\PDOException $e) {
-            throw new Error($e->getMessage());
-        }
-    }
-
-    public function getCopReportsDetailsReportBySchool($data)
-    {
-        $statement = "SELECT * FROM `cop_report_details_report` WHERE `cop_report_details_id` = :cop_report_details_id AND `school_code` = :school_code LIMIT 1";
-
-        try {
-            $statement = $this->db->prepare($statement);
-            $statement->execute(array(
-                ':cop_report_details_id' => $data['cop_report_details_id'],
-                ':school_code' => $data['school_code'],
             ));
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             return $result;
@@ -197,6 +196,39 @@ class CopReportsModel
                 ':created_by' => $data['created_by'],
             ));
             return $data;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    public function getCopReportsDetailsReportBySchool($data)
+    {
+        $statement = "SELECT * FROM `cop_report_details_report` WHERE `cop_report_details_id` = :cop_report_details_id AND `school_code` = :school_code LIMIT 1";
+
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
+                ':cop_report_details_id' => $data['cop_report_details_id'],
+                ':school_code' => $data['school_code'],
+            ));
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $result;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    public function getAllReportsBYCopReportDetailsId($copReportDetailsId)
+    {
+        $statement = "SELECT * FROM `cop_report_details_report` WHERE `cop_report_details_id` = :cop_report_details_id";
+
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
+                ':cop_report_details_id' => $copReportDetailsId,
+            ));
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $result;
         } catch (\PDOException $e) {
             throw new Error($e->getMessage());
         }
