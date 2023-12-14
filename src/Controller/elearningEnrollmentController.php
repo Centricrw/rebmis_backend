@@ -78,14 +78,10 @@ class elearningEnrollmentController
                 if($resp2){
                     // update the DB
                     $this->elearningModel->linkUserToCourse($staff_code, $course_Id);
-                    
                         $obj1 = new \stdClass;
                         $obj1->staff_code = $username;
                         $obj1->status = 'enrolled';
-
                         $result = $obj1;
-                    
-                    
                 }
             }
             $response['status_code_header'] = 'HTTP/1.1 201 Created';
