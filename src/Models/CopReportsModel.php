@@ -32,22 +32,17 @@ class CopReportsModel
         }
     }
 
-    public function createNewCopReportDetails($data)
+    public function getCopReportsByID($copReportId)
     {
-        $statement = "INSERT INTO `cop_report_details`(`cop_report_details_id`, `cop_report_id`, `cop_report_details_title`, `start_date`, `end_date`, `created_by`)
-      VALUES(:cop_report_details_id, :cop_report_id, :cop_report_details_title, :start_date, :end_date, :created_by)";
+        $statement = "SELECT * FROM `cop_report` WHERE `cop_report_id` = :cop_report_id LIMIT 1";
 
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array(
-                ':cop_report_details_id' => $data['cop_report_details_id'],
-                ':cop_report_id' => $data['cop_report_id'],
-                ':cop_report_details_title' => $data['cop_report_details_title'],
-                ':start_date' => $data['start_date'],
-                ':end_date' => $data['end_date'],
-                ':created_by' => $data['created_by'],
+                ':cop_report_id' => $copReportId,
             ));
-            return $data;
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $result;
         } catch (\PDOException $e) {
             throw new Error($e->getMessage());
         }
@@ -70,17 +65,52 @@ class CopReportsModel
         }
     }
 
-    public function getCopReportsByID($copReportId)
+    public function getAllCopReports()
     {
-        $statement = "SELECT * FROM `cop_report` WHERE `cop_report_id` = :cop_report_id LIMIT 1";
+        $statement = "SELECT * FROM `cop_report`";
+
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute();
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $result;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    public function getAllCopReportsByCohortId($cohortId)
+    {
+        $statement = "SELECT * FROM `cop_report` where `cohortId` = :cohortId ";
 
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array(
-                ':cop_report_id' => $copReportId,
+                ':cohortId' => $cohortId,
             ));
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             return $result;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    public function createNewCopReportDetails($data)
+    {
+        $statement = "INSERT INTO `cop_report_details`(`cop_report_details_id`, `cop_report_id`, `cop_report_details_title`, `start_date`, `end_date`, `created_by`)
+      VALUES(:cop_report_details_id, :cop_report_id, :cop_report_details_title, :start_date, :end_date, :created_by)";
+
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
+                ':cop_report_details_id' => $data['cop_report_details_id'],
+                ':cop_report_id' => $data['cop_report_id'],
+                ':cop_report_details_title' => $data['cop_report_details_title'],
+                ':start_date' => $data['start_date'],
+                ':end_date' => $data['end_date'],
+                ':created_by' => $data['created_by'],
+            ));
+            return $data;
         } catch (\PDOException $e) {
             throw new Error($e->getMessage());
         }
