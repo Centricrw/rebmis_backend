@@ -4,6 +4,7 @@ namespace Src\Controller;
 use DateTime;
 use Src\Models\CohortsModel;
 use Src\Models\CopReportsModel;
+use Src\Models\LocationsModel;
 use Src\System\AuthValidation;
 use Src\System\Errors;
 use Src\System\InvalidDataException;
@@ -14,6 +15,7 @@ class CopReportsController
     private $db;
     private $copReportsModel;
     private $cohortsModel;
+    private $locationsModel;
     private $request_method;
     private $params;
 
@@ -24,6 +26,7 @@ class CopReportsController
         $this->params = $params;
         $this->copReportsModel = new CopReportsModel($db);
         $this->cohortsModel = new CohortsModel($db);
+        $this->locationsModel = new LocationsModel($db);
     }
 
     function processRequest()
@@ -35,6 +38,8 @@ class CopReportsController
             case "POST":
                 if (sizeof($this->params) > 0 && $this->params['action'] == "details") {
                     $response = $this->createNewCopReportsDetails();
+                } else if (sizeof($this->params) > 0 && $this->params['action'] == "reports") {
+                    $response = $this->createNewCopReportsDetailsReports();
                 } else {
                     $response = $this->createNewCopReports();
                 }
@@ -186,6 +191,141 @@ class CopReportsController
             $inputData['cop_report_details_id'] = UuidGenerator::gUuid();
             $inputData['created_by'] = $logged_user_id;
             $result = $this->copReportsModel->createNewCopReportDetails($inputData);
+
+            // response
+            $response['status_code_header'] = 'HTTP/1.1 201 Created';
+            $response['body'] = json_encode($result);
+            return $response;
+
+        } catch (InvalidDataException $e) {
+            return Errors::unprocessableEntityResponse($e->getMessage());
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
+        }
+    }
+
+    /**
+     * Validate copreports details reports
+     * @param array $element
+     * @throws InvalidDataException
+     */
+    function validatingCopReportsDetailsReports(array $element)
+    {
+        // Validate cop_report_details_id
+        if (!isset($element["cop_report_details_id"]) || empty($element["cop_report_details_id"])) {
+            throw new InvalidDataException("On cop_report_details_id is either not set or empty");
+        }
+
+        if (isset($element["cop_report_details_id"])) {
+            $trainingExists = $this->copReportsModel->getCopReportsDetailsByID($element["cop_report_details_id"]);
+            if (sizeof($trainingExists) == 0) {
+                throw new InvalidDataException("On cop_report_details_id not found, please try again?");
+            }
+        }
+
+        // Validate meeting_date
+        if (!isset($element["meeting_date"]) || !$this->validateDate($element["meeting_date"])) {
+            throw new InvalidDataException("Invalid meeting_date format must be 'YYYY-MM-DD'");
+        }
+
+        // Validate next_meeting_date
+        if (isset($element["next_meeting_date"]) && !$this->validateDate($element["next_meeting_date"])) {
+            throw new InvalidDataException("Invalid next_meeting_date format must be 'YYYY-MM-DD'");
+        }
+
+        // Validate next_meeting_superviser
+        if (isset($element["next_meeting_superviser"]) && empty($element["next_meeting_superviser"])) {
+            throw new InvalidDataException("On next_meeting_superviser is Required!");
+        }
+
+        // validate meeting_attendance
+        if (!isset($element["meeting_attendance"]) || !is_array($element["meeting_attendance"])) {
+            throw new InvalidDataException("On meeting_attendance is Required!");
+        }
+
+        if (isset($element["meeting_attendance"])) {
+            foreach ($element["meeting_attendance"] as $key => $item) {
+                // Validate gender
+                if (!isset($item["gender"]) || !in_array($item["gender"], ['Male', 'Female'])) {
+                    throw new InvalidDataException("On Index '$key' Gender must be 'Male' or 'Female'");
+                }
+                // Validate email
+                if (!isset($item["email"]) || !is_string($item["email"]) || !filter_var($item["email"], FILTER_VALIDATE_EMAIL)) {
+                    throw new InvalidDataException("On index '$key' Email is not validated");
+                }
+                // Validate full_name
+                if (!isset($item["full_name"]) || !is_string($item["full_name"]) || strlen($item["full_name"]) < 2) {
+                    throw new InvalidDataException("On index '$key' full_name must be a string with a minimum of 2 characters");
+                }
+                // Validate nid
+                if (!isset($item["nid"]) || !is_string($item["nid"]) || strlen($item["nid"]) != 16) {
+                    throw new InvalidDataException("On index '$key' NID must be a string with a maximum of 16 characters");
+                }
+                // Validate phone number
+                if (!isset($item["phone_number"]) || !is_string($item["phone_number"]) || strlen($item["phone_number"]) != 10 || !preg_match('/^07/', $item["phone_number"])) {
+                    throw new InvalidDataException("On index '$key' Phone number must be a string starting with '07' and have 10 digits");
+                }
+            }
+        }
+
+        // Validate other keys
+        $requiredKeys = ['district_code', 'sector_code', 'school_code', 'course', 'course_summary', 'meeting_benefits', 'meeting_drawback', 'meeting_strategy', 'drawback_to_submit_at_school', 'meeting_supervisor', 'meeting_supervisor_occupation'];
+
+        foreach ($requiredKeys as $requiredKey) {
+            if (!isset($element[$requiredKey]) || empty($element[$requiredKey])) {
+                throw new InvalidDataException("On $requiredKey is either not set or empty");
+            }
+        }
+    }
+
+    /**
+     * Create new cop reports details
+     * @param VOID
+     * @return OBJECT $results
+     */
+
+    public function createNewCopReportsDetailsReports()
+    {
+        // getting input data
+        $inputData = (array) json_decode(file_get_contents('php://input'), true);
+        // geting authorized user id
+        $logged_user_id = AuthValidation::authorized()->id;
+
+        try {
+            // validation
+            $this->validatingCopReportsDetailsReports($inputData);
+
+            // get school details
+            $school = $this->locationsModel->getAddressDetails($inputData['school_code'], "schools");
+            if (sizeof($school) == 0) {
+                return Errors::existError("Schools code not found!, please try again?");
+            }
+
+            // get district details
+            $district = $this->locationsModel->getAddressDetails($inputData['district_code'], "districts");
+            if (sizeof($district) == 0) {
+                return Errors::existError("District code not found!, please try again?");
+            }
+
+            // get sector details
+            $sector = $this->locationsModel->getAddressDetails($inputData['sector_code'], "sectors");
+            if (sizeof($sector) == 0) {
+                return Errors::existError("Sector code not found!, please try again?");
+            }
+
+            // checking ischool already submitted
+            $copReportExists = $this->copReportsModel->getCopReportsDetailsReportBySchool($inputData);
+            if (sizeof($copReportExists) > 0) {
+                return Errors::existError("School report allready exists!, please try again?");
+            }
+
+            // create new cop details report
+            $inputData['report_id'] = UuidGenerator::gUuid();
+            $inputData['created_by'] = $logged_user_id;
+            $inputData['district_name'] = $district[0]['namedistrict'];
+            $inputData['sector_name'] = $sector[0]['namesector'];
+            $inputData['school_name'] = $school[0]['school_name'];
+            $result = $this->copReportsModel->createNewCopReportDetailsReports($inputData);
 
             // response
             $response['status_code_header'] = 'HTTP/1.1 201 Created';
