@@ -33,7 +33,13 @@ class CopReportsController
     {
         switch ($this->request_method) {
             case 'GET':
-                $response = $this->createNewCopReports();
+                if (sizeof($this->params) > 0 && $this->params['action'] == "cohort") {
+                    $response = $this->getAllCopReportsByCohorts($this->params['user_id']);
+                } else if (sizeof($this->params) > 0 && $this->params['action'] == "reports") {
+                    $response = $this->getAllReportsByDetailes($this->params['user_id']);
+                } else {
+                    $response = $this->getAllCopReports();
+                }
                 break;
             case "POST":
                 if (sizeof($this->params) > 0 && $this->params['action'] == "details") {
@@ -338,6 +344,92 @@ class CopReportsController
             return Errors::databaseError($th->getMessage());
         }
     }
+
+    /**
+     * get cop reports
+     * @param VOID
+     * @return OBJECT $results
+     */
+
+    public function getAllCopReports()
+    {
+        // geting authorized user id
+        $logged_user_id = AuthValidation::authorized()->id;
+        try {
+            $copReports = $this->copReportsModel->getAllCopReports();
+            if (sizeof($copReports) > 0) {
+                foreach ($copReports as $key => $item) {
+                    $copReportsDetails = $this->copReportsModel->getAllCopReportsDetailsByCopReportId($item["cop_report_id"]);
+                    $copReports[$key]["cop_reports_details"] = $copReportsDetails;
+                }
+            }
+
+            // response
+            $response['status_code_header'] = 'HTTP/1.1 201 Created';
+            $response['body'] = json_encode($copReports);
+            return $response;
+
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
+        }
+    }
+
+    /**
+     * get cop reports by cohort
+     * @param STRING $cohortId
+     * @return OBJECT $results
+     */
+
+    public function getAllCopReportsByCohorts($cohortId)
+    {
+        // geting authorized user id
+        $logged_user_id = AuthValidation::authorized()->id;
+        try {
+            $copReports = $this->copReportsModel->getAllCopReportsByCohortId($cohortId);
+            if (sizeof($copReports) > 0) {
+                foreach ($copReports as $key => $item) {
+                    $copReportsDetails = $this->copReportsModel->getAllCopReportsDetailsByCopReportId($item["cop_report_id"]);
+                    $copReports[$key]["cop_reports_details"] = $copReportsDetails;
+                }
+            }
+
+            // response
+            $response['status_code_header'] = 'HTTP/1.1 201 Created';
+            $response['body'] = json_encode($copReports);
+            return $response;
+
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
+        }
+    }
+
+    /**
+     * get reports
+     * @param STRING $copReportDetailsId
+     * @return OBJECT $results
+     */
+
+    public function getAllReportsByDetailes($copReportDetailsId)
+    {
+        // geting authorized user id
+        $logged_user_id = AuthValidation::authorized()->id;
+        try {
+            $reports = $this->copReportsModel->getAllReportsBYCopReportDetailsId($copReportDetailsId);
+            if (sizeof($reports) > 0) {
+                foreach ($reports as $key => $item) {
+                    $reports[$key]["meeting_attendance"] = json_decode($item['meeting_attendance'], true);
+                }
+            }
+            // response
+            $response['status_code_header'] = 'HTTP/1.1 201 Created';
+            $response['body'] = json_encode($reports);
+            return $response;
+
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
+        }
+    }
+
 }
 
 $controller = new CopReportsController($this->db, $request_method, $params);
