@@ -136,6 +136,11 @@ $route->router("/studyhierarchy/{action}/{user_id}", "src/Controller/TeacherStud
 $route->router("/positions", "src/Controller/positionscontroller.php");
 $route->router("/positions/{position_id}", "src/Controller/positionscontroller.php");
 
+// COP REPORTS
+$route->router("/copreports", "src/Controller/copReportsController.php");
+$route->router("/copreports/{action}", "src/Controller/copReportsController.php");
+$route->router("/copreports/{action}/{user_id}", "src/Controller/copReportsController.php");
+
 //write it at the last
 //arg is 404 file location
 $route->notFound("404.php");
