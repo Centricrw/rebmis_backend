@@ -287,6 +287,7 @@ class bulkEnrollController
             // Process enrollment
             foreach ($data["teachers"] as $key => $teacherData) {
                 // Create new user or update user
+                $techerUploadStatus = "success";
                 $processUserhandler = $this->createNewUserHandler($teacherData, $created_by_user_id);
                 $processUser = $processUserhandler["user"];
                 if (!$processUserhandler["deplicate"] && $processUser) {
@@ -306,9 +307,10 @@ class bulkEnrollController
                     }
                 } else {
                     array_push($deplicated, $processUser);
+                    $techerUploadStatus = "Failed";
                 }
 
-                $teacherData["status"] = "success";
+                $teacherData["status"] = $techerUploadStatus;
                 array_push($temp_success_array, $teacherData);
 
                 // save data to json file
