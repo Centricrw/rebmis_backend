@@ -233,4 +233,21 @@ class CopReportsModel
             throw new Error($e->getMessage());
         }
     }
+
+    public function getAllReportsBYUser($user_id, $copReportDetailsId)
+    {
+        $statement = "SELECT * FROM `cop_report_details_report` WHERE `created_by` = :created_by AND `cop_report_details_id` = :cop_report_details_id";
+
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
+                ':created_by' => $user_id,
+                ':cop_report_details_id' => $copReportDetailsId,
+            ));
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $result;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
 }

@@ -37,6 +37,8 @@ class CopReportsController
                     $response = $this->getAllCopReportsByCohorts($this->params['user_id']);
                 } else if (sizeof($this->params) > 0 && $this->params['action'] == "reports") {
                     $response = $this->getAllReportsByDetailes($this->params['user_id']);
+                } else if (sizeof($this->params) > 0 && $this->params['action'] == "user") {
+                    $response = $this->getAllReportsBySSlUser($this->params['user_id']);
                 } else {
                     $response = $this->getAllCopReports();
                 }
@@ -423,6 +425,43 @@ class CopReportsController
             // response
             $response['status_code_header'] = 'HTTP/1.1 201 Created';
             $response['body'] = json_encode($reports);
+            return $response;
+
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
+        }
+    }
+
+    /**
+     * get reports reports by user
+     * @param STRING $cohortId
+     * @return OBJECT $results
+     */
+
+    public function getAllReportsBySSlUser($cohortId)
+    {
+        // geting authorized user id
+        $logged_user_id = AuthValidation::authorized()->id;
+        try {
+            $copReports = $this->copReportsModel->getAllCopReportsByCohortId($cohortId);
+            if (sizeof($copReports) == 0) {
+                return Errors::badRequestError("COP report not found!, please try gaian?");
+            }
+
+            foreach ($copReports as $key => $item) {
+                $copReportsDetails = $this->copReportsModel->getAllCopReportsDetailsByCopReportId($item["cop_report_id"]);
+                if (sizeof($copReportsDetails) > 0) {
+                    foreach ($copReportsDetails as $index => $value) {
+                        $reports = $this->copReportsModel->getAllReportsBYUser($logged_user_id, $value["cop_report_details_id"]);
+                        $copReportsDetails[$index]["reports"] = $reports;
+                    }
+                }
+                $copReports[$key]["cop_reports_details"] = $copReportsDetails;
+            }
+
+            // response
+            $response['status_code_header'] = 'HTTP/1.1 200 OK';
+            $response['body'] = json_encode($copReports);
             return $response;
 
         } catch (\Throwable $th) {
