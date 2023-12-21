@@ -35,6 +35,9 @@ class ictfocalteachersController
                     if ($this->params['action'] == "addFocalTeacher") {
                         $response = $this->addFocalTeacher();
                     }
+                    elseif ($this->params['action'] == "addSSL") {
+                        $response = $this->addSSL();
+                    }
                     elseif ($this->params['action'] == "getCandidates") {
                         $response = $this->getCandidates();
                     }
@@ -82,6 +85,20 @@ class ictfocalteachersController
         $data = (array) json_decode(file_get_contents('php://input'), true);
         try {
             $result = $this->ictfocalteachersModel->addFocalTeacher($data);
+            $response['status_code_header'] = 'HTTP/1.1 201 Created';
+            $response['body'] = json_encode($result);
+            return $response;
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
+        }
+    }
+
+    public function addSSL()
+    {
+        // getting input data
+        $data = (array) json_decode(file_get_contents('php://input'), true);
+        try {
+            $result = $this->ictfocalteachersModel->addSSL($data);
             $response['status_code_header'] = 'HTTP/1.1 201 Created';
             $response['body'] = json_encode($result);
             return $response;
