@@ -59,7 +59,7 @@ class elearningEnrollmentController
         $email = $userMis['email'];
         $password = 'Education@123';
         try {
-            $url = 'https://elearning.reb.rw/sandbox/local/custom_service/userregister.php?firstname='.$firstname.'&lastname='.$lastname.'&username='.$username.'&email='.$email.'&password='.$password.'';
+            $url = 'https://elearning.reb.rw/local/custom_service/userregister.php?firstname='.$firstname.'&lastname='.$lastname.'&username='.$username.'&email='.$email.'&password='.$password.'';
             
             $curl = curl_init($url);
             curl_setopt($curl, CURLOPT_URL, $url);
@@ -68,7 +68,7 @@ class elearningEnrollmentController
             $resp = curl_exec($curl);
             curl_close($curl);
             if($resp){
-                $url2 = 'https://elearning.reb.rw/sandbox/local/custom_service/cpdenrollment.php?staff_code='.$username.'&course_id=713';
+                $url2 = 'https://elearning.reb.rw/local/custom_service/cpdenrollment.php?staff_code='.$username.'&course_id=713';
                 $curl = curl_init($url2);
                 curl_setopt($curl, CURLOPT_URL, $url2);
                 curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);

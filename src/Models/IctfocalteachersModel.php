@@ -62,6 +62,26 @@ class IctfocalteachersModel
         }
     }
 
+
+    public function addSSL($data)
+    {
+        $this->removeFocalTeacher($data);
+        $schoolCode = $data['school_code'];
+        $teacherCode = $data['staff_code'];
+        $cohort_id = $data['cohort_id'];
+        $statement = "INSERT INTO user_to_role_custom (cohort_id, school_code, staff_code, custom_role) VALUES (:cohort_id, :schoolCode, :teacherCode, 'SSL')";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
+                ':schoolCode' => $schoolCode,
+                ':teacherCode' => $teacherCode,
+                ':cohort_id' => $cohort_id));
+            return $statement->rowCount();
+        } catch (\PDOException $e) {
+            exit($e->getMessage());
+        }
+    }
+
     public function checkFocalTeacher($data)
     {
         $schoolCode = $data['school_code'];
