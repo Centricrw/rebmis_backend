@@ -85,42 +85,48 @@ class elearningController
         $password = 'Education@123';
         try {
             // REGISTER A USER FROM SDMS IF NOT ALREADY REGISTERED
-            $url = 'https://elearning.reb.rw/local/custom_service/misregistration.php?username='.$username.'&password='.$password.'';
+            $url1 = 'https://elearning.reb.rw/local/custom_service/misregistration.php?username='.$username.'&password='.$password.'';
             
-            $curl = curl_init($url);
-            curl_setopt($curl, CURLOPT_URL, $url);
+            $curl = curl_init($url1);
+            curl_setopt($curl, CURLOPT_URL, $url1);
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-            $resp = json_decode((curl_exec($curl)))->body;
+            $resbjson1 = curl_exec($curl);
+            $resp1 = (json_decode($resbjson1))->body;
             
             $result = new \stdClass;;
             $result->staff_code = $username;
             curl_close($curl);
-            if($resp->status == 200){
+            if($resbjson1){
                 // ENROL A TEACHER ON THE COURSE
                 $url2 = 'https://elearning.reb.rw/local/custom_service/assign_cpd_to_teacher.php?staff_code='.$username.'&course_id='.$course_id.'$cohort_name='.$cohort_name;
                 $curl = curl_init($url2);
                 curl_setopt($curl, CURLOPT_URL, $url2);
                 curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
                 
-               
-                $resp2 = json_decode(curl_exec($curl));
+                $resbjson2 = curl_exec($curl);
+                $resp2 = (json_decode($resbjson2))->body;
+
                 curl_close($curl);
                 if($resp2->status == 200){
                     // update the DB
                     $this->elearningModel->linkUserToCourse($staff_code, $course_Id);
                     $response['status_code_header'] = 'HTTP/1.1 201 Created';
                     $result->message = 'enrolled';
-                    $result->message = 'success';
+                    $result->reason = 'success';
                 }else{
                     $response['status_code_header'] = 'HTTP/1.1 401 Created';
                     $result->message = 'not enrolled';
-                    $result->reason = 'error while enrolling on the course';
+                    $result->reason = 'Error while enrolling on the course!';
+                    //$result->url1 = $url1;
+                    //$result->url2 = $url2;
+                    //$result->debug1 =  $resbjson1;
+                    //$result->debug2 =  $resbjson2;
                 }
             }else{
                 $response['status_code_header'] = 'HTTP/1.1 401 Created';
                 $result->message = 'not enrolled';
-                $result->reason = 'error while registering on elearning';
-                $result->url = $url;
+                $result->reason = 'Error while creating an account on elearning';
+                //$result->url = $url;
             }
             $response['body'] = json_encode($result);
             return $response;
