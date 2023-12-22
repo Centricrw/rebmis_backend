@@ -27,12 +27,19 @@ class elearningController
 
             // POST DATA
             case 'GET':
+            if (sizeof($this->params) > 0) {
+                if ($this->params['action'] == "connectCourse") {
+                    $response = $this->connectCourse($this->params['course_id'], $this->params['cohort_id']);
+                }
+            }
+            break;
+            case 'POST':
                 if (sizeof($this->params) > 0) {
-                    if ($this->params['action'] == "connectCourse") {
-                        $response = $this->connectCourse($this->params['course_id'], $this->params['cohort_id']);
+                    if ($this->params['action'] == "enrollToCourse") {
+                        $response = $this->enrollToCourse();
                     }
                 }
-                break;
+            break;
 
             default:
                 $response = Errors::notFoundError("no request provided");
@@ -59,6 +66,61 @@ class elearningController
                 $result = 'No course available';
             }
             $response['status_code_header'] = 'HTTP/1.1 201 Created';
+            $response['body'] = json_encode($result);
+            return $response;
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
+        }
+    }
+
+    private function enrollToCourse()
+    {
+        
+        error_reporting(E_ERROR | E_PARSE);
+        //GET SUBMITED DATA
+        $data = (array) json_decode(file_get_contents('php://input'), true);
+        $course_id = $data['course_id'];
+        $username = $data['staff_code'];
+        $cohort_name = $data['cohort_name'];
+        $password = 'Education@123';
+        try {
+            // REGISTER A USER FROM SDMS IF NOT ALREADY REGISTERED
+            $url = 'https://elearning.reb.rw/local/custom_service/misregistration.php?username='.$username.'&password='.$password.'';
+            
+            $curl = curl_init($url);
+            curl_setopt($curl, CURLOPT_URL, $url);
+            curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+            $result = 'no';
+            $resp = json_decode(curl_exec($curl));
+
+            $result = new \stdClass;
+            $result->staff_code = $username;
+
+            curl_close($curl);
+            if($resp['status'] == 200){
+                // ENROL A TEACHER ON THE COURSE
+                $url2 = 'https://elearning.reb.rw/local/custom_service/assign_cpd_to_teacher.php?staff_code='.$username.'&course_id='.$course_id.'$cohort_name='.$cohort_name;
+                $curl = curl_init($url2);
+                curl_setopt($curl, CURLOPT_URL, $url2);
+                curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+
+                $resp2 = json_decode(curl_exec($curl));
+                curl_close($curl);
+                if($resp2['status'] == 200){
+                    // update the DB
+                    $this->elearningModel->linkUserToCourse($staff_code, $course_Id);
+
+                    $result->status = 'enrolled';
+                    $response['status_code_header'] = 'HTTP/1.1 201 Created';
+                }else{
+                    $obj1 = new \stdClass;
+                    $result->status = 'not enrolled';
+                    $response['status_code_header'] = 'HTTP/1.1 401 Created';
+                }
+            }else{
+                $result->status = 'not enrolled';
+                $response['status_code_header'] = 'HTTP/1.1 401 Created';
+            }
             $response['body'] = json_encode($result);
             return $response;
         } catch (\Throwable $th) {

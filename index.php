@@ -80,6 +80,7 @@ $route->router("/trainer/{action}", "src/Controller/trainerController.php");
 $route->router("/trainer/{action}/{training_id}", "src/Controller/trainerController.php");
 
 // ELEARNING
+$route->router("/elearning/{action}", "src/Controller/elearningController.php");
 $route->router("/elearning/{action}/{course_id}/{cohort_id}", "src/Controller/elearningController.php");
 $route->router("/enrollTeachersToElearning/{courseCode}/{staff_code}", "src/Controller/elearningEnrollmentController.php");
 
