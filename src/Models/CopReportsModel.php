@@ -15,14 +15,14 @@ class CopReportsModel
 
     public function createNewCopReport($data)
     {
-        $statement = "INSERT INTO `cop_report`(`cop_report_id`, `cohortId`, `cop_report_title`, `created_by`)
-      VALUES(:cop_report_id, :cohortId, :cop_report_title, :created_by)";
+        $statement = "INSERT INTO `cop_report`(`cop_report_id`, `trainingId`, `cop_report_title`, `created_by`)
+      VALUES(:cop_report_id, :trainingId, :cop_report_title, :created_by)";
 
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array(
                 ':cop_report_id' => $data['cop_report_id'],
-                ':cohortId' => $data['cohortId'],
+                ':trainingId' => $data['trainingId'],
                 ':cop_report_title' => $data['cop_report_title'],
                 ':created_by' => $data['created_by'],
             ));
@@ -50,12 +50,12 @@ class CopReportsModel
 
     public function getCopReportsByTitle($data)
     {
-        $statement = "SELECT * FROM `cop_report` WHERE `cop_report_title` = :cop_report_title AND `cohortId` = :cohortId LIMIT 1";
+        $statement = "SELECT * FROM `cop_report` WHERE `cop_report_title` = :cop_report_title AND `trainingId` = :trainingId LIMIT 1";
 
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array(
-                ':cohortId' => $data['cohortId'],
+                ':trainingId' => $data['trainingId'],
                 ':cop_report_title' => $data['cop_report_title'],
             ));
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
@@ -79,14 +79,14 @@ class CopReportsModel
         }
     }
 
-    public function getAllCopReportsByCohortId($cohortId)
+    public function getAllCopReportsByTraining($trainingId)
     {
-        $statement = "SELECT * FROM `cop_report` where `cohortId` = :cohortId ";
+        $statement = "SELECT * FROM `cop_report` where `trainingId` = :trainingId ";
 
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array(
-                ':cohortId' => $cohortId,
+                ':trainingId' => $trainingId,
             ));
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             return $result;
@@ -167,8 +167,8 @@ class CopReportsModel
 
     public function createNewCopReportDetailsReports($data)
     {
-        $statement = "INSERT INTO `cop_report_details_report`(`report_id`, `cop_report_details_id`, `district_code`, `sector_code`, `school_code`, `district_name`, `sector_name`, `school_name`, `meeting_date`, `course`, `course_summary`, `meeting_benefits`, `meeting_drawback`, `meeting_strategy`, `drawback_to_submit_at_school`, `next_meeting_date`, `next_meeting_superviser`, `meeting_attendance`, `meeting_supervisor`, `meeting_supervisor_occupation`, `created_by`)
-      VALUES (:report_id, :cop_report_details_id, :district_code, :sector_code, :school_code, :district_name, :sector_name, :school_name, :meeting_date, :course, :course_summary, :meeting_benefits, :meeting_drawback, :meeting_strategy, :drawback_to_submit_at_school, :next_meeting_date, :next_meeting_superviser, :meeting_attendance, :meeting_supervisor, :meeting_supervisor_occupation, :created_by)";
+        $statement = "INSERT INTO `cop_report_details_report`(`report_id`, `cop_report_details_id`, `district_code`, `sector_code`, `school_code`, `district_name`, `sector_name`, `school_name`, `meeting_date`, `course`, `course_summary`, `meeting_benefits`, `meeting_drawback`, `meeting_strategy`, `drawback_to_submit_at_school`, `next_meeting_date`, `next_meeting_superviser`, `meeting_attendance`, `meeting_supervisor`, `meeting_supervisor_occupation`, `cohortsId`, `created_by`)
+      VALUES (:report_id, :cop_report_details_id, :district_code, :sector_code, :school_code, :district_name, :sector_name, :school_name, :meeting_date, :course, :course_summary, :meeting_benefits, :meeting_drawback, :meeting_strategy, :drawback_to_submit_at_school, :next_meeting_date, :next_meeting_superviser, :meeting_attendance, :meeting_supervisor, :meeting_supervisor_occupation, :cohortsId, :created_by)";
 
         try {
             $statement = $this->db->prepare($statement);
@@ -187,6 +187,7 @@ class CopReportsModel
                 ':meeting_benefits' => $data['meeting_benefits'],
                 ':meeting_drawback' => $data['meeting_drawback'],
                 ':meeting_strategy' => $data['meeting_strategy'],
+                ':cohortsId' => $data['cohortsId'],
                 ':drawback_to_submit_at_school' => $data['drawback_to_submit_at_school'],
                 ':next_meeting_date' => isset($data['next_meeting_date']) ? $data['next_meeting_date'] : null,
                 ':next_meeting_superviser' => isset($data['next_meeting_superviser']) ? $data['next_meeting_superviser'] : null,
