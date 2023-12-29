@@ -2,9 +2,9 @@
 namespace Src\Controller;
 
 use DateTime;
-use Src\Models\CohortsModel;
 use Src\Models\CopReportsModel;
 use Src\Models\LocationsModel;
+use Src\Models\TrainingsModel;
 use Src\System\AuthValidation;
 use Src\System\Errors;
 use Src\System\InvalidDataException;
@@ -14,7 +14,7 @@ class CopReportsController
 {
     private $db;
     private $copReportsModel;
-    private $cohortsModel;
+    private $trainingsModel;
     private $locationsModel;
     private $request_method;
     private $params;
@@ -25,7 +25,7 @@ class CopReportsController
         $this->request_method = $request_method;
         $this->params = $params;
         $this->copReportsModel = new CopReportsModel($db);
-        $this->cohortsModel = new CohortsModel($db);
+        $this->trainingsModel = new TrainingsModel($db);
         $this->locationsModel = new LocationsModel($db);
     }
 
@@ -33,8 +33,8 @@ class CopReportsController
     {
         switch ($this->request_method) {
             case 'GET':
-                if (sizeof($this->params) > 0 && $this->params['action'] == "cohort") {
-                    $response = $this->getAllCopReportsByCohorts($this->params['user_id']);
+                if (sizeof($this->params) > 0 && $this->params['action'] == "training") {
+                    $response = $this->getAllCopReportsByTrainings($this->params['user_id']);
                 } else if (sizeof($this->params) > 0 && $this->params['action'] == "reports") {
                     $response = $this->getAllReportsByDetailes($this->params['user_id']);
                 } else if (sizeof($this->params) > 0 && $this->params['action'] == "user") {
@@ -114,15 +114,15 @@ class CopReportsController
 
     function inputDataValidationCopReports(array $item)
     {
-        // Validate cohortId
-        if (!isset($item["cohortId"]) || empty($item["cohortId"])) {
-            throw new InvalidDataException("On cohortId is either not set or empty");
+        // Validate trainingId
+        if (!isset($item["trainingId"]) || empty($item["trainingId"])) {
+            throw new InvalidDataException("On trainingId is either not set or empty");
         }
 
-        if (isset($item["cohortId"])) {
-            $trainingExists = $this->cohortsModel->getOneCohort($item["cohortId"]);
+        if (isset($item["trainingId"])) {
+            $trainingExists = $this->trainingsModel->findTrainingByID($item["trainingId"]);
             if (sizeof($trainingExists) == 0) {
-                throw new InvalidDataException("On cohortId not found, please try again?");
+                throw new InvalidDataException("On trainingId not found, please try again?");
             }
         }
 
@@ -244,6 +244,11 @@ class CopReportsController
         // Validate next_meeting_superviser
         if (isset($element["next_meeting_superviser"]) && empty($element["next_meeting_superviser"])) {
             throw new InvalidDataException("On next_meeting_superviser is Required!");
+        }
+
+        // Validate cohortsId
+        if (isset($element["cohortsId"]) && empty($element["cohortsId"])) {
+            throw new InvalidDataException("On cohortsId is Required!");
         }
 
         // validate meeting_attendance
@@ -377,17 +382,17 @@ class CopReportsController
     }
 
     /**
-     * get cop reports by cohort
-     * @param STRING $cohortId
+     * get cop reports by training
+     * @param STRING $trainingId
      * @return OBJECT $results
      */
 
-    public function getAllCopReportsByCohorts($cohortId)
+    public function getAllCopReportsByTrainings($trainingId)
     {
         // geting authorized user id
         $logged_user_id = AuthValidation::authorized()->id;
         try {
-            $copReports = $this->copReportsModel->getAllCopReportsByCohortId($cohortId);
+            $copReports = $this->copReportsModel->getAllCopReportsByTraining($trainingId);
             if (sizeof($copReports) > 0) {
                 foreach ($copReports as $key => $item) {
                     $copReportsDetails = $this->copReportsModel->getAllCopReportsDetailsByCopReportId($item["cop_report_id"]);
@@ -434,16 +439,16 @@ class CopReportsController
 
     /**
      * get reports reports by user
-     * @param STRING $cohortId
+     * @param STRING $trainingId
      * @return OBJECT $results
      */
 
-    public function getAllReportsBySSlUser($cohortId)
+    public function getAllReportsBySSlUser($trainingId)
     {
         // geting authorized user id
         $logged_user_id = AuthValidation::authorized()->id;
         try {
-            $copReports = $this->copReportsModel->getAllCopReportsByCohortId($cohortId);
+            $copReports = $this->copReportsModel->getAllCopReportsByTraining($trainingId);
             if (sizeof($copReports) == 0) {
                 return Errors::badRequestError("COP report not found!, please try gaian?");
             }
