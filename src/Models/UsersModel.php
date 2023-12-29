@@ -202,7 +202,7 @@ class UsersModel
         }
     }
 
-    public function findExistPhoneNumberEmailNid($phone_number, $email, $nid)
+    public function findExistPhoneNumberEmailNid($phone_number, $email, $nid, $staff_code)
     {
         $statement = "SELECT U.*,
         R.role_id, R.role, UR.position_code, P.position_name,
@@ -212,11 +212,11 @@ class UsersModel
         LEFT JOIN schools SCL ON UR.school_code = SCL.school_code
         LEFT JOIN positions P ON UR.position_code = P.position_code
         LEFT JOIN qualifications Q ON UR.qualification_id = Q.qualification_id
-        WHERE UR.status = 'Active' AND U.phone_numbers=? OR U.email = ? OR U.nid = ? LIMIT 1";
+        WHERE UR.status = 'Active' AND U.phone_numbers=? OR U.email = ? OR U.nid = ? OR U.staff_code = ? LIMIT 1";
 
         try {
             $statement = $this->db->prepare($statement);
-            $statement->execute(array($phone_number, $email, $nid));
+            $statement->execute(array($phone_number, $email, $nid, $staff_code));
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             return $result;
         } catch (\PDOException $e) {
