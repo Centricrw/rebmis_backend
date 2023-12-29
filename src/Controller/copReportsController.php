@@ -247,7 +247,7 @@ class CopReportsController
         }
 
         // Validate cohortsId
-        if (isset($element["cohortsId"]) && empty($element["cohortsId"])) {
+        if (!isset($element["cohortsId"]) || empty($element["cohortsId"])) {
             throw new InvalidDataException("On cohortsId is Required!");
         }
 
