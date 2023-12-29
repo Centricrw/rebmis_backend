@@ -13,16 +13,6 @@ class TrainingsModel
         $this->db = $db;
     }
 
-    private function addTrainingProviderlogo($trainingsArray)
-    {
-        $newTrainingsArray = array();
-        foreach ($trainingsArray as $trainingItem) {
-            $trainingItem['TrainingProviderlogo'] = '/trainingProviders/' . $trainingItem['trainingProviderId'] . '.jpg';
-            $newTrainingsArray[] = $trainingItem;
-        }
-        return $newTrainingsArray;
-    }
-
     public function getAllTranings($userDistrictCode)
     {
         if (isset($userDistrictCode) && $userDistrictCode !== "") {
@@ -34,9 +24,6 @@ class TrainingsModel
             $statement = $this->db->query($statement);
             $statement->execute();
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
-            if (sizeof($result) > 0) {
-                $result = $this->addTrainingProviderlogo($result);
-            }
             return $result;
         } catch (\PDOException $e) {
             throw new Error($e->getMessage());
@@ -66,9 +53,6 @@ class TrainingsModel
             $statement = $this->db->prepare($statement);
             $statement->execute(array(':trainingId' => $training_id));
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
-            if (sizeof($result) > 0) {
-                $result = $this->addTrainingProviderlogo($result)[0];
-            }
             return $result;
         } catch (\PDOException $e) {
             throw new Error($e->getMessage());
@@ -122,7 +106,7 @@ class TrainingsModel
                 ':createdBy' => $user_id,
             ));
             $data['trainingId'] = $this->db->lastInsertId();
-            $data['TrainingProviderlogo'] = '/trainingProviders/' . $data['trainingProviderId'] . '.jpg';
+            $data['TrainingProviderlogo'] = null;
             $data['trainees'] = '0';
             $data['status'] = 'Waiting';
 
@@ -163,7 +147,9 @@ class TrainingsModel
 
     public function CreateTrainingProvider($data, $doneBY)
     {
-        $statement = "INSERT INTO `trainingProviders`(`trainingProviderName`, `description`, `email`, `address`, `phone_number`, `supporting_documents`, `createdBy`) VALUES (:trainingProviderName,:description,:email,:address,:phone_number,:supporting_documents,:createdBy)";
+        $documents = "supporting_documents";
+        $logo = "TrainingProviderlogo";
+        $statement = "INSERT INTO `trainingProviders`(`trainingProviderName`, `description`, `email`, `address`, `phone_number`, `supporting_documents`, `TrainingProviderlogo`, `createdBy`) VALUES (:trainingProviderName, :description, :email, :address, :phone_number, :supporting_documents, :TrainingProviderlogo, :createdBy)";
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array(
@@ -172,13 +158,14 @@ class TrainingsModel
                 ':email' => $data->email,
                 ':address' => $data->address,
                 ':phone_number' => $data->phone_number,
-                ':supporting_documents' => $data->supporting_documents,
+                ':supporting_documents' => $data->$documents,
+                ':TrainingProviderlogo' => $data->$logo,
                 ':createdBy' => $doneBY,
             ));
-            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
-            return $result;
+
+            return $statement->rowCount();
         } catch (\PDOException $e) {
-            exit($e->getMessage());
+            throw new Error($e->getMessage());
         }
     }
 

@@ -306,7 +306,7 @@ class UsersController
     {
 
         try {
-            $result = $this->usersModel->findExistPhoneNumberEmailNid($params, $params, $params);
+            $result = $this->usersModel->findExistPhoneNumberEmailNid($params, $params, $params, $params);
             if (sizeof($result) > 0) {
                 unset($result[0]['password']);
             }
