@@ -16,9 +16,9 @@ class TrainingsModel
     public function getAllTranings($userDistrictCode)
     {
         if (isset($userDistrictCode) && $userDistrictCode !== "") {
-            $statement = "SELECT  T.trainingId, T.trainingProviderId, TP.trainingProviderName, T.trainingName, T.offerMode, T.trainingDescription, T.startDate, T.endDate, T.status, ifnull((SELECT COUNT(TN.traineesId) FROM trainees TN WHERE TN.trainingId = T.trainingId AND TN.status = 'Approved'),0) trainees FROM trainings T INNER JOIN trainingProviders TP ON T.trainingProviderId = TP.trainingProviderId INNER JOIN cohorts C ON T.trainingId = C.trainingId INNER JOIN cohortconditions CND ON C.cohortId = CND.cohortId WHERE CND.district_code = $userDistrictCode GROUP BY T.trainingId";
+            $statement = "SELECT  T.trainingId, T.trainingProviderId, TP.trainingProviderName, TP.TrainingProviderlogo, T.trainingName, T.offerMode, T.trainingDescription, T.startDate, T.endDate, T.status, ifnull((SELECT COUNT(TN.traineesId) FROM trainees TN WHERE TN.trainingId = T.trainingId AND TN.status = 'Approved'),0) trainees FROM trainings T INNER JOIN trainingProviders TP ON T.trainingProviderId = TP.trainingProviderId INNER JOIN cohorts C ON T.trainingId = C.trainingId INNER JOIN cohortconditions CND ON C.cohortId = CND.cohortId WHERE CND.district_code = $userDistrictCode GROUP BY T.trainingId";
         } else {
-            $statement = "SELECT  T.trainingId, T.trainingProviderId, TP.trainingProviderName, T.trainingName, T.offerMode, T.trainingDescription, T.startDate, T.endDate, T.status, ifnull((SELECT COUNT(TN.traineesId) FROM trainees TN WHERE TN.trainingId = T.trainingId AND TN.status = 'Approved'),0) trainees FROM trainings T INNER JOIN trainingProviders TP ON T.trainingProviderId = TP.trainingProviderId GROUP BY T.trainingId";
+            $statement = "SELECT  T.trainingId, T.trainingProviderId, TP.trainingProviderName, TP.TrainingProviderlogo, T.trainingName, T.offerMode, T.trainingDescription, T.startDate, T.endDate, T.status, ifnull((SELECT COUNT(TN.traineesId) FROM trainees TN WHERE TN.trainingId = T.trainingId AND TN.status = 'Approved'),0) trainees FROM trainings T INNER JOIN trainingProviders TP ON T.trainingProviderId = TP.trainingProviderId GROUP BY T.trainingId";
         }
         try {
             $statement = $this->db->query($statement);
@@ -47,7 +47,7 @@ class TrainingsModel
 
     public function getOneTraining($training_id)
     {
-        $statement = "SELECT  T.trainingId, T.trainingProviderId, TP.trainingProviderName, T.trainingName, T.offerMode, T.trainingDescription, T.startDate, T.endDate, T.status, ifnull((SELECT COUNT(TN.traineesId) FROM trainees TN WHERE TN.trainingId
+        $statement = "SELECT  T.trainingId, T.trainingProviderId, TP.trainingProviderName, TP.TrainingProviderlogo, T.trainingName, T.offerMode, T.trainingDescription, T.startDate, T.endDate, T.status, ifnull((SELECT COUNT(TN.traineesId) FROM trainees TN WHERE TN.trainingId
       = T.trainingId AND TN.status = 'Approved'),0) trainees FROM trainings T INNER JOIN trainingProviders TP ON T.trainingProviderId = TP.trainingProviderId WHERE T.trainingId = :trainingId LIMIT 1";
         try {
             $statement = $this->db->prepare($statement);
@@ -118,7 +118,7 @@ class TrainingsModel
 
     public function getTraningsByStatus($status)
     {
-        $statement = "SELECT  T.trainingId, T.trainingProviderId, TP.trainingProviderName, T.trainingName, T.trainingDescription, T.startDate, T.endDate, T.status,
+        $statement = "SELECT  T.trainingId, T.trainingProviderId, TP.trainingProviderName, TP.TrainingProviderlogo, T.trainingName, T.trainingDescription, T.startDate, T.endDate, T.status,
         ifnull((SELECT COUNT(TN.traineesId) FROM trainees TN WHERE TN.trainingId
       = T.trainingId),0) trainees FROM trainings T INNER JOIN trainingProviders TP ON T.trainingProviderId = TP.trainingProviderId WHERE T.status = ? ";
         try {
@@ -171,7 +171,7 @@ class TrainingsModel
 
     public function ProviderExists($data)
     {
-        $sql = "SELECT trainingProviderName, email, phone_number FROM trainingProviders WHERE trainingProviderName = :trainingProviderName OR email = :email OR phone_number = :phone_number LIMIT 1";
+        $sql = "SELECT * FROM trainingProviders WHERE trainingProviderName = :trainingProviderName OR email = :email OR phone_number = :phone_number LIMIT 1";
         try {
             $statement = $this->db->prepare($sql);
             $statement->execute(array(
