@@ -55,12 +55,12 @@ class UsersModel
     public function updateUser($data, $user_id, $updated_by)
     {
         $sql = "UPDATE users SET
-          first_name=:first_name,middle_name=:middle_name,
-          last_name=:last_name,full_name=:full_name,
-          phone_numbers=:phone_numbers,email=:email,
-          staff_code=:staff_code,sex=:sex,marital_status=:marital_status,
-          dob=:dob,rssb_number=:rssb_number,nationality_id=:nationality_id,
-          bank_account=:bank_account,bank_id=:bank_id,
+          first_name=:first_name, middle_name=:middle_name,
+          last_name=:last_name, full_name=:full_name,
+          phone_numbers=:phone_numbers, email=:email,
+          staff_code=:staff_code, sex=:sex, marital_status=:marital_status,
+          dob=:dob,rssb_number=:rssb_number, nationality_id=:nationality_id,
+          bank_account=:bank_account, bank_id=:bank_id,
           specialization_id=:specialization_id,village_code=:village_code,
           education_domain_id=:education_domain_id,education_sub_dommain_id=:education_sub_dommain_id,graduation_date=:graduation_date,hired_date=:hired_date,nid=:nid,username=:username,resident_district_id=:resident_district_id,
           contract_type=:contract_type,updated_by=:updated_by,updated_at=:updated_at
@@ -74,7 +74,7 @@ class UsersModel
                 ':bank_id' => empty($data['bank_id']) ? null : $data['bank_id'],
                 ':village_code' => empty($data['village_code']) ? null : $data['village_code'],
                 ':full_name' => $data['full_name'],
-                ':sex' => $data['gender'],
+                ':sex' => $data['sex'],
                 ':dob' => empty($data['dob']) ? null : $data['dob'],
                 ':marital_status' => empty($data['marital_status']) ? null : $data['marital_status'],
                 ':nid' => $data['nid'],
