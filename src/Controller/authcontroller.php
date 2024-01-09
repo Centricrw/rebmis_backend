@@ -203,7 +203,7 @@ class AuthController
             $results = $this->usersModel->insertNewUser($data);
 
             // add to user to role
-            if ($results) {
+            if ($results && isset($data['role_id'])) {
                 // Generate user id
                 $role_to_user_id = UuidGenerator::gUuid();
 
