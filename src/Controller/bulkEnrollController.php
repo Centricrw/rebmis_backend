@@ -166,7 +166,7 @@ class bulkEnrollController
         }
 
         // Check if user phone number, email, nid exists
-        $phoneNumberExists = $this->usersModel->findExistPhoneNumberEmailNid($userData['phone_number'], $userData['email'], $userData['nid']);
+        $phoneNumberExists = $this->usersModel->findExistPhoneNumberEmailNid($userData['phone_number'], $userData['email'], $userData['nid'], $userData['staff_code']);
         if (sizeof($phoneNumberExists) > 0) {
             // throw new InvalidDataException($userData['name'] . " has already exist Phone number, nid or email");
             return ["deplicate" => true, "user" => $userData];
