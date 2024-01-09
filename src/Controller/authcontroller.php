@@ -154,9 +154,9 @@ class AuthController
         $conditionDetails = $this->cohortconditionModel->selectCohortConditionById($data['cohortconditionId']);
         //count avaible traineers
         $availableTraineers = $this->cohortconditionModel->countTraineersOnCondition($data);
-        if (sizeof($availableTraineers) == (int) $conditionDetails[0]['capacity']) {
-            throw new InvalidDataException("Needed Traineers completed!");
-        }
+        // if (sizeof($availableTraineers) == (int) $conditionDetails[0]['capacity']) {
+        //     throw new InvalidDataException("Needed Traineers completed!");
+        // }
     }
 
     function createAccount()

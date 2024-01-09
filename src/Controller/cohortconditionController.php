@@ -141,18 +141,18 @@ class locationsController
             foreach ($data['teachers'] as $aproved) {
                 //count avaible traineers
                 $availableTraineers = $this->cohortconditionModel->countTraineersOnCondition($aproved);
-                if (sizeof($availableTraineers) == (int) $conditionDetails[0]['capacity']) {
-                    return Errors::badRequestError("Needed Traineers completed!");
-                } else {
-                    //check if teacher assigned to this training
-                    $traineerExist = $this->cohortconditionModel->checkIfTraineerAvailable($aproved['trainingId'], $aproved['user_id']);
-                    if (sizeof($traineerExist) == 0) {
-                        // Generate traineer id
-                        $generated_traineer_id = UuidGenerator::gUuid();
-                        $aproved['traineesId'] = $generated_traineer_id;
-                        $this->cohortconditionModel->InsertApprovedSelectedTraineers($aproved, $logged_user_id);
-                    }
+                // if (sizeof($availableTraineers) == (int) $conditionDetails[0]['capacity']) {
+                //     return Errors::badRequestError("Needed Traineers completed!");
+                // } else {
+                //check if teacher assigned to this training
+                $traineerExist = $this->cohortconditionModel->checkIfTraineerAvailable($aproved['trainingId'], $aproved['user_id']);
+                if (sizeof($traineerExist) == 0) {
+                    // Generate traineer id
+                    $generated_traineer_id = UuidGenerator::gUuid();
+                    $aproved['traineesId'] = $generated_traineer_id;
+                    $this->cohortconditionModel->InsertApprovedSelectedTraineers($aproved, $logged_user_id);
                 }
+                // }
             }
 
             $response['status_code_header'] = 'HTTP/1.1 200 OK';
