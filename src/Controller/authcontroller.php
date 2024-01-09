@@ -202,6 +202,22 @@ class AuthController
 
             $results = $this->usersModel->insertNewUser($data);
 
+            // add to user to role
+            if ($results) {
+                // Generate user id
+                $role_to_user_id = UuidGenerator::gUuid();
+
+                // check if user already have access role
+                $userHasActiveRole = $this->userRoleModel->findCurrentUserRole($user_id);
+                if (sizeof($userHasActiveRole) > 0) {
+                    //* Disable user to role
+                    $this->userRoleModel->disableRole($user_id, $created_by_user_id, "Active", "TRANSFERD");
+                }
+
+                $data['role_to_user_id'] = $role_to_user_id;
+                $this->userRoleModel->insertIntoUserToRole($data, $created_by_user_id);
+            }
+
             // insert user to training
             if ($data["addToTraining"]) {
                 // Generate traineer id
