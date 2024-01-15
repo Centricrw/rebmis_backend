@@ -238,6 +238,25 @@ class UsersModel
         }
     }
 
+    /**
+     * getting pages number of users
+     * @param int $no_of_records_per_page
+     * @return float $total_pages
+     */
+    public function getUsersPage($no_of_records_per_page)
+    {
+        $statement = "SELECT COUNT(*) FROM users";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array());
+            $total_rows = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $total_pages = ceil($total_rows[0] / $no_of_records_per_page);
+            return $total_pages;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
     public function findExistEmailShort($email)
     {
         $statement = "SELECT `user_id`, `full_name` FROM users WHERE email=? LIMIT 1";

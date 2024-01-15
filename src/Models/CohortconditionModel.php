@@ -89,6 +89,23 @@ class CohortconditionModel
         }
     }
 
+    public function selectTraineersForBYtrainingType($trainingTypeId)
+    {
+        $statement = "SELECT TRN.traineesId, TRN.userId FROM `trainees` TRN
+        INNER JOIN trainings TR ON TRN.trainingId = TR.trainingId
+        INNER JOIN training_type TY ON TR.training_type_id = TY.training_type_id
+        WHERE TY.`training_type_id` = :training_type_id";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(":training_type_id" => $trainingTypeId,
+            ));
+            $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $results;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
     public function selectTraineesOnThatSchools($training_id, $school_code)
     {
         $statement = "SELECT * FROM `trainees` WHERE `school_code` = :school_code AND `trainingId` = :trainingId";
@@ -309,6 +326,54 @@ class CohortconditionModel
         WHERE U.user_id NOT IN (select userId from trainees) AND S.school_code LIKE '$likeSchoolcode%' AND TCH.status = 1
         AND UR.status = 'Active' $sqlConditionString
         GROUP BY U.user_id LIMIT $limit";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute($sqlConditionArrayValues);
+            $teachers = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $teachers;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    public function getTeacherByConditionsLimit($condition, $limit, $offset = 0)
+    {
+        $stringArray = ["provincecode", "district_code", "sector_code", "school_code", "combination_code", "grade_code", "course_name"];
+        $sqlConditionArray = array(
+            "combination_code" => "SH.combination_code = :combination_code",
+            "grade_code" => "SH.grade_code = :grade_code",
+            "course_code" => "SH.course_code = :course_code",
+            "course_name" => "SH.course_name = :course_name",
+        );
+        $sqlConditionString = "";
+        $sqlConditionArrayValues = array();
+        $likeSchoolcode = "0";
+        // splitig condition into sql condition
+        foreach ($stringArray as $key => $value) {
+            if (isset($condition[$value]) && $condition[$value] != "") {
+                if ($value == "provincecode" || $value == "district_code" || $value == "sector_code" || $value == "school_code") {
+                    $likeSchoolcode = $value == "provincecode" ? $condition[$value] : (
+                        $value == "district_code" ? $condition[$value] : (
+                            $value == "sector_code" ? $condition[$value] : (
+                                $value == "school_code" ? $condition[$value] : 0
+                            )
+                        )
+                    );
+                }
+                if ($value != "provincecode" && $value != "district_code" && $value != "sector_code" && $value != "school_code") {
+                    $sqlConditionString = $sqlConditionString . " AND " . $sqlConditionArray[$value];
+                    $sqlConditionArrayValues[":$value"] = $condition[$value];
+                }
+            }
+        };
+        $statement = "SELECT TCH.teacher_code, U.user_id,U.full_name, U.staff_code, U.phone_numbers, MIN(SH.combination_name) as combination_name, MIN(SH.grade_name) as grade_name, GROUP_CONCAT(SH.course_name) as course_name, TCH.status, MIN(S.school_name) as school_name, MIN(S.school_code) as school_code, MIN(UR.sector_code) as sector_code, MIN(UR.district_code) as district_code FROM user_to_role UR
+        INNER JOIN users U ON  UR.user_id = U.user_id
+        INNER JOIN schools S ON S.school_code = UR.school_code
+        INNER JOIN teacher_study_hierarchy TCH ON TCH.teacher_code = U.staff_code
+        INNER JOIN study_hierarchy SH ON SH.studyhierarchyid = TCH.study_hierarchy_id
+        WHERE S.school_code LIKE '$likeSchoolcode%' AND TCH.status = 1
+        AND UR.status = 'Active' $sqlConditionString
+        GROUP BY U.user_id LIMIT $offset, $limit";
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute($sqlConditionArrayValues);
