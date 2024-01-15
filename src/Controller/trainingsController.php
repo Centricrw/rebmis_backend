@@ -131,33 +131,24 @@ class trainingsController
 
     private function addAtraining()
     {
-        $jwt_data = new \stdClass();
+        try {
+            $user_id = AuthValidation::authorized()->id;
 
-        $all_headers = getallheaders();
-        if (isset($all_headers['Authorization'])) {
-            $jwt_data->jwt = $all_headers['Authorization'];
+            $data = (array) json_decode(file_get_contents('php://input'), true);
+
+            // validation
+            $validateTrainingInputData = self::validateNewTraining($data);
+            if (!$validateTrainingInputData['validated']) {
+                return Errors::unprocessableEntityResponse($validateTrainingInputData['message']);
+            }
+
+            $result = $this->trainingsModel->addAtraining($data, $user_id);
+            $response['status_code_header'] = 'HTTP/1.1 200 OK';
+            $response['body'] = json_encode($result);
+            return $response;
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
         }
-        // Decoding jwt
-        if (empty($jwt_data->jwt)) {
-            return Errors::notAuthorized();
-        }
-        if (!AuthValidation::isValidJwt($jwt_data)) {
-            return Errors::notAuthorized();
-        }
-
-        $user_id = AuthValidation::decodedData($jwt_data)->data->id;
-
-        $data = (array) json_decode(file_get_contents('php://input'), true);
-
-        // Validate input if not empty
-        if (!self::validateNewTraining($data)) {
-            return Errors::unprocessableEntityResponse();
-        }
-
-        $result = $this->trainingsModel->addAtraining($data, $user_id);
-        $response['status_code_header'] = 'HTTP/1.1 200 OK';
-        $response['body'] = json_encode($result);
-        return $response;
     }
 
     private function ComfirmTainingsByReb($trainings_id)
@@ -383,25 +374,28 @@ class trainingsController
 
     private function validateNewTraining($input)
     {
-        if (empty($input['trainingName'])) {
-            return false;
+        if (!isset($input['trainingName']) || empty($input['trainingName'])) {
+            return ["validated" => false, "message" => "trainingName is not provided!"];
         }
-        if (empty($input['trainingDescription'])) {
-            return false;
+        if (!isset($input['trainingDescription']) || empty($input['trainingDescription'])) {
+            return ["validated" => false, "message" => "trainingDescription is not provided!"];
         }
-        if (empty($input['offerMode'])) {
-            return false;
+        if (!isset($input['offerMode']) || empty($input['offerMode'])) {
+            return ["validated" => false, "message" => "offerMode is not provided!"];
         }
-        if (empty($input['trainingProviderId'])) {
-            return false;
+        if (!isset($input['trainingProviderId']) || empty($input['trainingProviderId'])) {
+            return ["validated" => false, "message" => "trainingProviderId is not provided!"];
         }
-        if (empty($input['startDate'])) {
-            return false;
+        if (!isset($input['startDate']) || empty($input['startDate'])) {
+            return ["validated" => false, "message" => "startDate is not provided!"];
         }
-        if (empty($input['endDate'])) {
-            return false;
+        if (!isset($input['endDate']) || empty($input['endDate'])) {
+            return ["validated" => false, "message" => "endDate is not provided!"];
         }
-        return true;
+        if (!isset($input['training_type_id']) || empty($input['training_type_id'])) {
+            return ["validated" => false, "message" => "training_type_id is not provided!"];
+        }
+        return ["validated" => true, "message" => "OK"];
     }
 
 }

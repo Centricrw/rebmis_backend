@@ -91,8 +91,8 @@ class TrainingsModel
 
     public function addAtraining($data, $user_id)
     {
-        $statement = "INSERT INTO trainings (trainingName,trainingDescription,offerMode,trainingProviderId,startDate,endDate,createdBy)
-      VALUES(:trainingName,:trainingDescription,:offerMode,:trainingProviderId,:startDate,:endDate,:createdBy)";
+        $statement = "INSERT INTO trainings (trainingName, trainingDescription, offerMode, trainingProviderId, startDate, endDate, training_type_id, createdBy)
+      VALUES(:trainingName, :trainingDescription, :offerMode, :trainingProviderId, :startDate, :endDate, :training_type_id,:createdBy)";
 
         try {
             $statement = $this->db->prepare($statement);
@@ -103,6 +103,7 @@ class TrainingsModel
                 ':trainingProviderId' => $data['trainingProviderId'],
                 ':startDate' => $data['startDate'],
                 ':endDate' => $data['endDate'],
+                ':training_type_id' => $data['training_type_id'],
                 ':createdBy' => $user_id,
             ));
             $data['trainingId'] = $this->db->lastInsertId();
@@ -112,7 +113,7 @@ class TrainingsModel
 
             return $data;
         } catch (\PDOException $e) {
-            exit($e->getMessage());
+            throw new Error($e->getMessage());
         }
     }
 

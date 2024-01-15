@@ -16,7 +16,6 @@ class UserValidation
             return ["validated" => false, "message" => "qualification is not provided!"];
         }
         return ["validated" => true, "message" => "OK"];
-        return true;
     }
 
     public static function ValidateNewInsertedUser($input)
