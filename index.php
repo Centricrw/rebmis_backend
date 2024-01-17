@@ -31,6 +31,7 @@ $route = new MainRoutes();
 $route->router("/user", "src/Controller/userscontroller.php");
 $route->router("/user/{id}", "src/Controller/userscontroller.php");
 $route->router("/user/list/{page}/{role_id}", "src/Controller/userscontroller.php");
+$route->router("/user/list/{page}/{role_id}/{status}", "src/Controller/userscontroller.php");
 $route->router("/user/assign/role", "src/Controller/userscontroller.php");
 $route->router("/user/current/info", "src/Controller/authcontroller.php");
 $route->router("/user/account/{action}", "src/Controller/authcontroller.php");

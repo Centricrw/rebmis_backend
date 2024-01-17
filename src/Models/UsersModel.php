@@ -152,30 +152,30 @@ class UsersModel
         }
     }
 
-    public function findUsersByRole($role_id, $page = 1)
+    public function findUsersByRole($role_id, $status, $page = 1)
     {
         $results_per_page = 10;
         $page_first_result = ($page - 1) * $results_per_page;
         $queryCount = "SELECT u.nid FROM users u
         INNER JOIN user_to_role ur ON u.user_id = ur.user_id
         INNER JOIN roles r ON ur.role_id = r.role_id
-        WHERE ur.role_id = :role_id AND u.status = 1";
+        WHERE ur.role_id = :role_id AND ur.status = :status AND u.status = 1";
         try {
             $resultCount = $this->db->prepare($queryCount);
-            $resultCount->execute(array(":role_id" => $role_id));
+            $resultCount->execute(array(":role_id" => $role_id, ":status" => $status));
             $number_of_result = $resultCount->rowCount();
 
             // determining the total number of pages available
             $number_of_page = ceil($number_of_result / $results_per_page);
 
             // Selecting from limited data from table
-            $query = "SELECT u.staff_code, u.staff_category_id, u.full_name,u.sex,u.dob,u.marital_status,u.nid,u.email,u.phone_numbers,u.rssb_number,u.hired_date,u.contract_type,u.bank_account,u.nationality_id,u.province_code,u.district_code,u.sector_code,u.cell_code,u.village_id,u.village,u.school_code,u.school_name,u.user_id,u.disability,u.photo_url,u.first_name,u.middle_name,u.last_name,u.specialization_id,u.village_code, r.role_id, r.role FROM users u
+            $query = "SELECT u.staff_code, u.staff_category_id, u.full_name,u.sex,u.dob,u.marital_status,u.nid,u.email,u.phone_numbers,u.rssb_number,u.hired_date,u.contract_type,u.bank_account,u.nationality_id,u.province_code,u.district_code,u.sector_code,u.cell_code,u.village_id,u.village,u.school_code,u.school_name,u.user_id,u.disability,u.photo_url,u.first_name,u.middle_name,u.last_name,u.specialization_id,u.village_code, r.role_id, r.role, ur.status FROM users u
             INNER JOIN user_to_role ur ON u.user_id = ur.user_id
             INNER JOIN roles r ON ur.role_id = r.role_id
-            WHERE ur.role_id = :role_id AND u.status = 1
+            WHERE ur.role_id = :role_id AND u.status = 1 AND ur.status = :status
             LIMIT " . $page_first_result . ',' . $results_per_page;
             $statement = $this->db->prepare($query);
-            $statement->execute(array(":role_id" => $role_id));
+            $statement->execute(array(":role_id" => $role_id, ":status" => $status));
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
 
             $object = new \stdClass();
@@ -233,6 +233,25 @@ class UsersModel
             $statement->execute(array($phone_number));
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             return $result;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    /**
+     * getting pages number of users
+     * @param int $no_of_records_per_page
+     * @return float $total_pages
+     */
+    public function getUsersPage($no_of_records_per_page)
+    {
+        $statement = "SELECT COUNT(*) FROM users";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array());
+            $total_rows = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $total_pages = ceil($total_rows[0] / $no_of_records_per_page);
+            return $total_pages;
         } catch (\PDOException $e) {
             throw new Error($e->getMessage());
         }

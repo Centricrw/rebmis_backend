@@ -68,7 +68,8 @@ class UsersController
                     if (isset($this->params['id'])) {
                         $response = $this->getUser($this->params['id']); //
                     } elseif (isset($this->params['page'])) {
-                        $response = $this->getUsersByRole($this->params['role_id'], $this->params['page']);
+                        $status = isset($this->params['status']) ? $this->params['status'] : "Active";
+                        $response = $this->getUsersByRole($this->params['role_id'], $status, $this->params['page']);
                     } elseif (isset($this->params['action']) && $this->params['action'] === "profile") {
                         $response = $this->getUserByEmailPhoneNumberNid($this->params['user_id']);
                     } else {
@@ -293,9 +294,9 @@ class UsersController
     }
 
     // Get all users
-    function getUsersByRole($role_id, $page = 1)
+    function getUsersByRole($role_id, $status, $page = 1)
     {
-        $result = $this->usersModel->findUsersByRole($role_id, $page);
+        $result = $this->usersModel->findUsersByRole($role_id, $status, $page);
 
         $response['status_code_header'] = 'HTTP/1.1 200 OK';
         $response['body'] = json_encode($result);
