@@ -31,6 +31,8 @@ class ModuleProgressReportsController
                     $response = $this->getModuleProgressReportById($this->params['user_id']);
                 } elseif (sizeof($this->params) > 0 && $this->params['action'] == "staff") {
                     $response = $this->getModuleProgressReportByStaffCode($this->params['user_id']);
+                } elseif (sizeof($this->params) > 0 && $this->params['action'] == "training") {
+                    $response = $this->getModuleProgressReportByTraining($this->params['user_id']);
                 } else {
                     $response = $this->getAllModuleProgressReport();
                 }
@@ -134,6 +136,30 @@ class ModuleProgressReportsController
     {
         try {
             $results = $this->moduleProgressReportsModel->selectModuleProgressReportsByStaffCode($staffCode);
+            $newResults = [];
+            if (sizeof($results) > 0) {
+                foreach ($results as $key => $value) {
+                    $value['module'] = isset($value['module']) ? json_decode($value['module']) : null;
+                    array_push($newResults, $value);
+                }
+            }
+            $response['status_code_header'] = 'HTTP/1.1 200 OK';
+            $response['body'] = json_encode($newResults);
+            return $response;
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
+        }
+    }
+
+    /**
+     * getting module progress report by training
+     * @param STRING $trainingId
+     * @return OBJECT $response
+     */
+    public function getModuleProgressReportByTraining($trainingId)
+    {
+        try {
+            $results = $this->moduleProgressReportsModel->selectModuleProgressReportsByTrainingId($trainingId);
             $newResults = [];
             if (sizeof($results) > 0) {
                 foreach ($results as $key => $value) {

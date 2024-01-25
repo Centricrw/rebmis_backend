@@ -81,4 +81,19 @@ class ModuleProgressReportsModel
         }
     }
 
+    public function selectModuleProgressReportsByTrainingId($trainingId)
+    {
+        $statement = "SELECT MPR.* FROM `module_progress_reports` MPR
+        INNER JOIN `cohorts` CH ON CH.cohortId = MPR.cohort
+        WHERE CH.trainingId = :trainingId";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(":trainingId" => $trainingId));
+            $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $results;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
 }
