@@ -143,6 +143,9 @@ $route->router("/copreports", "src/Controller/copReportsController.php");
 $route->router("/copreports/{action}", "src/Controller/copReportsController.php");
 $route->router("/copreports/{action}/{user_id}", "src/Controller/copReportsController.php");
 
+// GENERAL REPORTS
+$route->router("/reports", "src/Controller/reportsController.php");
+
 //write it at the last
 //arg is 404 file location
 $route->notFound("404.php");

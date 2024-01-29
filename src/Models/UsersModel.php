@@ -354,6 +354,22 @@ class UsersModel
             $statement = $this->db->prepare($statement);
             $statement->execute(array($user_id, $user_id, $phone_number, $status));
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $result['training_provider']=null;
+            $trainingProvider = $this->getTrainingProvider($result['user_id']);
+            if($trainingProvider){$result['training_provider']=$trainingProvider;}
+            $result['training_provider']=null;
+            return $result;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    private function getTrainingProvider($userId){
+        $statement = "SELECT * FROM trainingProviders WHERE user_id = ? LIMIT 1";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array($userId));
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             return $result;
         } catch (\PDOException $e) {
             throw new Error($e->getMessage());
