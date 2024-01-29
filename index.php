@@ -148,6 +148,12 @@ $route->router("/moduleprogress", "src/Controller/moduleProgressReportsControlle
 $route->router("/moduleprogress/{action}", "src/Controller/moduleProgressReportsController.php");
 $route->router("/moduleprogress/{action}/{user_id}", "src/Controller/moduleProgressReportsController.php");
 
+// NOTIFICATION
+$route->router("/notification", "src/Controller/notificationController.php");
+$route->router("/notification/{type}", "src/Controller/notificationController.php");
+$route->router("/notification/{type}/{action}", "src/Controller/notificationController.php");
+$route->router("/notification/{type}/{action}/{message_id}", "src/Controller/notificationController.php");
+
 //write it at the last
 //arg is 404 file location
 $route->notFound("404.php");
