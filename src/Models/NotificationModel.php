@@ -165,4 +165,23 @@ class NotificationModel
             throw new Error($e->getMessage());
         }
     }
+
+    /**
+     * select one message receiver by id
+     * @param STRING $messages_receivers_id
+     * @return OBJECT
+     */
+    public function selectOneMessageReceiversBYId($messages_receivers_id)
+    {
+        $statement = "SELECT * FROM `messages_receivers` WHERE `messages_receivers_id` = :messages_receivers_id LIMIT 1 ";
+        try {
+            // Remove whitespaces from both sides of a string
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(":messages_receivers_id" => $messages_receivers_id));
+            $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $results;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
 }

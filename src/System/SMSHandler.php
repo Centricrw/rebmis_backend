@@ -93,7 +93,7 @@ class SMSHandler
             $result = curl_exec($ch);
             $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
             curl_close($ch);
-            $response = array('result' => var_dump(json_decode($result, true)), 'httpcode' => $httpcode);
+            $response = array('result' => json_decode($result, true), 'httpcode' => $httpcode);
             return $response;
         } catch (\Throwable $th) {
             throw new Error($th->getMessage());

@@ -33,9 +33,17 @@ class NotificationController
         switch ($this->request_method) {
             case 'GET':
                 if (sizeof($this->params) > 0 && $this->params['type'] == "sms") {
-
+                    if ($this->params['action'] == "receivers") {
+                        $response = $this->getSMSMessageReceivers($this->params['message_id']);
+                    } elseif ($this->params['action'] == "resendsms") {
+                        $response = $this->resendSMSMessageToReceiver($this->params['message_id']);
+                    } elseif ($this->params['action'] == "getsmsstatus") {
+                        $response = $this->checkReceiverSMSMessageStatus($this->params['message_id']);
+                    } else {
+                        $response = Errors::notFoundError('Notification sms route not found');
+                    }
                 } else {
-                    $response = Errors::notFoundError('Module progress report route not found');
+                    $response = Errors::notFoundError('Notification route not found');
                 }
                 break;
             case 'POST':
@@ -45,14 +53,14 @@ class NotificationController
                     } elseif ($this->params['action'] == "send") {
                         $response = $this->sendSMSMessageToReceivers();
                     } else {
-
+                        $response = Errors::notFoundError('Notification sms route not found');
                     }
                 } else {
-                    $response = Errors::notFoundError('Module progress report route not found');
+                    $response = Errors::notFoundError('Notification route not found');
                 }
                 break;
             default:
-                $response = Errors::notFoundError('Module progress report route not found');
+                $response = Errors::notFoundError('Notification route not found');
                 break;
         }
         header($response['status_code_header']);
@@ -177,6 +185,93 @@ class NotificationController
 
             $result = $this->notificationModel->selectMessageReceiversBYMessageId($data['messages_id']);
             $response['status_code_header'] = 'HTTP/1.1 201 Created';
+            $response['body'] = json_encode($result);
+            return $response;
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
+        }
+    }
+
+    // get sms receivers
+    function getSMSMessageReceivers($message_id)
+    {
+        $created_by_user_id = AuthValidation::authorized()->id;
+        try {
+            $result = $this->notificationModel->selectMessageReceiversBYMessageId($message_id);
+            $response['status_code_header'] = 'HTTP/1.1 200 OK';
+            $response['body'] = json_encode($result);
+            return $response;
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
+        }
+    }
+
+    // resend sms to receiver
+    function checkReceiverSMSMessageStatus($messages_receivers_id)
+    {
+        $created_by_user_id = AuthValidation::authorized()->id;
+        try {
+            $receiver = $this->notificationModel->selectOneMessageReceiversBYId($messages_receivers_id);
+            if (sizeof($receiver) == 0) {
+                return Errors::notFoundError("Receiver details not found!, plase try again?");
+            }
+            $receiverDetails = $receiver[0];
+            // checcking sms status
+            $sendSms = $this->smsHandler->requestSMSMessageStatus($receiverDetails['messages_send_id']);
+            $SMSResponse = $sendSms['result'];
+            // checking if there is error
+            $httpStatusCode = $sendSms['httpcode'];
+            if ($httpStatusCode != 200 || !isset($SMSResponse['results'])) {
+                $error = isset($SMSResponse["response"][0]["errors"]) ? $SMSResponse["response"][0]["errors"] : [
+                    "action" => "Cannot get messages status.",
+                    "error" => "Failed to Get Status",
+                ];
+                throw new Error($error['action'] . " " . $error['error'] . ", please contact administrator ?");
+            }
+
+            // handling results
+            $responseDetails = $SMSResponse['results'];
+            $messageStatus = $this->smsHandler->massageStatusHandler($responseDetails['status']);
+            // update user
+            $data = [
+                "messages_receivers_id" => $receiverDetails['messages_receivers_id'],
+                "messages_id" => $receiverDetails['messages_id'],
+                "full_name" => $receiverDetails['full_name'],
+                "email" => $receiverDetails['email'],
+                "phone_number" => $receiverDetails['phone_number'],
+                "messages_send_id" => $receiverDetails['messages_send_id'],
+                "messages_send_success" => $SMSResponse['success'] ? true : false,
+                "messages_send_status" => $messageStatus,
+                "status" => 1,
+            ];
+
+            $this->notificationModel->updateMessageRecievers($data);
+            $result = $this->notificationModel->selectOneMessageReceiversBYId($messages_receivers_id);
+            $response['status_code_header'] = 'HTTP/1.1 200 OK';
+            $response['body'] = json_encode($result);
+            return $response;
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
+        }
+    }
+
+    // resend sms to receiver
+    function resendSMSMessageToReceiver($messages_receivers_id)
+    {
+        $created_by_user_id = AuthValidation::authorized()->id;
+        try {
+            $receiver = $this->notificationModel->selectOneMessageReceiversBYId($messages_receivers_id);
+            if (sizeof($receiver) == 0) {
+                return Errors::notFoundError("Receiver details not found!, plase try again?");
+            }
+            // send sms to receiver
+            $message = $this->notificationModel->selectMessageBYId($receiver[0]['messages_id']);
+            if (sizeof($message) > 0) {
+                // send sms receivers
+                $this->sendSMSMessageHandler($message[0], $receiver[0]);
+            }
+            $result = $this->notificationModel->selectOneMessageReceiversBYId($messages_receivers_id);
+            $response['status_code_header'] = 'HTTP/1.1 200 OK';
             $response['body'] = json_encode($result);
             return $response;
         } catch (\Throwable $th) {
