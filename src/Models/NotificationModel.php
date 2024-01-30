@@ -63,11 +63,11 @@ class NotificationModel
      */
     public function selectMessageBYCreator($createdBY)
     {
-        $statement = "SELECT * FROM `messages` WHERE `created_by` = :created_by";
+        $statement = "SELECT * FROM `messages`";
         try {
             // Remove whitespaces from both sides of a string
             $statement = $this->db->prepare($statement);
-            $statement->execute(array(":created_by" => $createdBY));
+            $statement->execute();
             $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
             return $results;
         } catch (\PDOException $e) {

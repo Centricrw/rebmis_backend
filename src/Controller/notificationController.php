@@ -305,7 +305,7 @@ class NotificationController
         if (!isset($input['send_by'])) {
             return ["validated" => false, "message" => "send_by is not provided!"];
         }
-        if (empty($input['message_type']) || !in_array($input['message_type'], ["SMS", "WhatsApp"])) {
+        if (empty($input['message_type'])) {
             return ["validated" => false, "message" => "message_type must be SMS or WhatsApp"];
         }
         return ["validated" => true, "message" => "OK"];
