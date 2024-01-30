@@ -57,6 +57,25 @@ class NotificationModel
     }
 
     /**
+     * select sms message by user
+     * @param STRING $createdBY
+     * @return OBJECT
+     */
+    public function selectMessageBYCreator($createdBY)
+    {
+        $statement = "SELECT * FROM `messages` WHERE `created_by` = :created_by";
+        try {
+            // Remove whitespaces from both sides of a string
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(":created_by" => $createdBY));
+            $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $results;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    /**
      * Create new message
      * @param STRING $messageId
      * @return OBJECT
