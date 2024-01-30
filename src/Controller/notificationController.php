@@ -33,14 +33,14 @@ class NotificationController
         switch ($this->request_method) {
             case 'GET':
                 if (sizeof($this->params) > 0 && $this->params['type'] == "sms") {
-                    if ($this->params['action'] == "receivers") {
+                    if (isset($this->params['action']) && $this->params['action'] == "receivers") {
                         $response = $this->getSMSMessageReceivers($this->params['message_id']);
-                    } elseif ($this->params['action'] == "resendsms") {
+                    } elseif (isset($this->params['action']) && $this->params['action'] == "resendsms") {
                         $response = $this->resendSMSMessageToReceiver($this->params['message_id']);
-                    } elseif ($this->params['action'] == "getsmsstatus") {
+                    } elseif (isset($this->params['action']) && $this->params['action'] == "getsmsstatus") {
                         $response = $this->checkReceiverSMSMessageStatus($this->params['message_id']);
                     } else {
-                        $response = Errors::notFoundError('Notification sms route not found');
+                        $response = $this->getSMSMessages();
                     }
                 } else {
                     $response = Errors::notFoundError('Notification route not found');
@@ -48,9 +48,9 @@ class NotificationController
                 break;
             case 'POST':
                 if (sizeof($this->params) > 0 && $this->params['type'] == "sms") {
-                    if ($this->params['action'] == "create") {
+                    if (isset($this->params['action']) && $this->params['action'] == "create") {
                         $response = $this->createNewSMSMessage();
-                    } elseif ($this->params['action'] == "send") {
+                    } elseif (isset($this->params['action']) && $this->params['action'] == "send") {
                         $response = $this->sendSMSMessageToReceivers();
                     } else {
                         $response = Errors::notFoundError('Notification sms route not found');
@@ -98,6 +98,21 @@ class NotificationController
 
             $response['status_code_header'] = 'HTTP/1.1 201 Created';
             $response['body'] = json_encode($data);
+            return $response;
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
+        }
+    }
+
+    // get sms message
+    function getSMSMessages()
+    {
+        $created_by_user_id = AuthValidation::authorized()->id;
+
+        try {
+            $messages = $this->notificationModel->selectMessageBYCreator($created_by_user_id);
+            $response['status_code_header'] = 'HTTP/1.1 200 OK';
+            $response['body'] = json_encode($messages);
             return $response;
         } catch (\Throwable $th) {
             return Errors::databaseError($th->getMessage());
