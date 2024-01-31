@@ -12,6 +12,7 @@ class elearningController
     private $request_method;
     private $params;
     private $cohortconditionModel;
+    private $elearningModel;
 
     public function __construct($db, $request_method, $params)
     {
@@ -83,56 +84,52 @@ class elearningController
         $username = $data['staff_code'];
         $cohort_name = $data['cohort_name'];
         $password = 'Education@123';
-        try {
-            // REGISTER A USER FROM SDMS IF NOT ALREADY REGISTERED
-            $url1 = 'https://elearning.reb.rw/local/custom_service/misregistration.php?username='.$username.'&password='.$password.'';
-            
-            $curl = curl_init($url1);
-            curl_setopt($curl, CURLOPT_URL, $url1);
-            curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-            $resbjson1 = curl_exec($curl);
-            $resp1 = (json_decode($resbjson1))->body;
-            
-            $result = new \stdClass;;
-            $result->staff_code = $username;
-            curl_close($curl);
-            if($resbjson1){
-                // ENROL A TEACHER ON THE COURSE
-                $url2 = 'https://elearning.reb.rw/local/custom_service/assign_cpd_to_teacher.php?staff_code='.$username.'&course_id='.$course_id.'$cohort_name='.$cohort_name;
-                $curl = curl_init($url2);
-                curl_setopt($curl, CURLOPT_URL, $url2);
-                curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-                
-                $resbjson2 = curl_exec($curl);
-                $resp2 = (json_decode($resbjson2))->body;
+        $result = $this->enrollUserToCourse($course_id, $username, $cohort_name);
+        $response['body'] = json_encode($result);
+        return $response;
+    }
 
-                curl_close($curl);
-                if($resp2->status == 200){
-                    // update the DB
-                    $this->elearningModel->linkUserToCourse($staff_code, $course_Id);
-                    $response['status_code_header'] = 'HTTP/1.1 201 Created';
-                    $result->message = 'enrolled';
-                    $result->reason = 'success';
-                }else{
-                    $response['status_code_header'] = 'HTTP/1.1 401 Created';
-                    $result->message = 'not enrolled';
-                    $result->reason = 'Error while enrolling on the course!';
-                    //$result->url1 = $url1;
-                    //$result->url2 = $url2;
-                    //$result->debug1 =  $resbjson1;
-                    //$result->debug2 =  $resbjson2;
-                }
-            }else{
-                $response['status_code_header'] = 'HTTP/1.1 401 Created';
-                $result->message = 'not_enrolled';
-                $result->reason = 'Error while creating an account on elearning';
-                //$result->url = $url;
-            }
-            $response['body'] = json_encode($result);
-            return $response;
-        } catch (\Throwable $th) {
-            return Errors::databaseError($th->getMessage());
+    private function enrollUserToCourse($course_id, $username, $cohort_name)
+    {
+        // TRY TO ENROLL A USER TO A COURSE
+        $url = 'https://elearning.reb.rw/local/custom_service/assign_cpd_to_teacher.php?staff_code='.$username.'&course_id='.$course_id.'$cohort_name='.$cohort_name;
+        $curl = curl_init($url);
+        curl_setopt($curl, CURLOPT_URL, $url);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        
+        $resbjson = curl_exec($curl);
+        $resp = (json_decode($resbjson))->body;
+
+        curl_close($curl);
+        if($resp->status == 200){
+            // update the DB
+            $this->elearningModel->linkUserToCourse($username, $course_id);
+            $response['status_code_header'] = 'HTTP/1.1 201 Created';
+            $result = new \stdClass;
+            $result->message = 'enrolled';
+            $result->reason = 'success';
+        }else{
+            $response['status_code_header'] = 'HTTP/1.1 401 Created';
+            $result = new \stdClass;
+            $result->message = 'not_enrolled';
+            $result->reason = 'Error while creating an account on elearning';
         }
+    }
+
+    private function createUser($username, $password){
+        // ENROLLING A USER TO THE COURSE FAILED, TRY CREATING THE USER FIRST.
+        $url1 = 'https://elearning.reb.rw/local/custom_service/misregistration.php?username='.$username.'&password='.$password.'';
+            
+        $curl = curl_init($url1);
+        curl_setopt($curl, CURLOPT_URL, $url1);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        $resbjson1 = curl_exec($curl);
+        $resp1 = (json_decode($resbjson1))->body;
+        
+        $result = new \stdClass;
+        $result->staff_code = $username;
+        curl_close($curl);
+       
     }
 }
 $controller = new elearningController($this->db, $request_method, $params);
