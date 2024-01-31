@@ -114,6 +114,8 @@ class elearningController
             $result->message = 'not_enrolled';
             $result->reason = 'Error while creating an account on elearning';
         }
+
+        return $result;
     }
 
     private function createUser($username, $password){
