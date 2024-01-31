@@ -92,7 +92,7 @@ class elearningController
     private function enrollUserToCourse($course_id, $username, $cohort_name)
     {
         // TRY TO ENROLL A USER TO A COURSE
-        $url = 'https://elearning.reb.rw/local/custom_service/assign_cpd_to_teacher.php?staff_code='.$username.'&course_id='.$course_id.'$cohort_name='.$cohort_name;
+        $url = 'https://elearning.reb.rw/local/custom_service/assign_cpd_to_teacher.php?staff_code='.$username.'&course_id='.$course_id.'&cohort_name='.$cohort_name;
         $curl = curl_init($url);
         curl_setopt($curl, CURLOPT_URL, $url);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
