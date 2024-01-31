@@ -32,7 +32,7 @@ class elearningEnrollmentController
             // POST DATA
             case 'GET':
                 if (sizeof($this->params) > 0) {
-                    $response = $this->enrolToCourse($this->params['courseCode'], $this->params['staff_code']);
+                    $response = $this->enrolToCourse($this->params['courseCode'], $this->params['staff_code'], $this->params['cohort_name']);
                 }
                 break;
 
@@ -46,7 +46,7 @@ class elearningEnrollmentController
         }
     }
 
-    private function enrolToCourse($course_Id, $staff_code)
+    private function enrolToCourse($course_Id, $staff_code, $cohort_name)
     {
         
         error_reporting(E_ERROR | E_PARSE);
@@ -68,7 +68,7 @@ class elearningEnrollmentController
             $resp = curl_exec($curl);
             curl_close($curl);
             if($resp){
-                $url2 = 'https://elearning.reb.rw/local/custom_service/assign_cpd_to_teacher.php?staff_code='.$username.'&course_id=713&cohort_name=FHI2024';
+                $url2 = 'https://elearning.reb.rw/local/custom_service/assign_cpd_to_teacher.php?staff_code='.$username.'&course_id='.$course_Id.'&cohort_name='.$cohort_name.'';
                 $curl = curl_init($url2);
                 curl_setopt($curl, CURLOPT_URL, $url2);
                 curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
