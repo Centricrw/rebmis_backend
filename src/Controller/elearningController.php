@@ -82,7 +82,7 @@ class elearningController
         $data = (array) json_decode(file_get_contents('php://input'), true);
         $course_id = $data['course_id'];
         $username = $data['staff_code'];
-        $cohort_name = $data['cohort_name'];
+        $cohort_name = preg_replace('/\s+/', '_', $data['cohort_name']); 
         $password = 'Education@123';
         $result = $this->enrollUserToCourse($course_id, $username, $cohort_name);
         $response['body'] = json_encode($result);
@@ -112,7 +112,7 @@ class elearningController
             $response['status_code_header'] = 'HTTP/1.1 401 Created';
             $result = new \stdClass;
             $result->message = 'not_enrolled';
-            $result->reason = 'Error while creating an account on elearning: '.$url;
+            $result->reason = 'Error while creating an account on elearning: '.$resbjson;
         }
 
         return $result;
