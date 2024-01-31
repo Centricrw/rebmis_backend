@@ -89,15 +89,20 @@ class CohortconditionModel
         }
     }
 
-    public function selectTraineersForBYtrainingType($trainingTypeId)
+    // checnged to to cohortId from trainingTypeId
+    public function selectTraineersForBYtrainingType($cohortId)
     {
-        $statement = "SELECT TRN.traineesId, TRN.userId FROM `trainees` TRN
-        INNER JOIN trainings TR ON TRN.trainingId = TR.trainingId
-        INNER JOIN training_type TY ON TR.training_type_id = TY.training_type_id
-        WHERE TY.`training_type_id` = :training_type_id";
+        // $statement = "SELECT TRN.traineesId, TRN.userId FROM `trainees` TRN
+        // INNER JOIN trainings TR ON TRN.trainingId = TR.trainingId
+        // INNER JOIN training_type TY ON TR.training_type_id = TY.training_type_id
+        // WHERE TY.`training_type_id` = :training_type_id";
+
+        $statement = "SELECT traineesId, userId FROM `trainees`
+        WHERE `cohortId` = :cohortId";
+
         try {
             $statement = $this->db->prepare($statement);
-            $statement->execute(array(":training_type_id" => $trainingTypeId,
+            $statement->execute(array(":cohortId" => $cohortId,
             ));
             $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
             return $results;
