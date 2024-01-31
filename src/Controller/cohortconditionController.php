@@ -235,7 +235,6 @@ class locationsController
             $numberLimit = $limit;
             while ($finish < 1) {
                 $result = $this->cohortconditionModel->getTeacherByConditionsLimit($data, $numberLimit, $offSet);
-                $data['include_trained'] = false;
                 if (sizeof($result) == $numberLimit) {
                     foreach ($result as $key => $value) {
                         $trained = in_array($value['user_id'], $traineensId);
@@ -271,6 +270,7 @@ class locationsController
     {
         // getting input data
         $data = (array) json_decode(file_get_contents('php://input'), true);
+        $data['include_trained'] = false;
         // geting authorized user id
         $logged_user_id = AuthValidation::authorized()->id;
 
