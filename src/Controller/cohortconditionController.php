@@ -235,6 +235,7 @@ class locationsController
             $numberLimit = $limit;
             while ($finish < 1) {
                 $result = $this->cohortconditionModel->getTeacherByConditionsLimit($data, $numberLimit, $offSet);
+                $data['include_trained'] = false;
                 if (sizeof($result) == $numberLimit) {
                     foreach ($result as $key => $value) {
                         $trained = in_array($value['user_id'], $traineensId);
@@ -331,9 +332,6 @@ class locationsController
         }
         if (empty($input['capacity'])) {
             return ["validated" => false, "message" => "capacity not provided!"];
-        }
-        if (!isset($input['include_trained'])) {
-            return ["validated" => false, "message" => "include_trained not provided!"];
         }
         if (empty($input['training_type_id'])) {
             return ["validated" => false, "message" => "training_type_id not provided!"];
