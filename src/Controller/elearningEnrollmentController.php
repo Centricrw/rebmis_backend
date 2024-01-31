@@ -68,7 +68,7 @@ class elearningEnrollmentController
             $resp = curl_exec($curl);
             curl_close($curl);
             if($resp){
-                $url2 = 'https://elearning.reb.rw/local/custom_service/cpdenrollment.php?staff_code='.$username.'&course_id=713';
+                $url2 = 'https://elearning.reb.rw/local/custom_service/assign_cpd_to_teacher.php?staff_code='.$username.'&course_id=713&cohort_name=FHI2024';
                 $curl = curl_init($url2);
                 curl_setopt($curl, CURLOPT_URL, $url2);
                 curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
