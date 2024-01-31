@@ -220,7 +220,8 @@ class locationsController
             // traineens tamporaly array
             $traineensArray = array();
             // getting traineers that allready trained to that training type
-            $traineers = $this->cohortconditionModel->selectTraineersForBYtrainingType($data['training_type_id']);
+            // $traineers = $this->cohortconditionModel->selectTraineersForBYtrainingType($data['training_type_id']);
+            $traineers = $this->cohortconditionModel->selectTraineersForBYtrainingType($data['cohortId']);
             $traineensId = sizeof($traineers) > 0 ? array_map(array($this, 'userIdsHandler'), $traineers) : [];
 
             // limit
@@ -333,9 +334,9 @@ class locationsController
         if (empty($input['capacity'])) {
             return ["validated" => false, "message" => "capacity not provided!"];
         }
-        if (empty($input['training_type_id'])) {
-            return ["validated" => false, "message" => "training_type_id not provided!"];
-        }
+        // if (empty($input['training_type_id'])) {
+        //     return ["validated" => false, "message" => "training_type_id not provided!"];
+        // }
         return ["validated" => true, "message" => "OK"];
     }
 }
