@@ -112,7 +112,7 @@ class elearningController
             $response['status_code_header'] = 'HTTP/1.1 401 Created';
             $result = new \stdClass;
             $result->message = 'not_enrolled';
-            $result->reason = 'Error while creating an account on elearning';
+            $result->reason = 'Error while creating an account on elearning: '.$url;
         }
 
         return $result;
