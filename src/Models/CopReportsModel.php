@@ -125,10 +125,27 @@ class CopReportsModel
     }
 
     private function generateReport($moduleId, $unitId, $cohortId, $trainingId){
-        $statement = "INSERT INTO general_report (traineeId, moduleId, unitId, cohortId, trainingId)
-        SELECT traineesId, '".$moduleId."', '".$unitId."', '".$cohortId."', '".$trainingId."'
-        FROM trainees
-        WHERE cohortId = '".$cohortId."'";
+        $statement = "INSERT INTO general_report (traineeId, traineeName, traineePhone, 
+        district_code, sector_code, school_code, 
+        district_name, sector_name, school_name, 
+        age, gender, disability,
+        moduleId, unitId, moduleName, unitName,
+        cohortId, trainingId, userId)
+
+        SELECT TR.traineesId, TR.traineeName, TR.traineePhone, 
+        TR.district_code, TR.sector_code, TR.school_code,
+        (SELECT DISTINCT(district_name) FROM school_location WHERE district_code = TR.district_code LIMIT 1) district_name,
+        (SELECT DISTINCT(sector_name) FROM school_location WHERE sector_code = TR.sector_code LIMIT 1) sector_name,
+        (SELECT DISTINCT(school_name) FROM schools WHERE school_code = TR.school_code) school_name,
+        (SELECT DATE_FORMAT(FROM_DAYS(DATEDIFF(NOW(), U.dob)), '%Y') + 0 AS age FROM users U WHERE U.user_id = TR.userId) age,
+        (SELECT sex FROM users U WHERE U.user_id = TR.userId) gender,
+        (SELECT disability FROM users U WHERE U.user_id = TR.userId) disability,
+        '".$moduleId."', '".$unitId."', 
+        (SELECT cop_report_title FROM cop_report WHERE cop_report_id = '".$moduleId."') moduleName,
+        (SELECT cop_report_details_title FROM cop_report_details WHERE cop_report_details_id = '".$unitId."') unitName,
+        '".$cohortId."', '".$trainingId."', TR.userId
+        FROM trainees TR
+        WHERE TR.cohortId = '".$cohortId."'";
 
         try {
             $statement = $this->db->prepare($statement);
