@@ -112,16 +112,16 @@ class CopReportsModel
             ));
 
             // GENERATE A REPORT FOR THIS MODULE UNIT (REPORT DETAILS)
-            $this->generateReport($data['cop_report_id'], $data['cop_report_details_id'], $data['cohortId']);
+            $this->generateReport($data['cop_report_id'], $data['cop_report_details_id'], $data['cohortId'], $data['trainingId']);
             return $data;
         } catch (\PDOException $e) {
             throw new Error($e->getMessage());
         }
     }
 
-    private function generateReport($moduleId, $unitId, $cohortId){
-        $statement = "INSERT INTO general_report (traineeId, moduleId, unitId, cohortId)
-        SELECT traineesId, '".$moduleId."', '".$unitId."', '".$cohortId."'
+    private function generateReport($moduleId, $unitId, $cohortId, $trainingId){
+        $statement = "INSERT INTO general_report (traineeId, moduleId, unitId, cohortId, trainingId)
+        SELECT traineesId, '".$moduleId."', '".$unitId."', '".$cohortId."', '".$trainingId."'
         FROM trainees
         WHERE cohortId = '".$cohortId."'";
 
