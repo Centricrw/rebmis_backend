@@ -220,7 +220,8 @@ class locationsController
             // traineens tamporaly array
             $traineensArray = array();
             // getting traineers that allready trained to that training type
-            $traineers = $this->cohortconditionModel->selectTraineersForBYtrainingType($data['training_type_id']);
+            // $traineers = $this->cohortconditionModel->selectTraineersForBYtrainingType($data['training_type_id']);
+            $traineers = $this->cohortconditionModel->selectTraineersForBYtrainingType($data['cohortId']);
             $traineensId = sizeof($traineers) > 0 ? array_map(array($this, 'userIdsHandler'), $traineers) : [];
 
             // limit
@@ -235,7 +236,6 @@ class locationsController
             $numberLimit = $limit;
             while ($finish < 1) {
                 $result = $this->cohortconditionModel->getTeacherByConditionsLimit($data, $numberLimit, $offSet);
-                $data['include_trained'] = false;
                 if (sizeof($result) == $numberLimit) {
                     foreach ($result as $key => $value) {
                         $trained = in_array($value['user_id'], $traineensId);
@@ -271,6 +271,7 @@ class locationsController
     {
         // getting input data
         $data = (array) json_decode(file_get_contents('php://input'), true);
+        $data['include_trained'] = false;
         // geting authorized user id
         $logged_user_id = AuthValidation::authorized()->id;
 
@@ -333,9 +334,9 @@ class locationsController
         if (empty($input['capacity'])) {
             return ["validated" => false, "message" => "capacity not provided!"];
         }
-        if (empty($input['training_type_id'])) {
-            return ["validated" => false, "message" => "training_type_id not provided!"];
-        }
+        // if (empty($input['training_type_id'])) {
+        //     return ["validated" => false, "message" => "training_type_id not provided!"];
+        // }
         return ["validated" => true, "message" => "OK"];
     }
 }
