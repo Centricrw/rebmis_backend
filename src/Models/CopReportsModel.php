@@ -98,7 +98,7 @@ class CopReportsModel
     public function createNewCopReportDetails($data)
     {
         $statement = "INSERT INTO `cop_report_details`(`cop_report_details_id`, `cop_report_id`, `cop_report_details_title`, `start_date`, `end_date`, `created_by`)
-      VALUES(:cop_report_details_id, :cop_report_id, :cop_report_details_title, :start_date, :end_date, :created_by)";
+        VALUES(:cop_report_details_id, :cop_report_id, :cop_report_details_title, :start_date, :end_date, :created_by)";
 
         try {
             $statement = $this->db->prepare($statement);
@@ -110,7 +110,25 @@ class CopReportsModel
                 ':end_date' => $data['end_date'],
                 ':created_by' => $data['created_by'],
             ));
+
+            // GENERATE A REPORT FOR THIS MODULE UNIT (REPORT DETAILS)
+            $this->generateReport($data['cop_report_id'], $data['cop_report_details_id'], $data['cohortId']);
             return $data;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    private function generateReport($moduleId, $unitId, $cohortId){
+        $statement = "INSERT INTO general_report (traineeId, moduleId, unitId, cohortId)
+        SELECT traineesId, '".$moduleId."', '".$unitId."', '".$cohortId."'
+        FROM trainees
+        WHERE cohortId = '".$cohortId."'";
+
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array());
+            return $statement;
         } catch (\PDOException $e) {
             throw new Error($e->getMessage());
         }
@@ -196,7 +214,30 @@ class CopReportsModel
                 ':meeting_supervisor_occupation' => $data['meeting_supervisor_occupation'],
                 ':created_by' => $data['created_by'],
             ));
+            $unitId = $data['cop_report_details_id'];
+            foreach ($data['meeting_attendance'] as $teacher) {
+                $this->markAttendenceOfCopOnTheReport($teacher['traineesId'], $unitId,);
+            }
+           
             return $data;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    private function markAttendenceOfCopOnTheReport($traineesId, $unitId)
+    {
+        //UPDATE general
+        $updatedQuery = 'UPDATE general_report SET copMarks= :copMarks WHERE AND traineeId = :traineeId AND unitId = :unitId';
+        try {
+            $statement = $this->db->prepare($updatedQuery);
+            $statement->execute(array(
+                ':copMarks'     => '100',
+                ':traineeId'    => $traineesId,
+                ':unitId'       => $unitId
+            ));
+            $result = $statement->rowCount();
+            return $result;
         } catch (\PDOException $e) {
             throw new Error($e->getMessage());
         }
