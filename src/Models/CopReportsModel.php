@@ -239,7 +239,7 @@ class CopReportsModel
             $unitId = $data['cop_report_details_id'];
             $keepNothing = 0;
             foreach ($data['meeting_attendance'] as $teacher) {
-                if($this->markAttendenceOfCopOnTheReport($teacher['traineesId'], $unitId,)){
+                if($this->markAttendenceOfCopOnTheReport($teacher['traineesId'], $unitId, $data['cohortsId'])){
                     $keepNothing++;
                 }
             }
@@ -250,16 +250,17 @@ class CopReportsModel
         }
     }
 
-    private function markAttendenceOfCopOnTheReport($traineesId, $unitId)
+    private function markAttendenceOfCopOnTheReport($traineesId, $unitId, $cohortId)
     {
         //UPDATE general
-        $updatedQuery = 'UPDATE general_report SET copMarks= :copMarks WHERE AND traineeId = :traineeId AND unitId = :unitId';
+        $updatedQuery = 'UPDATE general_report SET copMarks= :copMarks WHERE AND traineeId = :traineeId AND unitId = :unitId AND cohortId = :cohortId';
         try {
             $statement = $this->db->prepare($updatedQuery);
             $statement->execute(array(
                 ':copMarks'     => '100',
                 ':traineeId'    => $traineesId,
-                ':unitId'       => $unitId
+                ':unitId'       => $unitId,
+                ':cohortId'     => $cohortId
             ));
             $result = $statement->rowCount();
             return $result;
