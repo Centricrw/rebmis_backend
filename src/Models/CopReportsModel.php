@@ -2,6 +2,7 @@
 namespace Src\Models;
 
 use Error;
+use stdClass;
 
 class CopReportsModel
 {
@@ -112,8 +113,12 @@ class CopReportsModel
             ));
 
             // GENERATE A REPORT FOR THIS MODULE UNIT (REPORT DETAILS)
-            $this->generateReport($data['cop_report_id'], $data['cop_report_details_id'], $data['cohortId'], $data['trainingId']);
-            return $data;
+            $newData = $this->generateReport($data['cop_report_id'], $data['cop_report_details_id'], $data['cohortId'], $data['trainingId']);
+            if($newData){
+                return $data; 
+            }else{
+                return $data;
+            }
         } catch (\PDOException $e) {
             throw new Error($e->getMessage());
         }
@@ -215,8 +220,11 @@ class CopReportsModel
                 ':created_by' => $data['created_by'],
             ));
             $unitId = $data['cop_report_details_id'];
+            $keepNothing = 0;
             foreach ($data['meeting_attendance'] as $teacher) {
-                $this->markAttendenceOfCopOnTheReport($teacher['traineesId'], $unitId,);
+                if($this->markAttendenceOfCopOnTheReport($teacher['traineesId'], $unitId,)){
+                    $keepNothing++;
+                }
             }
            
             return $data;
