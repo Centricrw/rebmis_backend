@@ -125,14 +125,16 @@ class CopReportsModel
     }
 
     private function generateReport($moduleId, $unitId, $cohortId, $trainingId){
-        $statement = "INSERT INTO general_report (traineeId, traineeName, traineePhone, 
+
+        $statement = "INSERT INTO general_report (
+        traineeId, traineeName, traineePhone, staff_code,
         district_code, sector_code, school_code, 
         district_name, sector_name, school_name, 
         age, gender, disability,
         moduleId, unitId, moduleName, unitName,
         cohortId, trainingId, userId)
-
-        SELECT TR.traineesId, TR.traineeName, TR.traineePhone, 
+        SELECT 
+        TR.traineesId, TR.traineeName, TR.traineePhone, (SELECT staff_code FROM users U WHERE U.user_id = TR.userId) staff_code,
         TR.district_code, TR.sector_code, TR.school_code,
         (SELECT DISTINCT(district_name) FROM school_location WHERE district_code = TR.district_code LIMIT 1) district_name,
         (SELECT DISTINCT(sector_name) FROM school_location WHERE sector_code = TR.sector_code LIMIT 1) sector_name,
