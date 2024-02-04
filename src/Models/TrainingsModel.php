@@ -59,6 +59,27 @@ class TrainingsModel
         }
     }
 
+    public function selectTrainingsOnSchool($school_code)
+    {
+
+        $statement = "SELECT  T.* FROM trainings T
+        INNER JOIN cohorts C ON C.trainingId = T.trainingId
+        INNER JOIN  cohortconditions CC ON CC.cohortId = C.cohortId
+        WHERE CC.school_code = :school_code OR CC.sector_code = :sector_code OR CC.district_code = :district_code ";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
+                ":school_code" => $school_code,
+                ":sector_code" => substr($school_code, 0, 4),
+                ":district_code" => substr($school_code, 0, 2),
+            ));
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $result;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
     public function findTrainingByID($training_id)
     {
         $sql = "SELECT * FROM trainings WHERE trainingId = ? LIMIT 1";

@@ -35,6 +35,8 @@ class trainingsController
                         $response = $this->getAllTranings();
                     } elseif ($this->params['action'] == "training") {
                         $response = $this->getOneTraining($this->params['id']);
+                    } elseif ($this->params['action'] == "headteacher") {
+                        $response = $this->getTrainingsOnSchool();
                     } elseif ($this->params['action'] == "provider") {
                         $response = $this->getTrainingProvider();
                     } elseif ($this->params['action'] == "status") {
@@ -98,6 +100,25 @@ class trainingsController
     private function getOneTraining($training_id)
     {
         $result = $this->trainingsModel->getOneTraining($training_id);
+
+        $response['status_code_header'] = 'HTTP/1.1 200 OK';
+        $response['body'] = json_encode($result);
+        return $response;
+    }
+
+    private function getTrainingsOnSchool()
+    {
+        // geting authorized user id
+        $logged_user_id = AuthValidation::authorized()->id;
+
+        // checking if he is headteacher and active
+        $userHasActiveRole = $this->userRoleModel->findCurrentUserRoleShort($logged_user_id);
+        $userRole = $userHasActiveRole[0];
+        if (sizeof($userHasActiveRole) == 0 || $userRole['role_id'] != "2" || empty($userRole['school_code']) || !isset($userRole['school_code'])) {
+            return Errors::notFoundError("Logged user does not have role of head teacher, please try again?");
+        }
+
+        $result = $this->trainingsModel->selectTrainingsOnSchool($userRole['school_code']);
 
         $response['status_code_header'] = 'HTTP/1.1 200 OK';
         $response['body'] = json_encode($result);
