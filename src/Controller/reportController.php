@@ -70,8 +70,8 @@ class reportController
         $logged_user_id = AuthValidation::authorized()->id;
         try {
             $current_user_role = $this->userRoleModel->findCurrentUserRole($logged_user_id);
-            $user_role_details = $current_user_role[0];
-            $school = $user_role_details['school_code'];
+            $user_role_details = sizeof($current_user_role) > 0 ? $current_user_role[0] : [];
+            $school = isset($user_role_details['school_code']) ? $user_role_details['school_code'] : null;
 
             // if logged user is head teacher then return genaral report from school only
             if (isset($school) && !empty($school) && $user_role_details['role_id'] == "2") {
