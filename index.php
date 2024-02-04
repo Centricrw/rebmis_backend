@@ -157,6 +157,10 @@ $route->router("/notification/{type}/{action}/{message_id}", "src/Controller/not
 // GENERAL REPORT
 $route->router("/generalreport/{action}", "src/Controller/reportController.php");
 
+// TRAINEERS
+$route->router("/traineers", "src/Controller/traineersController.php");
+$route->router("/traineers/{action}", "src/Controller/traineersController.php");
+
 //write it at the last
 //arg is 404 file location
 $route->notFound("404.php");
