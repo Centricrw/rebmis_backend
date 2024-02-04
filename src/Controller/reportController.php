@@ -26,6 +26,12 @@
                 if (sizeof($this->params) > 0 && $this->params['action'] == "getAll") {
                   $response = $this->getGeneralReport();
                 }
+                elseif (sizeof($this->params) > 0 && $this->params['action'] == "getPerSchool") {
+                  $response = $this->getGeneralReport($this->params['schoolCode']);
+                }
+                elseif (sizeof($this->params) > 0 && $this->params['action'] == "getPerTraining") {
+                  $response = $this->getGeneralReportPerTraining($this->params['trainingId']);
+                }
                 break;
               case "POST":
                 if (sizeof($this->params) > 0 && $this->params['action'] == "mark") {
@@ -49,6 +55,16 @@
       $response['body'] = json_encode($result);
       return $response;
     }
+
+    private function getGeneralReportPerTraining($training_id)
+    {   
+      $result = $this->reportModel->getGeneralReportPerTraining($training_id);
+      $response['status_code_header'] = 'HTTP/1.1 200 OK';
+      $response['body'] = json_encode($result);
+      return $response;
+    }
+
+    
     private function markTheTrainee()
     {
       // getting input data
