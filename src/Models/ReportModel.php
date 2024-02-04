@@ -21,6 +21,19 @@ class ReportModel {
           exit($e->getMessage());
       }
     }
+
+    public function getGeneralReportPerTraining($trainingId)
+    { 
+      $statement = "SELECT * FROM general_report WHERE trainingId = $trainingId";
+      try {
+          $statement = $this->db->query($statement);
+          $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+          return $result;
+      } catch (\PDOException $e) {
+          exit($e->getMessage());
+      }
+    }
+
     public function markTheTrainee($data)
     {  
       $markType = $data['markType'];
