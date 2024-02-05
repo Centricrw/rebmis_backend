@@ -255,7 +255,7 @@ class CopReportsModel
     private function markAttendenceOfCopOnTheReport($traineesId, $unitId, $cohortId)
     {
         //UPDATE general
-        $updatedQuery = "UPDATE general_report SET copMarks= :copMarks WHERE AND traineeId = :traineeId AND unitId = :unitId AND cohortId = :cohortId";
+        $updatedQuery = "UPDATE general_report SET copMarks= :copMarks WHERE traineeId = :traineeId AND unitId = :unitId AND cohortId = :cohortId";
         try {
             $statement = $this->db->prepare($updatedQuery);
             $statement->execute(array(
