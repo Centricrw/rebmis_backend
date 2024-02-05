@@ -139,7 +139,7 @@ class UserRoleModel
 
     public function findCurrentUserRoleShort($user_id, $status = "Active")
     {
-        $sql = "SELECT `user_id` FROM `user_to_role` WHERE `user_id`=:user_id AND `status`=:status";
+        $sql = "SELECT `user_id`, `role_id`, `school_code`  FROM `user_to_role` WHERE `user_id`=:user_id AND `status`=:status";
         try {
             $statement = $this->db->prepare($sql);
             $statement->execute(array(
