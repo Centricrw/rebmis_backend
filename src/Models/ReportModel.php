@@ -37,6 +37,18 @@ class ReportModel
         }
     }
 
+    public function getGeneralReportPerTrainee($staff_code)
+    {
+        $statement = "SELECT * FROM general_report WHERE staff_code = '".$staff_code."'";
+        try {
+            $statement = $this->db->query($statement);
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $result;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
     public function getGeneralReportPerTrainingForSchool($trainingId, $schoolCode)
     {
         $statement = "SELECT * FROM `general_report` WHERE `trainingId` = :trainingId AND `school_code` = :school_code";
