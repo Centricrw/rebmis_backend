@@ -85,16 +85,16 @@ class TraineersModel
         }
     }
 
-    public function getGenratedReportTraineesByUser($userId)
+    public function getGenratedReportTraineesByUser($userId, $cohortId)
     {
         try {
             $statement = "SELECT GR.*, TR.trainingName, CH.cohortStart, CH.cohortEnd FROM `general_report` GR
             INNER JOIN trainings TR ON TR.trainingId = GR.trainingId
             INNER JOIN cohorts CH ON CH.cohortId = GR.cohortId
-            WHERE GR.`userId` = :userId";
+            WHERE GR.`userId` = :userId AND GR.`cohortId` = :cohortId";
 
             $statement = $this->db->prepare($statement);
-            $statement->execute(array(":userId" => $userId));
+            $statement->execute(array(":userId" => $userId, ":cohortId" => $cohortId));
 
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             return $result;

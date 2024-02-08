@@ -116,7 +116,7 @@ class TraineersController
                     $result = $this->traineersModel->getGenratedReportTraineesBySchool($cohortId, $user_role_details['school_code']);
                     return sizeof($result) > 0 ? $this->createPDFSample2($result) : Errors::badRequestError("Report not found!, please try again?");
                 case '1':
-                    $result = $this->traineersModel->getGenratedReportTraineesByUser($user_role_details['user_id']);
+                    $result = $this->traineersModel->getGenratedReportTraineesByUser($user_role_details['user_id'], $cohortId);
                     return sizeof($result) > 0 ? $this->createPDFSample2($result) : Errors::badRequestError("Report not found!, please try again?");
                 default:
                     $result = $this->traineersModel->getGenratedReportTrainees($cohortId);
