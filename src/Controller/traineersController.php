@@ -126,8 +126,8 @@ class TraineersController
                     return sizeof($result) > 0 ? $this->createPDFSample2($result) : Errors::badRequestError("Report not found!, please try again?");
                 default:
                     $result = $this->traineersModel->getGenratedReportTrainees($cohortId);
-                    if (sizeof($result) > 0) {
-                        $filterTrainees = array_filter($result, array($this, 'filterHighScorers'));
+                    $filterTrainees = array_filter($result, array($this, 'filterHighScorers'));
+                    if (sizeof($filterTrainees) > 0) {
                         return $this->createPDFSample2($filterTrainees);
                     } else {
                         return Errors::badRequestError("Report not found!, please try again?");
