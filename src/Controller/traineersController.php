@@ -65,36 +65,6 @@ class TraineersController
         }
     }
 
-    private function generateTraineesCertificate($cohortId)
-    {
-        $logged_user_id = AuthValidation::authorized()->id;
-        try {
-            $current_user_role = $this->userRoleModel->findCurrentUserRole($logged_user_id);
-            if (sizeof($current_user_role) == 0) {
-                return Errors::badRequestError("No current role found!, please try again?");
-            }
-            $user_role_details = $current_user_role[0];
-            $role = $user_role_details['role_id'];
-            switch ($role) {
-                case '2':
-                    // this is school level
-                    if (!isset($user_role_details['school_code'])) {
-                        return Errors::badRequestError("School not found!, please try again?");
-                    }
-                    $result = $this->traineersModel->getGenratedReportTraineesBySchool($cohortId, $user_role_details['school_code']);
-                    return sizeof($result) > 0 ? $this->createPDFSample2($result) : Errors::badRequestError("Report not found!, please try again?");
-                case '1':
-                    $result = $this->traineersModel->getGenratedReportTraineesByUser($user_role_details['user_id']);
-                    return sizeof($result) > 0 ? $this->createPDFSample2($result) : Errors::badRequestError("Report not found!, please try again?");
-                default:
-                    $result = $this->traineersModel->getGenratedReportTrainees($cohortId);
-                    return sizeof($result) > 0 ? $this->createPDFSample2($result) : Errors::badRequestError("Report not found!, please try again?");
-            }
-        } catch (\Throwable $th) {
-            return Errors::databaseError($th->getMessage());
-        }
-    }
-
     function calculateTraineeAvarage($trainee)
     {
         $copMarks = isset($trainee['copMarks']) ? intval($trainee['copMarks']) : 0;
@@ -119,6 +89,47 @@ class TraineersController
                 return "Invalid score";
         }
 
+    }
+
+    function filterHighScorers($trainee)
+    {
+        $level = $this->calculateTraineeAvarage($trainee);
+        return $level != "Failed" && $level != "Invalid score" ? true : false;
+    }
+
+    private function generateTraineesCertificate($cohortId)
+    {
+        $logged_user_id = AuthValidation::authorized()->id;
+        try {
+            $current_user_role = $this->userRoleModel->findCurrentUserRole($logged_user_id);
+            if (sizeof($current_user_role) == 0) {
+                return Errors::badRequestError("No current role found!, please try again?");
+            }
+            $user_role_details = $current_user_role[0];
+            $role = $user_role_details['role_id'];
+            switch ($role) {
+                case '2':
+                    // this is school level
+                    if (!isset($user_role_details['school_code'])) {
+                        return Errors::badRequestError("School not found!, please try again?");
+                    }
+                    $result = $this->traineersModel->getGenratedReportTraineesBySchool($cohortId, $user_role_details['school_code']);
+                    return sizeof($result) > 0 ? $this->createPDFSample2($result) : Errors::badRequestError("Report not found!, please try again?");
+                case '1':
+                    $result = $this->traineersModel->getGenratedReportTraineesByUser($user_role_details['user_id']);
+                    return sizeof($result) > 0 ? $this->createPDFSample2($result) : Errors::badRequestError("Report not found!, please try again?");
+                default:
+                    $result = $this->traineersModel->getGenratedReportTrainees($cohortId);
+                    if (sizeof($result) > 0) {
+                        $filterTrainees = array_filter($result, array($this, 'filterHighScorers'));
+                        return $this->createPDFSample2($filterTrainees);
+                    } else {
+                        return Errors::badRequestError("Report not found!, please try again?");
+                    }
+            }
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
+        }
     }
 
     function displayDateHandler($dateString)
