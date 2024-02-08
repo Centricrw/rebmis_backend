@@ -13,11 +13,6 @@ class TraineersModel
         $this->db = $db;
     }
 
-    // role_id
-    // school_code
-    // sector_code
-    // district_code
-
     public function getTrainees($cohortId, $user_role_details)
     {
         $condition = "";
@@ -69,6 +64,60 @@ class TraineersModel
             return $teachers;
         } catch (\PDOException $e) {
             throw new Error($e->getMessage());
+        }
+    }
+
+    public function getGenratedReportTraineesBySchool($cohortId, $school)
+    {
+        try {
+            $statement = "SELECT GR.*, TR.trainingName, CH.cohortStart, CH.cohortEnd FROM `general_report` GR
+            INNER JOIN trainings TR ON TR.trainingId = GR.trainingId
+            INNER JOIN cohorts CH ON CH.cohortId = GR.cohortId
+            WHERE GR.`cohortId` = :cohortId AND GR.`school_code` = :school_code";
+
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(":cohortId" => $cohortId, ":school_code" => $school));
+
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $result;
+        } catch (\Throwable $th) {
+            throw new Error($th->getMessage());
+        }
+    }
+
+    public function getGenratedReportTraineesByUser($userId)
+    {
+        try {
+            $statement = "SELECT GR.*, TR.trainingName, CH.cohortStart, CH.cohortEnd FROM `general_report` GR
+            INNER JOIN trainings TR ON TR.trainingId = GR.trainingId
+            INNER JOIN cohorts CH ON CH.cohortId = GR.cohortId
+            WHERE GR.`userId` = :userId";
+
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(":userId" => $userId));
+
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $result;
+        } catch (\Throwable $th) {
+            throw new Error($th->getMessage());
+        }
+    }
+
+    public function getGenratedReportTrainees($cohortId)
+    {
+        try {
+            $statement = "SELECT GR.*, TR.trainingName, CH.cohortStart, CH.cohortEnd FROM `general_report` GR
+            INNER JOIN trainings TR ON TR.trainingId = GR.trainingId
+            INNER JOIN cohorts CH ON CH.cohortId = GR.cohortId
+            WHERE GR.`cohortId` = :cohortId";
+
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(":cohortId" => $cohortId));
+
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $result;
+        } catch (\Throwable $th) {
+            throw new Error($th->getMessage());
         }
     }
 
