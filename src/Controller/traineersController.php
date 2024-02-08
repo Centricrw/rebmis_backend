@@ -102,8 +102,9 @@ class TraineersController
         $gradeMarks = isset($trainee['gradeMarks']) ? intval($trainee['gradeMarks']) : 0;
         $htNotesMarks = isset($trainee['htNotesMarks']) ? intval($trainee['htNotesMarks']) : 0;
         $htClassMarks = isset($trainee['htClassMarks']) ? intval($trainee['htClassMarks']) : 0;
+        $feedback = isset($trainee['feedback']) ? intval($trainee['feedback']) : 0;
 
-        $avarage = ($copMarks + $progressMarks + $gradeMarks + $htNotesMarks + $htClassMarks) / 5;
+        $avarage = ($copMarks + $progressMarks + $gradeMarks + $htNotesMarks + $htClassMarks + $feedback) / 6;
 
         switch (true) {
             case ($avarage >= 90 && $avarage <= 100):
