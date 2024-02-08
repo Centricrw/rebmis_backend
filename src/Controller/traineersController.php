@@ -249,8 +249,9 @@ class TraineersController
                 'module_height' => 1, // height of a single module in points
             );
             // QRCODE,Q : QR-CODE Better error correction
-            // http://localhost:8888/rebmis_backend/generalreport/getPerTrainee/:staff_code/:cohort_id
-            $url = 'https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+            $host = $_SERVER['HTTP_HOST'];
+            $pos = strpos($host, "localhost");
+            $url = $pos === true ? "http://" . $host . "/trainee/certificate/verify/" . $value['staff_code'] . "/" . $value['cohortId'] : "https://elearning.reb.rw/rebmis/trainee/certificate/verify/" . $value['staff_code'] . "/" . $value['cohortId'];
             $pdf->write2DBarcode($url, 'QRCODE,Q', 240, 150, 30, 30, $style, 'R');
 
             // Warning
