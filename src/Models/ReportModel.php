@@ -37,11 +37,12 @@ class ReportModel
         }
     }
 
-    public function getGeneralReportPerTrainee($staff_code)
+    public function getGeneralReportPerTrainee($staff_code, $cohort_id)
     {
-        $statement = "SELECT * FROM general_report WHERE staff_code = '".$staff_code."'";
+        $statement = "SELECT * FROM general_report WHERE staff_code = :staff_code AND cohortId = :cohortId";
         try {
-            $statement = $this->db->query($statement);
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(":staff_code" => $staff_code, ":cohortId" => $cohort_id));
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             return $result;
         } catch (\PDOException $e) {

@@ -157,6 +157,7 @@ $route->router("/notification/{type}/{action}/{message_id}", "src/Controller/not
 // GENERAL REPORT
 $route->router("/generalreport/{action}", "src/Controller/reportController.php");
 $route->router("/generalreport/{action}/{id}", "src/Controller/reportController.php");
+$route->router("/generalreport/{action}/{id}/{cohort_id}", "src/Controller/reportController.php");
 
 // TRAINEERS
 $route->router("/traineers", "src/Controller/traineersController.php");
