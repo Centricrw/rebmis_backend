@@ -2,9 +2,9 @@
 namespace Src\Controller;
 
 use setasign\Fpdi\Tcpdf\Fpdi;
+use Src\Models\CohortsModel;
 use Src\Models\TraineersModel;
 use Src\Models\UserRoleModel;
-use Src\Models\UsersModel;
 use Src\System\AuthValidation;
 use Src\System\Errors;
 
@@ -14,7 +14,7 @@ class TraineersController
     private $traineersModel;
     private $request_method;
     private $userRoleModel;
-    private $usersModel;
+    private $cohortsModel;
     private $params;
     private $homeDir;
 
@@ -25,7 +25,7 @@ class TraineersController
         $this->params = $params;
         $this->traineersModel = new TraineersModel($db);
         $this->userRoleModel = new UserRoleModel($db);
-        $this->usersModel = new UsersModel($db);
+        $this->cohortsModel = new CohortsModel($db);
         $this->homeDir = dirname(__DIR__, 2);
     }
 
@@ -101,6 +101,12 @@ class TraineersController
     {
         $logged_user_id = AuthValidation::authorized()->id;
         try {
+            // checking if cohort exists
+            $cohortsExists = $this->cohortsModel->getOneCohort($cohortId);
+            if (sizeof($cohortsExists) == 0) {
+                return Errors::badRequestError("Cohort not found!, please try again?");
+            }
+
             $current_user_role = $this->userRoleModel->findCurrentUserRole($logged_user_id);
             if (sizeof($current_user_role) == 0) {
                 return Errors::badRequestError("No current role found!, please try again?");
