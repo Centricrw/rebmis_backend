@@ -171,6 +171,8 @@ class TraineersController
         // ---------------------------------------------------------
         $pdf->startPageGroup();
         foreach ($trainees as $key => $value) {
+            $staffCode = $value['staff_code'];
+            $cohortId = $value['cohortId'];
             $pdf->AddPage();
 
             // Set the template file
@@ -251,7 +253,9 @@ class TraineersController
             // QRCODE,Q : QR-CODE Better error correction
             $host = $_SERVER['HTTP_HOST'];
             $pos = strpos($host, "localhost");
-            $url = $pos === true ? "http://" . $host . "/trainee/certificate/verify/" . $value['staff_code'] . "/" . $value['cohortId'] : "https://elearning.reb.rw/rebmis/trainee/certificate/verify/" . $value['staff_code'] . "/" . $value['cohortId'];
+            $localhostUrl = "http://" . $host . "/trainee/certificate/verify/" . $staffCode . "/" . $cohortId;
+            $productionUrl = "https://elearning.reb.rw/rebmis/trainee/certificate/verify/" . $staffCode . "/" . $cohortId;
+            $url = $pos === false ? $productionUrl : $localhostUrl;
             $pdf->write2DBarcode($url, 'QRCODE,Q', 240, 150, 30, 30, $style, 'R');
 
             // Warning
