@@ -130,7 +130,7 @@ class TraineersController
                     if (sizeof($filterTrainees) > 0) {
                         return $this->createPDFSample2($filterTrainees);
                     } else {
-                        return Errors::badRequestError("Report not found!, please try again?");
+                        return Errors::badRequestError("No trainees with high scores found!, please try again?");
                     }
             }
         } catch (\Throwable $th) {
