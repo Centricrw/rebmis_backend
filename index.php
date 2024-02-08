@@ -163,6 +163,7 @@ $route->router("/generalreport/{action}/{id}/{cohort_id}", "src/Controller/repor
 $route->router("/traineers", "src/Controller/traineersController.php");
 $route->router("/traineers/{action}", "src/Controller/traineersController.php");
 $route->router("/traineers/{action}/{user_id}", "src/Controller/traineersController.php");
+$route->router("/traineers/{action}/{user_id}/{cohort_id}", "src/Controller/traineersController.php");
 
 //write it at the last
 //arg is 404 file location
