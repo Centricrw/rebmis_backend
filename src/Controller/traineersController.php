@@ -243,6 +243,7 @@ class TraineersController
                 'module_height' => 1, // height of a single module in points
             );
             // QRCODE,Q : QR-CODE Better error correction
+            // http://localhost:8888/rebmis_backend/generalreport/getPerTrainee/:staff_code/:cohort_id
             $url = 'https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
             $pdf->write2DBarcode($url, 'QRCODE,Q', 240, 150, 30, 30, $style, 'R');
 
