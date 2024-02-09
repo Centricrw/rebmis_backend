@@ -67,17 +67,8 @@ class TraineersController
         }
     }
 
-    function calculateTraineeAvarage($trainee)
+    function TraineePerformanceLevelHandler($avarage)
     {
-        $copMarks = isset($trainee['copMarks']) ? intval($trainee['copMarks']) : 0;
-        $progressMarks = isset($trainee['progressMarks']) ? intval($trainee['progressMarks']) : 0;
-        $gradeMarks = isset($trainee['gradeMarks']) ? intval($trainee['gradeMarks']) : 0;
-        $htNotesMarks = isset($trainee['htNotesMarks']) ? intval($trainee['htNotesMarks']) : 0;
-        $htClassMarks = isset($trainee['htClassMarks']) ? intval($trainee['htClassMarks']) : 0;
-        $feedback = isset($trainee['feedback']) ? intval($trainee['feedback']) : 0;
-
-        $avarage = ($copMarks + $progressMarks + $gradeMarks + $htNotesMarks + $htClassMarks + $feedback) / 6;
-
         switch (true) {
             case ($avarage >= 90 && $avarage <= 100):
                 return "High Distinction";
@@ -95,7 +86,7 @@ class TraineersController
 
     function filterHighScorers($trainee)
     {
-        $level = $this->calculateTraineeAvarage($trainee);
+        $level = $this->TraineePerformanceLevelHandler($trainee['average']);
         return $level != "Failed" && $level != "Invalid score" ? true : false;
     }
 
@@ -122,19 +113,123 @@ class TraineersController
                         return Errors::badRequestError("School not found!, please try again?");
                     }
                     $result = $this->traineersModel->getGenratedReportTraineesBySchool($cohortId, $user_role_details['school_code']);
-                    return sizeof($result) > 0 ? $this->createPDFSample2($result) : Errors::badRequestError("Report not found!, please try again?");
+                    // calculate trainee's avarage
+                    $results = $this->calculateCombinedAverage($result);
+                    return sizeof($result) > 0 ? $this->createPDFSample2($results) : Errors::badRequestError("Report not found!, please try again?");
                 case '1':
                     $result = $this->traineersModel->getGenratedReportTraineesByUser($user_role_details['user_id'], $cohortId);
-                    return sizeof($result) > 0 ? $this->createPDFSample2($result) : Errors::badRequestError("Report not found!, please try again?");
+                    // calculate trainee's avarage
+                    $results = $this->calculateCombinedAverage($result);
+                    return sizeof($result) > 0 ? $this->createPDFSample2($results) : Errors::badRequestError("Report not found!, please try again?");
                 default:
                     $result = $this->traineersModel->getGenratedReportTrainees($cohortId);
-                    $filterTrainees = array_filter($result, array($this, 'filterHighScorers'));
+                    // calculate trainee's avarage
+                    $results = $this->calculateCombinedAverage($result);
+                    $filterTrainees = array_filter($results, array($this, 'filterHighScorers'));
                     if (sizeof($filterTrainees) > 0) {
                         return $this->createPDFSample2($filterTrainees);
                     } else {
                         return Errors::badRequestError("No trainees with high scores found!, please try again?");
                     }
             }
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
+        }
+    }
+
+    /**
+     * Calculates the combined average for each user based on their unit marks.
+     *
+     * @param array $data An array of objects, where each object has the following properties:
+     *   - `generalReportId`: (string) The unique identifier of the report.
+     *   - `traineeId`: (string) The unique identifier of the trainee in training.
+     *   - `userId`: (string) The unique identifier of the user.
+     *   - `traineeName`: (string) The name of the trainee.
+     *   - `traineePhone`: (string) The phone number of thrainee.
+     *   - `staff_code`: (string) The unique identifier of the teacher or staff.
+     *   - `cohortId`: (string) The unique identifier of cohorts.
+     *   - `moduleId`: (string) The unique identifier of module.
+     *   - `moduleName`: (string) The name of module.
+     *   - `unitId`: (string) The unique identifier of unit in module.
+     *   - `unitName`: (string) The name of unit.
+     *   - `copMarks`: (int) The marks of cop report.
+     *   - `progressMarks`: (int) The marks for teacher progress.
+     *   - `gradeMarks`: (int) The marks for grade.
+     *   - `feedback`: (int) The marks for teacher feedback.
+     *   - `htNotesMarks`: (int) The marks for teacher notes.
+     *   - `htClassMarks`: (int) The marks for teacher in class.
+     *   - `age`: (int) The age of trainee.
+     *   - `gender`: (string) The gender of trainee (FEMALE, MALE).
+     *   - `disability`: (boolean) The disability is true if have one.
+     *   - `district_code`: (string) The unique identifier of district.
+     *   - `district_name`: (string) The name of district.
+     *   - `sector_code`: (string) The unique identifier of sector.
+     *   - `sector_name`: (string) The name of sector.
+     *   - `school_code`: (string) The unique identifier of the school.
+     *   - `school_name`: (string) The name of the school.
+     *   - `trainingId`: (string) The unique identifier of training.
+     *   - `trainingName`: (string) The name of training.
+     *   - `cohortStart`: (Date) The starting date of cohorts.
+     *   - `cohortEnd`: (Date) The ending date of cohorts.
+     *
+     * @return array An array of objects, where each object has the following properties:
+     *   - `userId`: (string) The same `userId` as in the input data.
+     *   - `staff_code`: (string) The same `staff_code` as in the input data.
+     *   - `cohortId`: (string) The same `cohortId` as in the input data.
+     *   - `traineeName`: (string) The same `traineeName` as in the input data.
+     *   - `trainingName`: (string) The same `trainingName` as in the input data.
+     *   - `cohortStart`: (Date) The same `cohortStart` as in the input data.
+     *   - `cohortEnd`: (Date) The same `cohortEnd` as in the input data.
+     *   - `unit_marks`: (Object) The Sum of each unit marks.
+     *   - `average`: (float) The calculated combined average for the user.
+     */
+
+    public function calculateCombinedAverage(array $data): array
+    {
+        try {
+
+            // Initialize an array to store combined averages
+            $combinedAverages = [];
+
+            // Loop through each user in the data
+            foreach ($data as $row) {
+                $userId = $row["userId"];
+
+                // Check if user already has data in the combined averages array
+                if (!isset($combinedAverages[$userId])) {
+                    $combinedAverages[$userId] = [
+                        "unit_marks" => [],
+                        "userId" => $row["userId"],
+                        "staff_code" => $row["staff_code"],
+                        "cohortId" => $row["cohortId"],
+                        "traineeName" => $row["traineeName"],
+                        "cohortStart" => $row["cohortStart"],
+                        "cohortEnd" => $row["cohortEnd"],
+                        "trainingName" => $row["trainingName"],
+                    ];
+                }
+
+                // Store marks for the current unit
+                $combinedAverages[$userId]["unit_marks"][$row["unitId"]] = (int) $row["copMarks"] + (int) $row["progressMarks"] + (int) $row["gradeMarks"] + (int) $row["feedback"] + (int) $row["htNotesMarks"] + (int) $row["htClassMarks"];
+            }
+
+            // Calculate average for each unit for each user
+            foreach ($combinedAverages as $userId => &$userAvg) {
+                $numUnits = count($userAvg["unit_marks"]); // Get the number of units
+
+                // Initialize sum of averages
+                $averageSum = 0;
+
+                // Loop through each unit and add its average to the sum
+                foreach ($userAvg["unit_marks"] as $unit => $marks) {
+                    $averageSum += $marks / 6; // Calculate average for current unit and add
+                }
+
+                // Calculate final average by dividing sum by number of units
+                $userAvg["average"] = $averageSum / $numUnits;
+            }
+
+            return $combinedAverages;
         } catch (\Throwable $th) {
             return Errors::databaseError($th->getMessage());
         }
@@ -150,7 +245,14 @@ class TraineersController
             }
 
             $result = $this->traineersModel->getGenratedReportTraineesByStaff($staff_code, $cohortId);
-            return sizeof($result) > 0 ? $this->createPDFSample2($result) : Errors::badRequestError("Report not found!, please try again?");
+            // calculate trainee's avarage
+            $results = $this->calculateCombinedAverage($result);
+
+            if (sizeof($result) > 0) {
+                return $this->createPDFSample2($results);
+            }
+
+            return Errors::badRequestError("Report not found!, please try again?");
         } catch (\Throwable $th) {
             return Errors::databaseError($th->getMessage());
         }
@@ -188,9 +290,10 @@ class TraineersController
 
         // ---------------------------------------------------------
         $pdf->startPageGroup();
-        foreach ($trainees as $key => $value) {
+        foreach ($trainees as $key => &$value) {
             $staffCode = $value['staff_code'];
             $cohortId = $value['cohortId'];
+            $avarage = isset($value['average']) ? $value['average'] : 0;
             $pdf->AddPage();
 
             // Set the template file
@@ -213,7 +316,7 @@ class TraineersController
 
             // Complition
             $pdf->SetFont('Times', 'I', 25);
-            $complition = "a Certificate of Completion with \n" . $this->calculateTraineeAvarage($value);
+            $complition = "a Certificate of Completion with \n" . $this->TraineePerformanceLevelHandler($avarage);
             $pdf->MultiCell(190, 13, $complition, 0, 'C', false, 1, 10, 95);
 
             // Message
