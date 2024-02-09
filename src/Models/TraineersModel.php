@@ -109,7 +109,7 @@ class TraineersModel
             $statement = "SELECT GR.*, TR.trainingName, CH.cohortStart, CH.cohortEnd FROM `general_report` GR
             INNER JOIN trainings TR ON TR.trainingId = GR.trainingId
             INNER JOIN cohorts CH ON CH.cohortId = GR.cohortId
-            WHERE GR.`staff_code` = :staff_code AND GR.`cohortId` = :cohortId";
+            WHERE GR.`staff_code` = :staff_code AND GR.`cohortId` = :cohortId LIMIT 1";
 
             $statement = $this->db->prepare($statement);
             $statement->execute(array(":staff_code" => $staffCode, ":cohortId" => $cohortId));
