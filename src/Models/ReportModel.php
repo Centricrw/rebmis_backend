@@ -39,7 +39,7 @@ class ReportModel
 
     public function getGeneralReportPerTrainee($staff_code, $cohort_id)
     {
-        $statement = "SELECT * FROM general_report WHERE staff_code = :staff_code AND cohortId = :cohortId LIMIT 1";
+        $statement = "SELECT * FROM general_report WHERE staff_code = :staff_code AND cohortId = :cohortId";
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array(":staff_code" => $staff_code, ":cohortId" => $cohort_id));
