@@ -3,15 +3,18 @@ namespace Src\Controller;
 
 use Src\Models\TrainingsModel;
 use Src\Models\UserRoleModel;
+use Src\Models\UsersModel;
 use Src\System\AuthValidation;
 use Src\System\Errors;
 use Src\System\InvalidDataException;
+use Src\System\UuidGenerator;
 
 class trainingsController
 {
     private $db;
     private $trainingsModel;
     private $userRoleModel;
+    private $usersModel;
     private $request_method;
     private $params;
 
@@ -22,6 +25,7 @@ class trainingsController
         $this->params = $params;
         $this->trainingsModel = new TrainingsModel($db);
         $this->userRoleModel = new UserRoleModel($db);
+        $this->usersModel = new UsersModel($db);
     }
 
     function processRequest()
@@ -41,6 +45,8 @@ class trainingsController
                         $response = $this->getTrainingProvider();
                     } elseif ($this->params['action'] == "status") {
                         $response = $this->getTrainingsByStatusRebUser($this->params['id']);
+                    } elseif ($this->params['action'] == "providerusers") {
+                        $response = $this->getUsersForTrainingProvider($this->params['id']);
                     } elseif (isset($this->params['training_id']) && isset($this->params['cohort_id'])) {
                         $response = $this->getTrainingsTrainees($this->params['training_id'], $this->params['cohort_id']);
                     } else {
@@ -48,6 +54,8 @@ class trainingsController
                         print_r($this->params);
                         $response = Errors::notFoundError("Route not found!");
                     }
+                } else {
+                    $response = Errors::notFoundError("Route not found!");
                 }
                 break;
 
@@ -59,9 +67,24 @@ class trainingsController
                         $response = $this->ComfirmTainingsByReb($this->params['id']);
                     } elseif ($this->params['action'] == "provider") {
                         $response = $this->CreateTrainingProvider();
+                    } elseif ($this->params['action'] == "assignuserprovider") {
+                        $response = $this->assignUserTrainingProvider();
                     } else {
                         $response = Errors::notFoundError("Route not found!");
                     }
+                } else {
+                    $response = Errors::notFoundError("Route not found!");
+                }
+                break;
+            case "PUT":
+                if (sizeof($this->params) > 0) {
+                    if ($this->params['action'] == "updateuserprovider") {
+                        $response = $this->updateUserTrainingProvider();
+                    } else {
+                        $response = Errors::notFoundError("Route not found!");
+                    }
+                } else {
+                    $response = Errors::notFoundError("Route not found!");
                 }
                 break;
             default:
@@ -391,6 +414,129 @@ class trainingsController
         } catch (\Throwable $th) {
             return Errors::databaseError($th->getMessage());
         }
+    }
+
+    private function assignUserTrainingProvider()
+    {
+        try {
+            $user_id = AuthValidation::authorized()->id;
+            $data = (array) json_decode(file_get_contents('php://input'), true);
+
+            // validation
+            $validateTrainingInputData = self::validateNewUserTrainingProvider($data);
+            if (!$validateTrainingInputData['validated']) {
+                return Errors::unprocessableEntityResponse($validateTrainingInputData['message']);
+            }
+
+            // check if user have access role of training provider
+            $userHasActiveRole = $this->userRoleModel->findCurrentUserRole($data['user_id']);
+            if (count($userHasActiveRole) == 0 || $userHasActiveRole[0]['role_id'] != "26") {
+                return Errors::badRequestError("User has no role of training provider!, please try again?");
+            }
+
+            // checking if usealredy exists
+            $userExists = $this->trainingsModel->selectTrainingProviderUserDetails($data['user_id']);
+            if (count($userExists) > 0) {
+                return Errors::existError("User already has training provider!, please try again?");
+            }
+
+            // assign user to training provider
+            // Generate user_to_trainingprovider_id
+            $user_to_trainingprovider_id = UuidGenerator::gUuid();
+            $data['user_to_trainingprovider_id'] = $user_to_trainingprovider_id;
+            $results = $this->trainingsModel->createNewTrainingProviderUser($data, $user_id);
+
+            $response['status_code_header'] = 'HTTP/1.1 201 Created';
+            $response['body'] = json_encode($results);
+            return $response;
+
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
+        }
+    }
+
+    private function updateUserTrainingProvider()
+    {
+        try {
+            $user_id = AuthValidation::authorized()->id;
+            $data = (array) json_decode(file_get_contents('php://input'), true);
+
+            // validation
+            $validateTrainingInputData = self::validateNewUserTrainingProvider($data);
+            if (!$validateTrainingInputData['validated']) {
+                return Errors::unprocessableEntityResponse($validateTrainingInputData['message']);
+            }
+
+            // checking user_to_trainingprovider_id exists
+            $userTrainingprovider = isset($data['user_to_trainingprovider_id']) ? $this->trainingsModel->selectOneTrainingProviderUser($data['user_to_trainingprovider_id']) : [];
+            if (count($userTrainingprovider) == 0) {
+                return Errors::notFoundError("user_to_trainingprovider_id not found!, please try again?");
+            }
+
+            // checking if usealredy exists
+            $userExists = $this->trainingsModel->selectTrainingProviderUserDetails($data['user_id']);
+            if (count($userExists) > 0 && $data['user_id'] != $userExists[0]['user_id']) {
+                return Errors::existError("User already has training provider!, please try again?");
+            }
+
+            // update user to training provider
+            $results = $this->trainingsModel->updateTrainingProviderUser($data, $user_id);
+
+            $response['status_code_header'] = 'HTTP/1.1 201 Created';
+            $response['body'] = json_encode($results);
+            return $response;
+
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
+        }
+    }
+
+    private function getUsersForTrainingProvider($trainingprovider_id)
+    {
+        try {
+            $user_id = AuthValidation::authorized()->id;
+
+            // update user to training provider
+            $results = $this->trainingsModel->selectTrainingProviderUsers($trainingprovider_id);
+
+            $response['status_code_header'] = 'HTTP/1.1 200 OK';
+            $response['body'] = json_encode($results);
+            return $response;
+
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
+        }
+    }
+
+    private function validateNewUserTrainingProvider($input)
+    {
+        if (!isset($input['user_id']) || empty($input['user_id'])) {
+            return ["validated" => false, "message" => "user_id is not provided!"];
+        }
+        if (isset($input['user_id'])) {
+            // checking if user_id exists
+            $userExists = $this->usersModel->findOneUser($input['user_id']);
+            if (count($userExists) == 0) {
+                return ["validated" => false, "message" => "Invalid user_id !, please tray again?"];
+            }
+        }
+
+        if (!isset($input['training_provider_id']) || empty($input['training_provider_id'])) {
+            return ["validated" => false, "message" => "training_provider_id is not provided!"];
+        }
+        if (isset($input['training_provider_id'])) {
+            // checking if training_provider_id exists
+            $trainingProviderExists = $this->trainingsModel->findOneTrainingProvider($input['training_provider_id']);
+            if (count($trainingProviderExists) == 0) {
+                return ["validated" => false, "message" => "Invalid training_provider_id! , please tray again?"];
+            }
+        }
+
+        if (!isset($input['status']) || !in_array($input['status'], ["0", "1"])) {
+            return ["validated" => false, "message" => "status is not provided!"];
+        }
+
+        return ["validated" => true, "message" => "OK"];
     }
 
     private function validateNewTraining($input)
