@@ -369,6 +369,12 @@ class AuthController
                 } else {
                     $rlt->school = null;
                 }
+                if ($user_role[0]['role_id'] == "26") {
+                    $trainingProvider = $this->trainingsModel->selectTrainingProviderUserDetails($user_role[0]['user_id']);
+                    $rlt->trainingProvider = count($trainingProvider) > 0 ? $trainingProvider[0] : null;
+                } else {
+                    $rlt->trainingProvider = null;
+                }
                 if ($user_role[0]['stakeholder_id'] != null) {
                     $stakeholder = $this->stakeholdersModel->findByCode($user_role[0]['stakeholder_id']);
                     $rlt->stakeholder = $stakeholder[0];
