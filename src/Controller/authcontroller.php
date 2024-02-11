@@ -8,6 +8,7 @@ use Src\Models\SchoolLocationsModel;
 use Src\Models\SchoolsModel;
 use Src\Models\SectorsModel;
 use Src\Models\StakeholdersModel;
+use Src\Models\TrainingsModel;
 use Src\Models\UserRoleModel;
 use Src\Models\UsersModel;
 use Src\System\AuthValidation;
@@ -28,6 +29,7 @@ class AuthController
     private $schoolsModel;
     private $sectorsModel;
     private $stakeholdersModel;
+    private $trainingsModel;
     private $request_method;
     private $params;
     private $cohortconditionModel;
@@ -46,6 +48,7 @@ class AuthController
         $this->sectorsModel = new SectorsModel($db);
         $this->stakeholdersModel = new StakeholdersModel($db);
         $this->cohortconditionModel = new CohortconditionModel($db);
+        $this->trainingsModel = new TrainingsModel($db);
     }
 
     function processRequest()
@@ -463,6 +466,12 @@ class AuthController
                 $rlt->school = $school[0];
             } else {
                 $rlt->school = null;
+            }
+            if ($user_role[0]['role_id'] !== "26") {
+                $trainingProvider = $this->trainingsModel->selectTrainingProviderUserDetails($user_role[0]['user_id']);
+                $rlt->trainingProvider = $trainingProvider[0];
+            } else {
+                $rlt->trainingProvider = null;
             }
             if ($user_role[0]['stakeholder_id'] != null) {
                 $stakeholder = $this->stakeholdersModel->findByCode($user_role[0]['stakeholder_id']);
