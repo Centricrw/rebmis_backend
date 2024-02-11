@@ -191,6 +191,100 @@ class TrainingsModel
         }
     }
 
+    public function createNewTrainingProviderUser($data, $doneBY)
+    {
+        $statement = "INSERT INTO `user_to_trainingprovider`(`user_to_trainingprovider_id`, `user_id`, `training_provider_id`, `status`, `created_by`) VALUES (:user_to_trainingprovider_id, :user_id, :training_provider_id, :status, :created_by)";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
+                ':user_to_trainingprovider_id' => $data['user_to_trainingprovider_id'],
+                ':user_id' => $data['user_id'],
+                ':training_provider_id' => $data['training_provider_id'],
+                ':status' => $data['status'],
+                ':created_by' => $doneBY,
+            ));
+
+            return $data;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    public function updateTrainingProviderUser($data, $doneBY)
+    {
+
+        $statement = "UPDATE `user_to_trainingprovider` SET `user_id`= :user_id,`training_provider_id`= :training_provider_id,`status`= :status, `updated_by`= :updated_by WHERE `user_to_trainingprovider_id`= :user_to_trainingprovider_id ";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
+                ':user_id' => $data['user_id'],
+                ':training_provider_id' => $data['training_provider_id'],
+                ':status' => $data['status'],
+                ':updated_by' => $doneBY,
+                ':user_to_trainingprovider_id' => $data['user_to_trainingprovider_id'],
+            ));
+
+            return $data;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    public function selectTrainingProviderUsers($training_provider_id)
+    {
+
+        $statement = "SELECT U.* FROM `user_to_trainingprovider` UTP
+        INNER JOIN users U ON UTP.user_id = U.user_id
+        WHERE UTP.`training_provider_id`= :training_provider_id ";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
+                ':training_provider_id' => $training_provider_id,
+            ));
+
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $result;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    public function selectTrainingProviderUserDetails($user_id)
+    {
+
+        $statement = "SELECT TP.*, UTP.user_to_trainingprovider_id, UTP.status FROM `user_to_trainingprovider` UTP
+        INNER JOIN trainingProviders TP ON TP.trainingProviderId = UTP.training_provider_id
+        WHERE UTP.`user_id`= :user_id ";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
+                ':user_id' => $user_id,
+            ));
+
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $result;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    public function selectOneTrainingProviderUser($user_to_trainingprovider_id)
+    {
+        $statement = "SELECT * FROM `user_to_trainingprovider`
+        WHERE `user_to_trainingprovider_id`= :user_to_trainingprovider_id ";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
+                ':user_to_trainingprovider_id' => $user_to_trainingprovider_id,
+            ));
+
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $result;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
     public function ProviderExists($data)
     {
         $sql = "SELECT * FROM trainingProviders WHERE trainingProviderName = :trainingProviderName OR email = :email OR phone_number = :phone_number LIMIT 1";
@@ -200,6 +294,22 @@ class TrainingsModel
                 ':trainingProviderName' => $data['trainingProviderName'],
                 ':phone_number' => $data['phone_number'],
                 ':email' => $data['email'],
+            ));
+
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $result;
+        } catch (\PDOException $e) {
+            exit($e->getMessage());
+        }
+    }
+
+    public function findOneTrainingProvider($trainingProviderId)
+    {
+        $sql = "SELECT * FROM trainingProviders WHERE trainingProviderId = :trainingProviderId LIMIT 1";
+        try {
+            $statement = $this->db->prepare($sql);
+            $statement->execute(array(
+                ':trainingProviderId' => $trainingProviderId,
             ));
 
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
