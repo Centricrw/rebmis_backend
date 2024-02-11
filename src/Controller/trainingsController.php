@@ -428,6 +428,12 @@ class trainingsController
                 return Errors::unprocessableEntityResponse($validateTrainingInputData['message']);
             }
 
+            // check if user have access role of training provider
+            $userHasActiveRole = $this->userRoleModel->findCurrentUserRole($data['user_id']);
+            if (count($userHasActiveRole) == 0 || $userHasActiveRole[0]['role_id'] != "26") {
+                return Errors::badRequestError("User has no role of training provider!, please try again?");
+            }
+
             // checking if usealredy exists
             $userExists = $this->trainingsModel->selectTrainingProviderUserDetails($data['user_id']);
             if (count($userExists) > 0) {

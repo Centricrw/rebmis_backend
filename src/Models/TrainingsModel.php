@@ -252,7 +252,7 @@ class TrainingsModel
     public function selectTrainingProviderUserDetails($user_id)
     {
 
-        $statement = "SELECT TP.*, UTP.user_to_trainingprovider_id, UTP.status FROM `user_to_trainingprovider` UTP
+        $statement = "SELECT TP.*, UTP.user_to_trainingprovider_id, UTP.user_id, UTP.status FROM `user_to_trainingprovider` UTP
         INNER JOIN trainingProviders TP ON TP.trainingProviderId = UTP.training_provider_id
         WHERE UTP.`user_id`= :user_id ";
         try {
