@@ -243,7 +243,13 @@ class TrainingsModel
             ));
 
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
-            return $result;
+            $removeUnwantedKeys = function ($object) {
+                unset($object["username"]);
+                unset($object["password"]);
+                return $object;
+            };
+            $resultsDetails = array_map($removeUnwantedKeys, $result);
+            return $resultsDetails;
         } catch (\PDOException $e) {
             throw new Error($e->getMessage());
         }
