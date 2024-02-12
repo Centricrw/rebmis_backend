@@ -377,7 +377,7 @@ class AuthController
                 }
                 if ($user_role[0]['stakeholder_id'] != null) {
                     $stakeholder = $this->stakeholdersModel->findByCode($user_role[0]['stakeholder_id']);
-                    $rlt->stakeholder = $stakeholder[0];
+                    $rlt->stakeholder = count($stakeholder) > 0 ? $stakeholder[0] : null;
                 } else {
                     $rlt->stakeholder = null;
                 }
@@ -481,7 +481,7 @@ class AuthController
             }
             if ($user_role[0]['stakeholder_id'] != null) {
                 $stakeholder = $this->stakeholdersModel->findByCode($user_role[0]['stakeholder_id']);
-                $rlt->stakeholder = $stakeholder[0];
+                $rlt->stakeholder = count($stakeholder) > 0 ? $stakeholder[0] : null;
             } else {
                 $rlt->stakeholder = null;
             }
