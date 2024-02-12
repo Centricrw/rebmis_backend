@@ -103,6 +103,7 @@ class trainingsController
         $logged_user_id = AuthValidation::authorized()->id;
         try {
             $current_user_role = $this->userRoleModel->findCurrentUserRole($logged_user_id);
+            $userDistrictCode = "";
             if (sizeof($current_user_role) > 0) {
                 $userRole = $current_user_role[0]['role_id'];
                 $userSchoolCode = $current_user_role[0]['school_code'];
