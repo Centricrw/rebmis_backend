@@ -1,6 +1,7 @@
 <?php
 namespace Src\Controller;
 
+use Src\Models\TraineersModel;
 use Src\Models\TrainingsModel;
 use Src\Models\UserRoleModel;
 use Src\Models\UsersModel;
@@ -13,6 +14,7 @@ class trainingsController
 {
     private $db;
     private $trainingsModel;
+    private $traineersModel;
     private $userRoleModel;
     private $usersModel;
     private $request_method;
@@ -24,6 +26,7 @@ class trainingsController
         $this->request_method = $request_method;
         $this->params = $params;
         $this->trainingsModel = new TrainingsModel($db);
+        $this->traineersModel = new TraineersModel($db);
         $this->userRoleModel = new UserRoleModel($db);
         $this->usersModel = new UsersModel($db);
     }
@@ -97,25 +100,113 @@ class trainingsController
         }
     }
 
+    function countTraineesHandler()
+    {
+
+    }
+
     private function getAllTranings()
     {
         // geting authorized user id
         $logged_user_id = AuthValidation::authorized()->id;
         try {
             $current_user_role = $this->userRoleModel->findCurrentUserRole($logged_user_id);
-            $userDistrictCode = "";
-            if (sizeof($current_user_role) > 0) {
-                $userRole = $current_user_role[0]['role_id'];
-                $userSchoolCode = $current_user_role[0]['school_code'];
-                $userSectorCode = $current_user_role[0]['sector_code'];
-                $userDistrictCode = $current_user_role[0]['district_code'];
+            if (sizeof($current_user_role) == 0) {
+                return Errors::badRequestError("No current role found!, please try again?");
             }
 
-            $result = $this->trainingsModel->getAllTranings($userDistrictCode);
-
-            $response['status_code_header'] = 'HTTP/1.1 200 OK';
-            $response['body'] = json_encode($result);
-            return $response;
+            $user_role_details = $current_user_role[0];
+            $role = $user_role_details['role_id'];
+            switch ($role) {
+                case '1':
+                    // Class teacher
+                    $trainingResults = $this->trainingsModel->getAllTranings($user_role_details, "class");
+                    foreach ($trainingResults as $key => $value) {
+                        $numberOfTrainees = $this->traineersModel->countTrainees($value['trainingId'], $user_role_details['school_code'], "School");
+                        $trainingResults[$key]["trainees"] = $numberOfTrainees[0]['numberOfTrainees'];
+                    }
+                    $response['status_code_header'] = 'HTTP/1.1 200 OK';
+                    $response['body'] = json_encode($trainingResults);
+                    return $response;
+                case '2':
+                    // Head Teacher
+                    if (!isset($user_role_details['school_code'])) {
+                        return Errors::badRequestError("School not found!, please try again?");
+                    }
+                    $trainingResults = $this->trainingsModel->getAllTranings($user_role_details, "School");
+                    foreach ($trainingResults as $key => $value) {
+                        $numberOfTrainees = $this->traineersModel->countTrainees($value['trainingId'], $user_role_details['school_code'], "School");
+                        $trainingResults[$key]["trainees"] = $numberOfTrainees[0]['numberOfTrainees'];
+                    }
+                    $response['status_code_header'] = 'HTTP/1.1 200 OK';
+                    $response['body'] = json_encode($trainingResults);
+                    return $response;
+                case '3':
+                    // DDE
+                    $trainingResults = $this->trainingsModel->getAllTranings($user_role_details, "District");
+                    foreach ($trainingResults as $key => $value) {
+                        $numberOfTrainees = $this->traineersModel->countTrainees($value['trainingId'], $user_role_details['district_code'], "District");
+                        $trainingResults[$key]["trainees"] = $numberOfTrainees[0]['numberOfTrainees'];
+                    }
+                    $response['status_code_header'] = 'HTTP/1.1 200 OK';
+                    $response['body'] = json_encode($trainingResults);
+                    return $response;
+                case '4':
+                    // REB
+                    $trainingResults = $this->trainingsModel->getAllTranings($user_role_details);
+                    foreach ($trainingResults as $key => $value) {
+                        $numberOfTrainees = $this->traineersModel->countTrainees($value['trainingId']);
+                        $trainingResults[$key]["trainees"] = $numberOfTrainees[0]['numberOfTrainees'];
+                    }
+                    $response['status_code_header'] = 'HTTP/1.1 200 OK';
+                    $response['body'] = json_encode($trainingResults);
+                    return $response;
+                case '7':
+                    // DOS
+                    $trainingResults = $this->trainingsModel->getAllTranings($user_role_details, "District");
+                    foreach ($trainingResults as $key => $value) {
+                        $numberOfTrainees = $this->traineersModel->countTrainees($value['trainingId'], $user_role_details['district_code'], "District");
+                        $trainingResults[$key]["trainees"] = $numberOfTrainees[0]['numberOfTrainees'];
+                    }
+                    $response['status_code_header'] = 'HTTP/1.1 200 OK';
+                    $response['body'] = json_encode($trainingResults);
+                    return $response;
+                case '18':
+                    // SEO
+                    $trainingResults = $this->trainingsModel->getAllTranings($user_role_details, "Sector");
+                    foreach ($trainingResults as $key => $value) {
+                        $numberOfTrainees = $this->traineersModel->countTrainees($value['trainingId'], $user_role_details['sector_code'], "Sector");
+                        $trainingResults[$key]["trainees"] = $numberOfTrainees[0]['numberOfTrainees'];
+                    }
+                    $response['status_code_header'] = 'HTTP/1.1 200 OK';
+                    $response['body'] = json_encode($trainingResults);
+                    return $response;
+                case '26':
+                    // TRAINING PROVIDER
+                    $trainingResults = $this->trainingsModel->getAllTranings($user_role_details, "TRAINING PROVIDER");
+                    foreach ($trainingResults as $key => $value) {
+                        $numberOfTrainees = $this->traineersModel->countTrainees($value['trainingId']);
+                        $trainingResults[$key]["trainees"] = $numberOfTrainees[0]['numberOfTrainees'];
+                    }
+                    $response['status_code_header'] = 'HTTP/1.1 200 OK';
+                    $response['body'] = json_encode($trainingResults);
+                    return $response;
+                case '27':
+                    // Trainer
+                    $trainingResults = $this->trainingsModel->getAllTranings($user_role_details, "Trainer");
+                    foreach ($trainingResults as $key => $value) {
+                        $numberOfTrainees = $this->traineersModel->countTrainees($value['trainingId']);
+                        $trainingResults[$key]["trainees"] = $numberOfTrainees[0]['numberOfTrainees'];
+                    }
+                    $response['status_code_header'] = 'HTTP/1.1 200 OK';
+                    $response['body'] = json_encode($trainingResults);
+                    return $response;
+                default:
+                    $trainingResults = [];
+                    $response['status_code_header'] = 'HTTP/1.1 200 OK';
+                    $response['body'] = json_encode($trainingResults);
+                    return $response;
+            }
         } catch (\Throwable $th) {
             return Errors::databaseError($th->getMessage());
         }
