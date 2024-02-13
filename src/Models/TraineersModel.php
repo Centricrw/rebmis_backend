@@ -13,11 +13,6 @@ class TraineersModel
         $this->db = $db;
     }
 
-    // role_id
-    // school_code
-    // sector_code
-    // district_code
-
     public function getTrainees($cohortId, $user_role_details)
     {
         $condition = "";
@@ -69,6 +64,112 @@ class TraineersModel
             return $teachers;
         } catch (\PDOException $e) {
             throw new Error($e->getMessage());
+        }
+    }
+
+    public function getGenratedReportTraineesBySchool($cohortId, $school)
+    {
+        try {
+            $statement = "SELECT GR.*, TR.trainingName, CH.cohortStart, CH.cohortEnd FROM `general_report` GR
+            INNER JOIN trainings TR ON TR.trainingId = GR.trainingId
+            INNER JOIN cohorts CH ON CH.cohortId = GR.cohortId
+            WHERE GR.`cohortId` = :cohortId AND GR.`school_code` = :school_code";
+
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(":cohortId" => $cohortId, ":school_code" => $school));
+
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $result;
+        } catch (\Throwable $th) {
+            throw new Error($th->getMessage());
+        }
+    }
+
+    public function getGenratedReportTraineesByUser($userId, $cohortId)
+    {
+        try {
+            $statement = "SELECT GR.*, TR.trainingName, CH.cohortStart, CH.cohortEnd FROM `general_report` GR
+            INNER JOIN trainings TR ON TR.trainingId = GR.trainingId
+            INNER JOIN cohorts CH ON CH.cohortId = GR.cohortId
+            WHERE GR.`userId` = :userId AND GR.`cohortId` = :cohortId";
+
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(":userId" => $userId, ":cohortId" => $cohortId));
+
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $result;
+        } catch (\Throwable $th) {
+            throw new Error($th->getMessage());
+        }
+    }
+
+    public function getGenratedReportTraineesByStaff($staffCode, $cohortId)
+    {
+        try {
+            $statement = "SELECT GR.*, TR.trainingName, CH.cohortStart, CH.cohortEnd FROM `general_report` GR
+            INNER JOIN trainings TR ON TR.trainingId = GR.trainingId
+            INNER JOIN cohorts CH ON CH.cohortId = GR.cohortId
+            WHERE GR.`staff_code` = :staff_code AND GR.`cohortId` = :cohortId";
+
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(":staff_code" => $staffCode, ":cohortId" => $cohortId));
+
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $result;
+        } catch (\Throwable $th) {
+            throw new Error($th->getMessage());
+        }
+    }
+
+    public function getGenratedReportTrainees($cohortId)
+    {
+        try {
+            $statement = "SELECT GR.*, TR.trainingName, CH.cohortStart, CH.cohortEnd FROM `general_report` GR
+            INNER JOIN trainings TR ON TR.trainingId = GR.trainingId
+            INNER JOIN cohorts CH ON CH.cohortId = GR.cohortId
+            WHERE GR.`cohortId` = :cohortId";
+
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(":cohortId" => $cohortId));
+
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $result;
+        } catch (\Throwable $th) {
+            throw new Error($th->getMessage());
+        }
+    }
+
+    public function countTrainees($trainingId, $location_code = "", $userType = "")
+    {
+        try {
+            switch ($userType) {
+                case 'School':
+                    $statement = "SELECT COUNT(traineesId) AS numberOfTrainees FROM trainees WHERE school_code = :school_code AND trainingId = :trainingId";
+                    $statement = $this->db->prepare($statement);
+                    $statement->execute(array(":trainingId" => $trainingId, ":school_code" => $location_code));
+                    $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+                    return $result;
+                case 'Sector':
+                    $statement = "SELECT COUNT(traineesId) AS numberOfTrainees  FROM trainees WHERE sector_code = :sector_code AND trainingId = :trainingId";
+                    $statement = $this->db->prepare($statement);
+                    $statement->execute(array(":trainingId" => $trainingId, ":sector_code" => $location_code));
+                    $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+                    return $result;
+                case 'District':
+                    $statement = "SELECT COUNT(traineesId) AS numberOfTrainees  FROM trainees WHERE district_code = :district_code AND trainingId = :trainingId";
+                    $statement = $this->db->prepare($statement);
+                    $statement->execute(array(":trainingId" => $trainingId, ":district_code" => $location_code));
+                    $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+                    return $result;
+                default:
+                    $statement = "SELECT COUNT(traineesId) AS numberOfTrainees  FROM trainees WHERE trainingId = :trainingId";
+                    $statement = $this->db->prepare($statement);
+                    $statement->execute(array(":trainingId" => $trainingId));
+                    $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+                    return $result;
+            }
+        } catch (\Throwable $th) {
+            throw new Error($th->getMessage());
         }
     }
 

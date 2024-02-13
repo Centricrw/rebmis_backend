@@ -157,10 +157,13 @@ $route->router("/notification/{type}/{action}/{message_id}", "src/Controller/not
 // GENERAL REPORT
 $route->router("/generalreport/{action}", "src/Controller/reportController.php");
 $route->router("/generalreport/{action}/{id}", "src/Controller/reportController.php");
+$route->router("/generalreport/{action}/{id}/{cohort_id}", "src/Controller/reportController.php");
 
 // TRAINEERS
 $route->router("/traineers", "src/Controller/traineersController.php");
 $route->router("/traineers/{action}", "src/Controller/traineersController.php");
+$route->router("/traineers/{action}/{user_id}", "src/Controller/traineersController.php");
+$route->router("/traineers/{action}/{user_id}/{cohort_id}", "src/Controller/traineersController.php");
 
 //write it at the last
 //arg is 404 file location
