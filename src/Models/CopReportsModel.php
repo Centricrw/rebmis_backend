@@ -238,13 +238,15 @@ class CopReportsModel
                 ':meeting_supervisor_occupation' => $data['meeting_supervisor_occupation'],
                 ':created_by' => $data['created_by'],
             ));
-            $unitId = $data['cop_report_details_id'];
+            // THIS WAS USED TO MARK A TRAINEE WHO ATTENDED THE COP MEETING BUT IT IS NO LONGER NEEDED FOR NOW
+            /*$unitId = $data['cop_report_details_id'];
             $keepNothing = 0;
             foreach ($data['meeting_attendance'] as $teacher) {
                 if($this->markAttendenceOfCopOnTheReport($teacher['traineesId'], $unitId, $data['cohortsId'])){
                     $keepNothing++;
                 }
-            }
+            }*/
+            // WE KEEP IT TO BE USED LATER
            
             return $data;
         } catch (\PDOException $e) {
