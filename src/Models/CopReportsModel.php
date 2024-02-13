@@ -124,14 +124,14 @@ class CopReportsModel
         }
     }
 
-    private function generateReport($moduleId, $unitId, $cohortId, $trainingId){
+    private function generateReport($moduleId, $chapterId, $cohortId, $trainingId){
 
         $statement = "INSERT INTO general_report (
         traineeId, traineeName, traineePhone, staff_code,
         district_code, sector_code, school_code, 
         district_name, sector_name, school_name, 
         age, gender, disability,
-        moduleId, unitId, moduleName, unitName,
+        moduleId, chapterId, moduleName, chapterName,
         cohortId, trainingId, userId)
         SELECT 
         TR.traineesId, TR.traineeName, TR.traineePhone, (SELECT staff_code FROM users U WHERE U.user_id = TR.userId) staff_code,
@@ -142,9 +142,9 @@ class CopReportsModel
         (SELECT DATE_FORMAT(FROM_DAYS(DATEDIFF(NOW(), U.dob)), '%Y') + 0 AS age FROM users U WHERE U.user_id = TR.userId) age,
         (SELECT sex FROM users U WHERE U.user_id = TR.userId) gender,
         (SELECT disability FROM users U WHERE U.user_id = TR.userId) disability,
-        '".$moduleId."', '".$unitId."', 
+        '".$moduleId."', '".$chapterId."', 
         (SELECT cop_report_title FROM cop_report WHERE cop_report_id = '".$moduleId."') moduleName,
-        (SELECT cop_report_details_title FROM cop_report_details WHERE cop_report_details_id = '".$unitId."') unitName,
+        (SELECT cop_report_details_title FROM cop_report_details WHERE cop_report_details_id = '".$chapterId."') chapterName,
         '".$cohortId."', '".$trainingId."', TR.userId
         FROM trainees TR
         WHERE TR.cohortId = '".$cohortId."'";
@@ -239,10 +239,10 @@ class CopReportsModel
                 ':created_by' => $data['created_by'],
             ));
             // THIS WAS USED TO MARK A TRAINEE WHO ATTENDED THE COP MEETING BUT IT IS NO LONGER NEEDED FOR NOW
-            /*$unitId = $data['cop_report_details_id'];
+            /*$chapterId = $data['cop_report_details_id'];
             $keepNothing = 0;
             foreach ($data['meeting_attendance'] as $teacher) {
-                if($this->markAttendenceOfCopOnTheReport($teacher['traineesId'], $unitId, $data['cohortsId'])){
+                if($this->markAttendenceOfCopOnTheReport($teacher['traineesId'], $chapterId, $data['cohortsId'])){
                     $keepNothing++;
                 }
             }*/
@@ -254,16 +254,16 @@ class CopReportsModel
         }
     }
 
-    private function markAttendenceOfCopOnTheReport($traineesId, $unitId, $cohortId)
+    private function markAttendenceOfCopOnTheReport($traineesId, $chapterId, $cohortId)
     {
         //UPDATE general
-        $updatedQuery = "UPDATE general_report SET copMarks= :copMarks WHERE traineeId = :traineeId AND unitId = :unitId AND cohortId = :cohortId";
+        $updatedQuery = "UPDATE general_report SET copMarks= :copMarks WHERE traineeId = :traineeId AND chapterId = :chapterId AND cohortId = :cohortId";
         try {
             $statement = $this->db->prepare($updatedQuery);
             $statement->execute(array(
                 ':copMarks'     => '100',
                 ':traineeId'    => $traineesId,
-                ':unitId'       => $unitId,
+                ':chapterId'       => $chapterId,
                 ':cohortId'     => $cohortId
             ));
             $result = $statement->rowCount();

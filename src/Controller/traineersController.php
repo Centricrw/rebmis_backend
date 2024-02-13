@@ -150,14 +150,14 @@ class TraineersController
      *   - `cohortId`: (string) The unique identifier of cohorts.
      *   - `moduleId`: (string) The unique identifier of module.
      *   - `moduleName`: (string) The name of module.
-     *   - `unitId`: (string) The unique identifier of unit in module.
-     *   - `unitName`: (string) The name of unit.
+     *   - `chapterId`: (string) The unique identifier of unit in module.
+     *   - `chapterName`: (string) The name of unit.
      *   - `copMarks`: (int) The marks of cop report.
-     *   - `progressMarks`: (int) The marks for teacher progress.
-     *   - `gradeMarks`: (int) The marks for grade.
-     *   - `feedback`: (int) The marks for teacher feedback.
-     *   - `htNotesMarks`: (int) The marks for teacher notes.
-     *   - `htClassMarks`: (int) The marks for teacher in class.
+     *   - `courseNavigation`: (int) The marks for teacher progress.
+     *   - `endOfChapter`: (int) The marks for grade.
+     *   - `selfAssesment`: (int) The marks for teacher selfAssesment.
+     *   - `reflectionNotes`: (int) The marks for teacher notes.
+     *   - `classroomApplication`: (int) The marks for teacher in class.
      *   - `age`: (int) The age of trainee.
      *   - `gender`: (string) The gender of trainee (FEMALE, MALE).
      *   - `disability`: (boolean) The disability is true if have one.
@@ -210,7 +210,7 @@ class TraineersController
                 }
 
                 // Store marks for the current unit
-                $combinedAverages[$userId]["unit_marks"][$row["unitId"]] = (int) $row["copMarks"] + (int) $row["progressMarks"] + (int) $row["gradeMarks"] + (int) $row["feedback"] + (int) $row["htNotesMarks"] + (int) $row["htClassMarks"];
+                $combinedAverages[$userId]["unit_marks"][$row["chapterId"]] = (int) $row["copMarks"] + (int) $row["courseNavigation"] + (int) $row["endOfChapter"] + (int) $row["selfAssesment"] + (int) $row["reflectionNotes"] + (int) $row["classroomApplication"];
             }
 
             // Calculate average for each unit for each user
