@@ -69,13 +69,13 @@ class ReportModel
     public function markTheTrainee($data)
     {
         $markType = $data['markType'];
-        $statement = "UPDATE general_report SET $markType = :marks WHERE userId = :userId AND unitId = :unitId AND cohortId = :cohortId";
+        $statement = "UPDATE general_report SET $markType = :marks WHERE userId = :userId AND chapterId = :chapterId AND cohortId = :cohortId";
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array(
                 ":userId" => $data['userId'],
                 ":cohortId" => $data['cohortId'],
-                ":unitId" => $data['unitId'],
+                ":chapterId" => $data['chapterId'],
                 ":marks" => $data['marks'],
             ));
             return $statement->rowCount();
@@ -87,15 +87,15 @@ class ReportModel
     public function headTeacherTraineeMarking($data)
     {
         $markType = $data['markType'];
-        $statement = "UPDATE `general_report` SET `htNotesMarks` = :htNotesMarks, `htClassMarks` = :htClassMarks WHERE userId = :userId AND unitId = :unitId AND cohortId = :cohortId";
+        $statement = "UPDATE `general_report` SET `reflectionNotes` = :reflectionNotes, `classroomApplication` = :classroomApplication WHERE userId = :userId AND chapterId = :chapterId AND cohortId = :cohortId";
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array(
                 ":userId" => $data['userId'],
-                ":unitId" => $data['unitId'],
+                ":chapterId" => $data['chapterId'],
                 ":cohortId" => $data['cohortId'],
-                ":htNotesMarks" => $data['htNotesMarks'],
-                ":htClassMarks" => $data['htClassMarks'],
+                ":reflectionNotes" => $data['reflectionNotes'],
+                ":classroomApplication" => $data['classroomApplication'],
             ));
             return $statement->rowCount();
         } catch (\PDOException $e) {
