@@ -304,7 +304,7 @@ class TraineersController
         $timestamp = strtotime($dateString);
 
         // format date
-        $formattedDate = date("F jS Y", $timestamp);
+        $formattedDate = date("F Y", $timestamp);
 
         return $formattedDate;
     }
@@ -377,27 +377,28 @@ class TraineersController
 
             // Director names
             $pdf->SetFont('Times', 'B', 12);
-            $pdf->SetXY(10, 150);
-            $pdf->Ln();
-
+            $pdf->SetXY(20, 160);
             // Define data for the table
             $data = array(
-                array('Dr. Nelson Mbarushimana', 'Dr. Aliou Tall', 'Mr. Rabieh Razzouk'),
-                array('Director General for Rwanda', 'Director, Education Office', 'Director, Learning Systems Institute'),
+                array('Dr. Nelson Mbarushimana', 'Dr. Aliou Tall', 'Dr. Vincent Mutembeya Mugisha'),
+                array('Director General', 'Education Office Director', 'USAID Tunoze Gusoma Chief of Party'),
+                array('Rwanda Basic Education Board', 'USAID/Rwanda', 'and FHI360 Country Director'),
             );
 
             // Set width for each column
             $columnWidths = array(70, 70, 70);
 
             // Loop through the data and add rows and columns
+            $absolute_y = 170;
             foreach ($data as $row) {
                 foreach ($row as $key => $value) {
                     // Add cell with content
-                    $pdf->Cell($columnWidths[$key], 5, $value, 0, 0, 'C');
+                    $pdf->Cell($columnWidths[$key], 5, $value, 0, 0, 'L');
                 }
-                $pdf->SetFont('Times', 'I', 10);
+                $pdf->SetFont('Times', '', 10);
+                $pdf->SetXY(20, $absolute_y);
+                $absolute_y += 5;
                 // Move to the next line
-                $pdf->Ln();
             }
 
             // BarCode
@@ -417,12 +418,12 @@ class TraineersController
             $localhostUrl = "http://" . $host . "/trainee/certificate/verify/" . $staffCode . "/" . $cohortId;
             $productionUrl = "https://elearning.reb.rw/rebmis/trainee/certificate/verify/" . $staffCode . "/" . $cohortId;
             $url = $pos === false ? $productionUrl : $localhostUrl;
-            $pdf->write2DBarcode($url, 'QRCODE,Q', 240, 150, 30, 30, $style, 'R');
+            $pdf->write2DBarcode($url, 'QRCODE,Q', 240, 160, 30, 30, $style, 'R');
 
             // Warning
-            $pdf->SetXY(10, 195);
-            $pdf->SetFont('Times', 'I', 10);
-            $warning = "Note: This certificate is valid upon presentation of a detailed transcript indicating courses completed and passed.";
+            $pdf->SetXY(10, 192);
+            $pdf->SetFont('Times', '', 10);
+            $warning = "Scan to download the transcript.          ";
             $pdf->Write(1, $warning, '', false, 'R', true);
             // $pdf->MultiCell(0, 0, $warning, 0, 'C', false, 1, 10, 186);
         }
