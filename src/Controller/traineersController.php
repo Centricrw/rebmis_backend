@@ -70,13 +70,11 @@ class TraineersController
     function TraineePerformanceLevelHandler($avarage)
     {
         switch (true) {
-            case ($avarage >= 90 && $avarage <= 100):
-                return "High Distinction";
-            case ($avarage >= 80 && $avarage <= 89.9):
+            case ($avarage >= 70 && $avarage <= 100):
                 return "Distinction";
-            case ($avarage >= 70 && $avarage <= 79.9):
-                return "Pass";
-            case ($avarage >= 0 && $avarage <= 69.9):
+            case ($avarage >= 60 && $avarage <= 69.9):
+                return "Satisfaction";
+            case ($avarage >= 0 && $avarage <= 59.9):
                 return "Failed";
             default:
                 return "Invalid score";
@@ -138,7 +136,7 @@ class TraineersController
     }
 
     /**
-     * Calculates the combined average for each user based on their unit marks.
+     * Calculates the combined average for each user based on their chapter marks.
      *
      * @param array $data An array of objects, where each object has the following properties:
      *   - `generalReportId`: (string) The unique identifier of the report.
@@ -150,8 +148,8 @@ class TraineersController
      *   - `cohortId`: (string) The unique identifier of cohorts.
      *   - `moduleId`: (string) The unique identifier of module.
      *   - `moduleName`: (string) The name of module.
-     *   - `chapterId`: (string) The unique identifier of unit in module.
-     *   - `chapterName`: (string) The name of unit.
+     *   - `chapterId`: (string) The unique identifier of chapter in module.
+     *   - `chapterName`: (string) The name of chapter.
      *   - `copMarks`: (int) The marks of cop report.
      *   - `courseNavigation`: (int) The marks for teacher progress.
      *   - `endOfChapter`: (int) The marks for grade.
@@ -180,7 +178,7 @@ class TraineersController
      *   - `trainingName`: (string) The same `trainingName` as in the input data.
      *   - `cohortStart`: (Date) The same `cohortStart` as in the input data.
      *   - `cohortEnd`: (Date) The same `cohortEnd` as in the input data.
-     *   - `unit_marks`: (Object) The Sum of each unit marks.
+     *   - `chapter_marks`: (Object) The Sum of each chapter marks.
      *   - `average`: (float) The calculated combined average for the user.
      */
 
@@ -198,7 +196,7 @@ class TraineersController
                 // Check if user already has data in the combined averages array
                 if (!isset($combinedAverages[$userId])) {
                     $combinedAverages[$userId] = [
-                        "unit_marks" => [],
+                        "chapter_marks" => [],
                         "userId" => $row["userId"],
                         "staff_code" => $row["staff_code"],
                         "cohortId" => $row["cohortId"],
@@ -209,24 +207,66 @@ class TraineersController
                     ];
                 }
 
-                // Store marks for the current unit
-                $combinedAverages[$userId]["unit_marks"][$row["chapterId"]] = (int) $row["copMarks"] + (int) $row["courseNavigation"] + (int) $row["endOfChapter"] + (int) $row["selfAssesment"] + (int) $row["reflectionNotes"] + (int) $row["classroomApplication"];
+                // Store marks for the current chapter
+                $combinedAverages[$userId]["chapter_marks"][$row["chapterId"]] = [
+                    "copMarks" => $row["copMarks"],
+                    "courseNavigation" => $row["courseNavigation"],
+                    "endOfChapter" => $row["endOfChapter"],
+                    "selfAssesment" => $row["selfAssesment"],
+                    "reflectionNotes" => $row["reflectionNotes"],
+                    "classroomApplication" => $row["classroomApplication"],
+                    "endOfModule" => $row["endOfModule"],
+                    "endOfCourse" => $row["endOfCourse"],
+                    "selfStudy" => $row["selfStudy"],
+                    "coaching" => $row["coaching"],
+                ];
             }
 
-            // Calculate average for each unit for each user
+            // Calculate average for each chapter for each user
             foreach ($combinedAverages as $userId => &$userAvg) {
-                $numUnits = count($userAvg["unit_marks"]); // Get the number of units
+                $numChapters = count($userAvg["chapter_marks"]); // Get the number of chapters
 
                 // Initialize sum of averages
-                $averageSum = 0;
-
-                // Loop through each unit and add its average to the sum
-                foreach ($userAvg["unit_marks"] as $unit => $marks) {
-                    $averageSum += $marks / 6; // Calculate average for current unit and add
+                $copMarksAverageSum = 0;
+                $courseNavigationAverageSum = 0;
+                $endOfChapterAverageSum = 0;
+                $selfAssesmentAverageSum = 0;
+                $reflectionNotesAverageSum = 0;
+                $classroomApplicationAverageSum = 0;
+                $endOfModuleAverageSum = 0;
+                $endOfCourseAverageSum = 0;
+                $selfStudyAverageSum = 0;
+                $coachingAverageSum = 0;
+                // Loop through each chapter and add its average to the sum
+                foreach ($userAvg["chapter_marks"] as $chapter => $marks) {
+                    $copMarksAverageSum += $marks['copMarks'];
+                    $courseNavigationAverageSum += $marks['courseNavigation'];
+                    $endOfChapterAverageSum += $marks['endOfChapter'];
+                    $selfAssesmentAverageSum += $marks['selfAssesment'];
+                    $reflectionNotesAverageSum += $marks['reflectionNotes'];
+                    $classroomApplicationAverageSum += $marks['classroomApplication'];
+                    $endOfModuleAverageSum += $marks['endOfModule'];
+                    $endOfCourseAverageSum += $marks['endOfCourse'];
+                    $selfStudyAverageSum += $marks['selfStudy'];
+                    $coachingAverageSum += $marks['coaching'];
                 }
 
-                // Calculate final average by dividing sum by number of units
-                $userAvg["average"] = $averageSum / $numUnits;
+                $courseNavigationAverageSum = (($courseNavigationAverageSum / $numChapters) * 20) / 100;
+                $endOfChapterAverageSum = (($endOfChapterAverageSum / $numChapters) * 10) / 100;
+                $selfAssesmentAverageSum = (($selfAssesmentAverageSum / $numChapters) * 10) / 100;
+                $endOfModuleAverageSum = (($endOfModuleAverageSum / $numChapters) * 30) / 100;
+                $endOfCourseAverageSum = (($endOfCourseAverageSum / $numChapters) * 20) / 100;
+
+                $copMarksAverageSum = ($copMarksAverageSum / $numChapters);
+                $reflectionNotesAverageSum = ($reflectionNotesAverageSum / $numChapters);
+                $classroomApplicationAverageSum = ($classroomApplicationAverageSum / $numChapters);
+                $selfStudyAverageSum = ($selfStudyAverageSum / $numChapters);
+                $coachingAverageSum = ($coachingAverageSum / $numChapters);
+
+                $teacherPracticeAvarageSum = ((($copMarksAverageSum + $reflectionNotesAverageSum + $classroomApplicationAverageSum + $selfStudyAverageSum + $coachingAverageSum) / 5) * 10) / 100;
+
+                // Calculate final average by dividing sum by number of chapters
+                $userAvg["average"] = $courseNavigationAverageSum + $endOfChapterAverageSum + $selfAssesmentAverageSum + $endOfModuleAverageSum + $endOfCourseAverageSum + $teacherPracticeAvarageSum;
             }
 
             return $combinedAverages;
@@ -306,34 +346,34 @@ class TraineersController
 
             // adding header paragraph
             $pdf->SetFont('Times', '', 12);
-            $textHeader = "Florida State University, through the Tunoze Gusoma project, implemented in Rwanda jointly with Rwanda Basic Education Board under Cooperative Agreement between USAID and FHI360, \nawards to";
-            $pdf->MultiCell(190, 13, $textHeader, 0, 'C', false, 1, 10, 60);
+            $textHeader = "FHI360, through the Tunoze Gusoma project, implemented in Rwanda jointly \nwith Rwanda Basic Education Board under Cooperative Agreement between \nUSAID and FHI360,awards to";
+            $pdf->MultiCell(0, 13, $textHeader, 0, 'C', false, 1, 10, 60);
 
             // adding Recipient Name
             $pdf->SetFont('Times', 'B', 20);
             $recipientName = $value['traineeName'];
-            $pdf->MultiCell(190, 13, $recipientName, 0, 'C', false, 1, 10, 80);
+            $pdf->MultiCell(0, 13, $recipientName, 0, 'C', false, 1, 10, 80);
 
             // Complition
             $pdf->SetFont('Times', 'I', 25);
             $complition = "a Certificate of Completion with \n" . $this->TraineePerformanceLevelHandler($avarage);
-            $pdf->MultiCell(190, 13, $complition, 0, 'C', false, 1, 10, 95);
+            $pdf->MultiCell(0, 13, $complition, 0, 'C', false, 1, 10, 95);
 
             // Message
             $pdf->SetFont('Times', 'I', 10);
-            $message = "for successfully completing a Professional \nDevelopment Course for Rwandan Teacher \nEducation Practitioners titled";
-            $pdf->MultiCell(190, 10, $message, 0, 'C', false, 1, 10, 120);
+            $message = "For successfully completing a Blended Learning Continuous Professional \nDevelopment Course titled:";
+            $pdf->MultiCell(0, 10, $message, 0, 'C', false, 1, 10, 120);
 
             // title
             $pdf->SetFont('Times', 'B', 10);
 
             $title = '"' . $value['trainingName'] . '"';
-            $pdf->MultiCell(190, 13, $title, 0, 'C', false, 1, 10, 135);
+            $pdf->MultiCell(0, 13, $title, 0, 'C', false, 1, 10, 135);
 
             // date
             $pdf->SetFont('Times', 'I', 10);
             $date = "between " . $this->displayDateHandler($value['cohortStart']) . " and " . $this->displayDateHandler($value['cohortEnd']) . ".";
-            $pdf->MultiCell(190, 13, $date, 0, 'C', false, 1, 10, 140);
+            $pdf->MultiCell(0, 13, $date, 0, 'C', false, 1, 10, 140);
 
             // Director names
             $pdf->SetFont('Times', 'B', 12);
