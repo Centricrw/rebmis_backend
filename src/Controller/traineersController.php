@@ -366,7 +366,7 @@ class TraineersController
 
             // adding Recipient Name
             $pdf->SetFont('Times', 'B', 20);
-            $recipientName = $value['traineeName'];
+            $recipientName = $this->removeExtraSpacesAndNewlines($value['traineeName']);
             $pdf->MultiCell(0, 13, $recipientName, 0, 'C', false, 1, 10, 80);
 
             // Complition
