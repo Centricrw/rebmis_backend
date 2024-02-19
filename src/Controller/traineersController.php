@@ -386,7 +386,7 @@ class TraineersController
             );
 
             // Set width for each column
-            $columnWidths = array(70, 70, 70);
+            $columnWidths = array(80, 60, 70);
 
             // Loop through the data and add rows and columns
             $absolute_y = 170;
