@@ -88,6 +88,21 @@ class TraineersController
         return $level != "Failed" && $level != "Invalid score" ? true : false;
     }
 
+    function removeExtraSpacesAndNewlines($string)
+    {
+        // Replace consecutive whitespace characters with a single space:
+        $string = preg_replace('/\s+/', ' ', $string);
+
+        // Optionally, replace consecutive newlines with a single newline:
+        if (!stristr($string, "\r")) { // No carriage returns, so use \n
+            $string = preg_replace('/\n+/', "\n", $string);
+        } else { // Remove all newlines if carriage returns exist
+            $string = str_replace(["\r\n", "\r", "\n"], "", $string);
+        }
+
+        return $string;
+    }
+
     private function generateTraineesCertificate($cohortId)
     {
         $logged_user_id = AuthValidation::authorized()->id;
@@ -367,7 +382,7 @@ class TraineersController
             // title
             $pdf->SetFont('Times', 'B', 10);
 
-            $title = '"' . $value['trainingName'] . '"';
+            $title = '"' . $this->removeExtraSpacesAndNewlines($value['trainingName']) . '"';
             $pdf->MultiCell(0, 13, $title, 0, 'C', false, 1, 10, 135);
 
             // date
