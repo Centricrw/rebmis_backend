@@ -73,7 +73,7 @@ class TraineersController
             case ($avarage >= 70 && $avarage <= 100):
                 return "Distinction";
             case ($avarage >= 60 && $avarage <= 69.9):
-                return "Satisfaction";
+                return "Satisfactory";
             case ($avarage >= 0 && $avarage <= 59.9):
                 return "Failed";
             default:
@@ -370,9 +370,10 @@ class TraineersController
             $pdf->MultiCell(0, 13, $recipientName, 0, 'C', false, 1, 10, 80);
 
             // Complition
+            $complitionStatus = $this->TraineePerformanceLevelHandler($avarage);
+            $complitionMessage = $complitionStatus == "Satisfactory" ? "a Certificate of $complitionStatus \nCompletion" : "a Certificate of Completion with \n" . $complitionStatus;
             $pdf->SetFont('Times', 'I', 25);
-            $complition = "a Certificate of Completion with \n" . $this->TraineePerformanceLevelHandler($avarage);
-            $pdf->MultiCell(0, 13, $complition, 0, 'C', false, 1, 10, 95);
+            $pdf->MultiCell(0, 13, $complitionMessage, 0, 'C', false, 1, 10, 95);
 
             // Message
             $pdf->SetFont('Times', 'I', 10);
@@ -397,7 +398,7 @@ class TraineersController
             $data = array(
                 array('Dr. Nelson Mbarushimana', 'Dr. Aliou Tall', 'Dr. Vincent Mutembeya Mugisha'),
                 array('Director General', 'USAID/Rwanda', 'Chief of Party, USAID Tunoze Gusoma'),
-                array('Rwanda Basic Education Board', 'Education Office Director', 'country Representative, FHI360 in Rwanda'),
+                array('Rwanda Basic Education Board', 'Education Office Director', 'Country Representative, FHI360 in Rwanda'),
             );
 
             // Set width for each column
