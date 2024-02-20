@@ -361,7 +361,7 @@ class TraineersController
 
             // adding header paragraph
             $pdf->SetFont('Times', '', 12);
-            $textHeader = "FHI360, through the USAID Tunoze Gusema project, implemented in Rwanda \njointly with Rwanda Basic Education Board, awards to:";
+            $textHeader = "FHI360, through the USAID Tunoze Gusoma project, implemented in Rwanda \njointly with Rwanda Basic Education Board, awards to:";
             $pdf->MultiCell(0, 13, $textHeader, 0, 'C', false, 1, 10, 60);
 
             // adding Recipient Name
