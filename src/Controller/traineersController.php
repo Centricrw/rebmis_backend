@@ -361,7 +361,7 @@ class TraineersController
 
             // adding header paragraph
             $pdf->SetFont('Times', '', 12);
-            $textHeader = "FHI360, through the Tunoze Gusoma project, implemented in Rwanda jointly \nwith Rwanda Basic Education Board under Cooperative Agreement between \nUSAID and FHI360,awards to";
+            $textHeader = "FHI360, through the USAID Tunoze Gusema project, implemented in Rwanda \njointly with Rwanda Basic Education Board, awards to:";
             $pdf->MultiCell(0, 13, $textHeader, 0, 'C', false, 1, 10, 60);
 
             // adding Recipient Name
@@ -376,7 +376,7 @@ class TraineersController
 
             // Message
             $pdf->SetFont('Times', 'I', 10);
-            $message = "For successfully completing a Blended Learning Continuous Professional \nDevelopment Course titled:";
+            $message = "for successfully completing a Blended Learning Continuous Professional \nDevelopment Course for Rwandan In- Service Primary Teachers titled:";
             $pdf->MultiCell(0, 10, $message, 0, 'C', false, 1, 10, 120);
 
             // title
@@ -396,8 +396,8 @@ class TraineersController
             // Define data for the table
             $data = array(
                 array('Dr. Nelson Mbarushimana', 'Dr. Aliou Tall', 'Dr. Vincent Mutembeya Mugisha'),
-                array('Director General', 'Education Office Director', 'USAID Tunoze Gusoma Chief of Party'),
-                array('Rwanda Basic Education Board', 'USAID/Rwanda', 'and FHI360 Country Director'),
+                array('Director General', 'USAID/Rwanda', 'Chief of Party, USAID Tunoze Gusoma'),
+                array('Rwanda Basic Education Board', 'Education Office Director', 'country Representative, FHI360 in Rwanda'),
             );
 
             // Set width for each column
