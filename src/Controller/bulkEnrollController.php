@@ -217,6 +217,25 @@ class bulkEnrollController
         $this->userRoleModel->insertIntoUserToRole($dataToInsert, $created_by_user_id);
         return $dataToInsert;
     }
+    /**
+     * remove extra space and new lines from string
+     *
+     */
+
+    function removeExtraSpacesAndNewlines($string)
+    {
+        // Replace consecutive whitespace characters with a single space:
+        $string = preg_replace('/\s+/', ' ', $string);
+
+        // Optionally, replace consecutive newlines with a single newline:
+        if (!stristr($string, "\r")) { // No carriage returns, so use \n
+            $string = preg_replace('/\n+/', "\n", $string);
+        } else { // Remove all newlines if carriage returns exist
+            $string = str_replace(["\r\n", "\r", "\n"], "", $string);
+        }
+
+        return $string;
+    }
 
     /**
      * create User to Role CUstom
@@ -286,6 +305,8 @@ class bulkEnrollController
             $deplicated = array();
             // Process enrollment
             foreach ($data["teachers"] as $key => $teacherData) {
+                // remove space from names
+                $teacherData['name'] = $this->removeExtraSpacesAndNewlines($teacherData['name']);
                 // Create new user or update user
                 $techerUploadStatus = "success";
                 $processUserhandler = $this->createNewUserHandler($teacherData, $created_by_user_id);
