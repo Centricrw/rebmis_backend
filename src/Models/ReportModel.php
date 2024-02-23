@@ -176,8 +176,8 @@ class ReportModel
             $Guhuza_imyigishirize_yIkinyarwanda_nIcyongereza_quiz = $teacherMarks['Guhuza_imyigishirize_yIkinyarwanda_nIcyongereza_quiz'];
             if($Guhuza_imyigishirize_yIkinyarwanda_nIcyongereza_quiz == '-'){$Guhuza_imyigishirize_yIkinyarwanda_nIcyongereza_quiz = 0;}
 
-            $Imbumbanyigisho_ya_4_nav           = $teacherMarks['Imbumbanyigisho_ya_4_nav'];
-            if($Imbumbanyigisho_ya_4_nav == '-'){$Imbumbanyigisho_ya_4_nav = 0;}
+            $Imbumbanyigisho_ya_4_quiz           = $teacherMarks['Imbumbanyigisho_ya_4_quiz'];
+            if($Imbumbanyigisho_ya_4_quiz == '-'){$Imbumbanyigisho_ya_4_quiz = 0;}
 
 
             $staff_code                         = $teacherMarks['staff_code'];
