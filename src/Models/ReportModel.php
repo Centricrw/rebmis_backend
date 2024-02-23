@@ -132,10 +132,10 @@ class ReportModel
             $Ihuzamajwi_no_gusoma_ugemura_nav  = $teacherMarks['Ihuzamajwi_no_gusoma_ugemura_nav'];
             if($Ihuzamajwi_no_gusoma_ugemura_nav == '-'){$Ihuzamajwi_no_gusoma_ugemura_nav = 0;}
             $Ihuzamajwi_no_gusoma_ugemura_quiz  = $teacherMarks['Ihuzamajwi_no_gusoma_ugemura_quiz'];
-
             if($Ihuzamajwi_no_gusoma_ugemura_quiz == '-'){$Ihuzamajwi_no_gusoma_ugemura_quiz = 0;}
+            
             $Gusoma_udategwa_nav                = $teacherMarks['Gusoma_udategwa_nav'];
-            if($Ururimi_mvugo_nav == '-'){$Ururimi_mvugo_nav = 0;}
+            if($Gusoma_udategwa_nav == '-'){$Gusoma_udategwa_nav = 0;}
             $Gusoma_udategwa_quiz               = $teacherMarks['Gusoma_udategwa_quiz'];
             if($Gusoma_udategwa_quiz == '-'){$Gusoma_udategwa_quiz = 0;}
             
@@ -187,7 +187,7 @@ class ReportModel
 
             $results .=$this->updateUrurimi_mvugo($Ururimi_mvugo_nav, $Ururimi_mvugo_quiz, $Imbumbanyigisho_ya_1_quiz, $end_of_course_quiz, $staff_code);
             $results .=$this->updateItahuramajwi($Itahuramajwi_nav, $Itahuramajwi_quiz, $Imbumbanyigisho_ya_1_quiz, $end_of_course_quiz, $staff_code);
-            $results .=$this->updateInyunguramagambo($Inyunguramagambo_nav, $Ururimi_mvugo_quiz, $Imbumbanyigisho_ya_1_quiz, $end_of_course_quiz, $staff_code);
+            $results .=$this->updateInyunguramagambo($Inyunguramagambo_nav, $Inyunguramagambo_quiz, $Imbumbanyigisho_ya_1_quiz, $end_of_course_quiz, $staff_code);
             $results .=$this->updateIhuzamajwi_no_gusoma_ugemura($Ihuzamajwi_no_gusoma_ugemura_nav, $Ihuzamajwi_no_gusoma_ugemura_quiz, $Imbumbanyigisho_ya_2_quiz, $end_of_course_quiz, $staff_code);
             $results .=$this->updateGusoma_udategwa($Gusoma_udategwa_nav, $Gusoma_udategwa_quiz, $Imbumbanyigisho_ya_2_quiz, $end_of_course_quiz, $staff_code);   
             $results .=$this->updateKumva_umwandiko($Kumva_umwandiko_nav, $Kumva_umwandiko_quiz, $Imbumbanyigisho_ya_2_quiz, $end_of_course_quiz, $staff_code);
