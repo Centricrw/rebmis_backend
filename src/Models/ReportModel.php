@@ -117,7 +117,7 @@ class ReportModel
             $Itahuramajwi_quiz                  = $teacherMarks['Itahuramajwi_quiz'];
             if($Itahuramajwi_quiz == '-'){$Itahuramajwi_quiz = 0;}
 
-            $Inyunguramagambo_nav               = $teacherMarks['Inyunguramagambo_nav'];
+            $Inyunguramagambo_nav               = ((int)$teacherMarks['Inyunguramagambo_nav'])*10;
             if($Inyunguramagambo_nav == '-'){$Inyunguramagambo_nav = 0;}else{$Inyunguramagambo_nav = 100;}
             $Inyunguramagambo_quiz              = $teacherMarks['Inyunguramagambo_quiz'];
             if($Inyunguramagambo_quiz == '-'){$Inyunguramagambo_quiz = 0;}
@@ -176,7 +176,7 @@ class ReportModel
             $Guhuza_imyigishirize_yIkinyarwanda_nIcyongereza_quiz = $teacherMarks['Guhuza_imyigishirize_yIkinyarwanda_nIcyongereza_quiz'];
             if($Guhuza_imyigishirize_yIkinyarwanda_nIcyongereza_quiz == '-'){$Guhuza_imyigishirize_yIkinyarwanda_nIcyongereza_quiz = 0;}
 
-            $Imbumbanyigisho_ya_4_quiz           = ((int)$teacherMarks['Imbumbanyigisho_ya_4_quiz'])*10;
+            $Imbumbanyigisho_ya_4_quiz           = ($teacherMarks['Imbumbanyigisho_ya_4_quiz']);
             if($Imbumbanyigisho_ya_4_quiz == '-'){$Imbumbanyigisho_ya_4_quiz = 0;}
 
 
