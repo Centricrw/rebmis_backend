@@ -108,17 +108,17 @@ class ReportModel
         $results = '';
         foreach ($data as $key => $teacherMarks) {
             $Ururimi_mvugo_nav                  = $teacherMarks['Ururimi_mvugo_nav'];
-            if($Ururimi_mvugo_nav == '-'){$Ururimi_mvugo_nav = 0;}
+            if($Ururimi_mvugo_nav == '-'){$Ururimi_mvugo_nav = 0;}else{$Ururimi_mvugo_nav = 100;}
             $Ururimi_mvugo_quiz                 = $teacherMarks['Ururimi_mvugo_quiz'];
             if($Ururimi_mvugo_quiz == '-'){$Ururimi_mvugo_quiz = 0;}
 
             $Itahuramajwi_nav                   = $teacherMarks['Itahuramajwi_nav'];
-            if($Itahuramajwi_nav == '-'){$Itahuramajwi_nav = 0;}
+            if($Itahuramajwi_nav == '-'){$Itahuramajwi_nav = 0;}else{$Itahuramajwi_nav = 100;}
             $Itahuramajwi_quiz                  = $teacherMarks['Itahuramajwi_quiz'];
             if($Itahuramajwi_quiz == '-'){$Itahuramajwi_quiz = 0;}
 
             $Inyunguramagambo_nav               = $teacherMarks['Inyunguramagambo_nav'];
-            if($Inyunguramagambo_nav == '-'){$Inyunguramagambo_nav = 0;}
+            if($Inyunguramagambo_nav == '-'){$Inyunguramagambo_nav = 0;}else{$Inyunguramagambo_nav = 100;}
             $Inyunguramagambo_quiz              = $teacherMarks['Inyunguramagambo_quiz'];
             if($Inyunguramagambo_quiz == '-'){$Inyunguramagambo_quiz = 0;}
 
@@ -130,34 +130,34 @@ class ReportModel
 
 
             $Ihuzamajwi_no_gusoma_ugemura_nav  = $teacherMarks['Ihuzamajwi_no_gusoma_ugemura_nav'];
-            if($Ihuzamajwi_no_gusoma_ugemura_nav == '-'){$Ihuzamajwi_no_gusoma_ugemura_nav = 0;}
+            if($Ihuzamajwi_no_gusoma_ugemura_nav == '-'){$Ihuzamajwi_no_gusoma_ugemura_nav = 0;}else{$Ihuzamajwi_no_gusoma_ugemura_nav = 100;}
             $Ihuzamajwi_no_gusoma_ugemura_quiz  = $teacherMarks['Ihuzamajwi_no_gusoma_ugemura_quiz'];
             if($Ihuzamajwi_no_gusoma_ugemura_quiz == '-'){$Ihuzamajwi_no_gusoma_ugemura_quiz = 0;}
             
             $Gusoma_udategwa_nav                = $teacherMarks['Gusoma_udategwa_nav'];
-            if($Gusoma_udategwa_nav == '-'){$Gusoma_udategwa_nav = 0;}
+            if($Gusoma_udategwa_nav == '-'){$Gusoma_udategwa_nav = 0;}else{$Gusoma_udategwa_nav = 100;}
             $Gusoma_udategwa_quiz               = $teacherMarks['Gusoma_udategwa_quiz'];
             if($Gusoma_udategwa_quiz == '-'){$Gusoma_udategwa_quiz = 0;}
             
             $Kumva_umwandiko_nav                = $teacherMarks['Kumva_umwandiko_nav'];
-            if($Kumva_umwandiko_nav == '-'){$Kumva_umwandiko_nav = 0;}
+            if($Kumva_umwandiko_nav == '-'){$Kumva_umwandiko_nav = 0;}else{$Kumva_umwandiko_nav = 100;}
             $Kumva_umwandiko_quiz               = $teacherMarks['Kumva_umwandiko_quiz'];
             if($Kumva_umwandiko_quiz == '-'){$Kumva_umwandiko_quiz = 0;}
 
 
 
-            $Imbumbanyigisho_ya_2_quiz          = $teacherMarks['Imbumbanyigisho_ya_2_quiz']*10;
+            $Imbumbanyigisho_ya_2_quiz          = ((int)$teacherMarks['Imbumbanyigisho_ya_2_quiz'])*10;
             if($Imbumbanyigisho_ya_2_quiz == '-'){$Imbumbanyigisho_ya_2_quiz = 0;}
 
 
 
             $Kwandika_nav                       = $teacherMarks['Kwandika_nav'];
-            if($Kwandika_nav == '-'){$Kwandika_nav = 0;}
+            if($Kwandika_nav == '-'){$Kwandika_nav = 0;}else{$Kwandika_nav = 100;}
             $Kwandika_quiz                      = $teacherMarks['Kwandika_quiz'];
             if($Kwandika_quiz == '-'){$Kwandika_quiz = 0;}
 
             $Ihangamwandiko_nav                 = $teacherMarks['Ihangamwandiko_nav'];
-            if($Ihangamwandiko_nav == '-'){$Ihangamwandiko_nav = 0;}
+            if($Ihangamwandiko_nav == '-'){$Ihangamwandiko_nav = 0;}else{$Ihangamwandiko_nav = 100;}
             $Ihangamwandiko_quiz                = $teacherMarks['Ihangamwandiko_quiz'];
             if($Ihangamwandiko_quiz == '-'){$Ihangamwandiko_quiz = 0;}
 
@@ -167,16 +167,16 @@ class ReportModel
 
 
             $Ibyiciro_byo_gusoma_no_kwandika_nav = $teacherMarks['Ibyiciro_byo_gusoma_no_kwandika_nav'];
-            if($Ibyiciro_byo_gusoma_no_kwandika_nav == '-'){$Ibyiciro_byo_gusoma_no_kwandika_nav = 0;}
+            if($Ibyiciro_byo_gusoma_no_kwandika_nav == '-'){$Ibyiciro_byo_gusoma_no_kwandika_nav = 0;}else{$Ibyiciro_byo_gusoma_no_kwandika_nav = 100;}
             $Ibyiciro_byo_gusoma_no_kwandika_quiz = $teacherMarks['Ibyiciro_byo_gusoma_no_kwandika_quiz'];
             if($Ibyiciro_byo_gusoma_no_kwandika_quiz == '-'){$Ibyiciro_byo_gusoma_no_kwandika_quiz = 0;}
             
             $Guhuza_imyigishirize_yIkinyarwanda_nIcyongereza_nav = $teacherMarks['Guhuza_imyigishirize_yIkinyarwanda_nIcyongereza_nav'];
-            if($Guhuza_imyigishirize_yIkinyarwanda_nIcyongereza_nav == '-'){$Guhuza_imyigishirize_yIkinyarwanda_nIcyongereza_nav = 0;}
+            if($Guhuza_imyigishirize_yIkinyarwanda_nIcyongereza_nav == '-'){$Guhuza_imyigishirize_yIkinyarwanda_nIcyongereza_nav = 0;}else{$Guhuza_imyigishirize_yIkinyarwanda_nIcyongereza_nav = 100;}
             $Guhuza_imyigishirize_yIkinyarwanda_nIcyongereza_quiz = $teacherMarks['Guhuza_imyigishirize_yIkinyarwanda_nIcyongereza_quiz'];
             if($Guhuza_imyigishirize_yIkinyarwanda_nIcyongereza_quiz == '-'){$Guhuza_imyigishirize_yIkinyarwanda_nIcyongereza_quiz = 0;}
 
-            $Imbumbanyigisho_ya_4_quiz           = $teacherMarks['Imbumbanyigisho_ya_4_quiz']*10;
+            $Imbumbanyigisho_ya_4_quiz           = ((int)$teacherMarks['Imbumbanyigisho_ya_4_quiz'])*10;
             if($Imbumbanyigisho_ya_4_quiz == '-'){$Imbumbanyigisho_ya_4_quiz = 0;}
 
 
