@@ -147,7 +147,7 @@ class ReportModel
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array());
-            return $statement->rowCount();
+            return $statement;
         } catch (\PDOException $e) {
             throw new Error($e->getMessage());
         }
