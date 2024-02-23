@@ -108,7 +108,9 @@ class ReportModel
         $results = '';
         foreach ($data as $key => $teacherMarks) {
             $Ururimi_mvugo_nav                  = $teacherMarks['Ururimi_mvugo_nav'];
+            if($Ururimi_mvugo_nav == '-'){$Ururimi_mvugo_nav = 0;}
             $Ururimi_mvugo_quiz                 = $teacherMarks['Ururimi_mvugo_quiz'];
+            if($Ururimi_mvugo_quiz == '-'){$Ururimi_mvugo_quiz = 0;}
             $Itahuramajwi_nav                   = $teacherMarks['Itahuramajwi_nav'];
             $Itahuramajwi_quiz                  = $teacherMarks['Itahuramajwi_quiz'];
             $Inyunguramagambo_nav               = $teacherMarks['Inyunguramagambo_nav'];
@@ -130,10 +132,12 @@ class ReportModel
             $Guhuza_imyigishirize_yIkinyarwanda_nIcyongereza_quiz = $teacherMarks['Guhuza_imyigishirize_yIkinyarwanda_nIcyongereza_quiz'];
             $staff_code                         = $teacherMarks['staff_code'];
             $Imbumbanyigisho_ya_1_quiz  = $teacherMarks['Imbumbanyigisho_ya_1_quiz'];
+            if($Imbumbanyigisho_ya_1_quiz == '-'){$Imbumbanyigisho_ya_1_quiz = 0;}
             $Imbumbanyigisho_ya_2_quiz  = $teacherMarks['Imbumbanyigisho_ya_2_quiz'];
             $Imbumbanyigisho_ya_3_quiz  = $teacherMarks['Imbumbanyigisho_ya_3_quiz'];
             $Imbumbanyigisho_ya_4_quiz  = $teacherMarks['Imbumbanyigisho_ya_4_quiz'];
             $end_of_course_quiz         = $teacherMarks['end_of_course_quiz'];
+            if($end_of_course_quiz == '-'){$end_of_course_quiz = 0;}
 
             $results .=$this->updateResults($Ururimi_mvugo_nav, $Ururimi_mvugo_quiz, $Imbumbanyigisho_ya_1_quiz, $end_of_course_quiz, $staff_code);
         }
