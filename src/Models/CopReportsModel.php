@@ -68,7 +68,7 @@ class CopReportsModel
 
     public function getAllCopReports()
     {
-        $statement = "SELECT * FROM `cop_report`";
+        $statement = "SELECT * FROM `cop_report` ORDER BY listing DESC";
 
         try {
             $statement = $this->db->prepare($statement);
@@ -82,7 +82,7 @@ class CopReportsModel
 
     public function getAllCopReportsByTraining($trainingId)
     {
-        $statement = "SELECT * FROM `cop_report` where `trainingId` = :trainingId ";
+        $statement = "SELECT * FROM `cop_report` where `trainingId` = :trainingId ORDER BY listing DESC";
 
         try {
             $statement = $this->db->prepare($statement);
@@ -176,7 +176,7 @@ class CopReportsModel
 
     public function getAllCopReportsDetailsByCopReportId($copReportId)
     {
-        $statement = "SELECT * FROM `cop_report_details` WHERE `cop_report_id` = :cop_report_id";
+        $statement = "SELECT * FROM `cop_report_details` WHERE `cop_report_id` = :cop_report_id ORDER BY listing DESC";
 
         try {
             $statement = $this->db->prepare($statement);
