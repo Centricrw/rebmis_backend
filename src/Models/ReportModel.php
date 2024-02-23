@@ -135,7 +135,7 @@ class ReportModel
             $Imbumbanyigisho_ya_4_quiz  = $teacherMarks['Imbumbanyigisho_ya_4_quiz'];
             $end_of_course_quiz         = $teacherMarks['end_of_course_quiz'];
 
-            $results +=$this->updateResults($Ururimi_mvugo_nav, $Ururimi_mvugo_quiz, $Imbumbanyigisho_ya_1_quiz, $end_of_course_quiz, $staff_code);
+            $results .=$this->updateResults($Ururimi_mvugo_nav, $Ururimi_mvugo_quiz, $Imbumbanyigisho_ya_1_quiz, $end_of_course_quiz, $staff_code);
         }
         return $results;
     }
