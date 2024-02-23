@@ -127,7 +127,6 @@ class ReportModel
             $Ibyiciro_byo_gusoma_no_kwandika_quiz = $teacherMarks['Ibyiciro_byo_gusoma_no_kwandika_quiz'];
             $Guhuza_imyigishirize_yIkinyarwanda_nIcyongereza_nav = $teacherMarks['Guhuza_imyigishirize_yIkinyarwanda_nIcyongereza_nav'];
             $Guhuza_imyigishirize_yIkinyarwanda_nIcyongereza_quiz = $teacherMarks['Guhuza_imyigishirize_yIkinyarwanda_nIcyongereza_quiz'];
-            $Imbumbanyigisho_ya_4_nav           = $teacherMarks['Imbumbanyigisho_ya_4_nav'];
             $staff_code                         = $teacherMarks['staff_code'];
             $Imbumbanyigisho_ya_1_quiz  = $teacherMarks['Imbumbanyigisho_ya_1_quiz'];
             $Imbumbanyigisho_ya_2_quiz  = $teacherMarks['Imbumbanyigisho_ya_2_quiz'];
