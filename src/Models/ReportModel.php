@@ -174,6 +174,11 @@ class ReportModel
             $Guhuza_imyigishirize_yIkinyarwanda_nIcyongereza_nav = $teacherMarks['Guhuza_imyigishirize_yIkinyarwanda_nIcyongereza_nav'];
             if($Guhuza_imyigishirize_yIkinyarwanda_nIcyongereza_nav == '-'){$Guhuza_imyigishirize_yIkinyarwanda_nIcyongereza_nav = 0;}
             $Guhuza_imyigishirize_yIkinyarwanda_nIcyongereza_quiz = $teacherMarks['Guhuza_imyigishirize_yIkinyarwanda_nIcyongereza_quiz'];
+            if($Guhuza_imyigishirize_yIkinyarwanda_nIcyongereza_quiz == '-'){$Guhuza_imyigishirize_yIkinyarwanda_nIcyongereza_quiz = 0;}
+
+            $Imbumbanyigisho_ya_4_nav           = $teacherMarks['Imbumbanyigisho_ya_4_nav'];
+            if($Imbumbanyigisho_ya_4_nav == '-'){$Imbumbanyigisho_ya_4_nav = 0;}
+
 
             $staff_code                         = $teacherMarks['staff_code'];
 
