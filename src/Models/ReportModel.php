@@ -117,9 +117,9 @@ class ReportModel
             $Itahuramajwi_quiz                  = $teacherMarks['Itahuramajwi_quiz'];
             if($Itahuramajwi_quiz == '-'){$Itahuramajwi_quiz = 0;}
 
-            $Inyunguramagambo_nav               = ((int)$teacherMarks['Inyunguramagambo_nav'])*10;
+            $Inyunguramagambo_nav               = $teacherMarks['Inyunguramagambo_nav'];
             if($Inyunguramagambo_nav == '-'){$Inyunguramagambo_nav = 0;}else{$Inyunguramagambo_nav = 100;}
-            $Inyunguramagambo_quiz              = $teacherMarks['Inyunguramagambo_quiz'];
+            $Inyunguramagambo_quiz              = ((int)$teacherMarks['Inyunguramagambo_quiz'])*10;
             if($Inyunguramagambo_quiz == '-'){$Inyunguramagambo_quiz = 0;}
 
 
