@@ -70,13 +70,11 @@ class TraineersController
     function TraineePerformanceLevelHandler($avarage)
     {
         switch (true) {
-            case ($avarage >= 90 && $avarage <= 100):
-                return "High Distinction";
-            case ($avarage >= 80 && $avarage <= 89.9):
+            case ($avarage >= 70 && $avarage <= 100):
                 return "Distinction";
-            case ($avarage >= 70 && $avarage <= 79.9):
-                return "Pass";
-            case ($avarage >= 0 && $avarage <= 69.9):
+            case ($avarage >= 60 && $avarage <= 69.9):
+                return "Satisfactory";
+            case ($avarage >= 0 && $avarage <= 59.9):
                 return "Failed";
             default:
                 return "Invalid score";
@@ -88,6 +86,21 @@ class TraineersController
     {
         $level = $this->TraineePerformanceLevelHandler($trainee['average']);
         return $level != "Failed" && $level != "Invalid score" ? true : false;
+    }
+
+    function removeExtraSpacesAndNewlines($string)
+    {
+        // Replace consecutive whitespace characters with a single space:
+        $string = preg_replace('/\s+/', ' ', $string);
+
+        // Optionally, replace consecutive newlines with a single newline:
+        if (!stristr($string, "\r")) { // No carriage returns, so use \n
+            $string = preg_replace('/\n+/', "\n", $string);
+        } else { // Remove all newlines if carriage returns exist
+            $string = str_replace(["\r\n", "\r", "\n"], "", $string);
+        }
+
+        return $string;
     }
 
     private function generateTraineesCertificate($cohortId)
@@ -138,7 +151,7 @@ class TraineersController
     }
 
     /**
-     * Calculates the combined average for each user based on their unit marks.
+     * Calculates the combined average for each user based on their chapter marks.
      *
      * @param array $data An array of objects, where each object has the following properties:
      *   - `generalReportId`: (string) The unique identifier of the report.
@@ -150,8 +163,8 @@ class TraineersController
      *   - `cohortId`: (string) The unique identifier of cohorts.
      *   - `moduleId`: (string) The unique identifier of module.
      *   - `moduleName`: (string) The name of module.
-     *   - `chapterId`: (string) The unique identifier of unit in module.
-     *   - `chapterName`: (string) The name of unit.
+     *   - `chapterId`: (string) The unique identifier of chapter in module.
+     *   - `chapterName`: (string) The name of chapter.
      *   - `copMarks`: (int) The marks of cop report.
      *   - `courseNavigation`: (int) The marks for teacher progress.
      *   - `endOfChapter`: (int) The marks for grade.
@@ -180,7 +193,7 @@ class TraineersController
      *   - `trainingName`: (string) The same `trainingName` as in the input data.
      *   - `cohortStart`: (Date) The same `cohortStart` as in the input data.
      *   - `cohortEnd`: (Date) The same `cohortEnd` as in the input data.
-     *   - `unit_marks`: (Object) The Sum of each unit marks.
+     *   - `chapter_marks`: (Object) The Sum of each chapter marks.
      *   - `average`: (float) The calculated combined average for the user.
      */
 
@@ -198,7 +211,7 @@ class TraineersController
                 // Check if user already has data in the combined averages array
                 if (!isset($combinedAverages[$userId])) {
                     $combinedAverages[$userId] = [
-                        "unit_marks" => [],
+                        "chapter_marks" => [],
                         "userId" => $row["userId"],
                         "staff_code" => $row["staff_code"],
                         "cohortId" => $row["cohortId"],
@@ -209,24 +222,66 @@ class TraineersController
                     ];
                 }
 
-                // Store marks for the current unit
-                $combinedAverages[$userId]["unit_marks"][$row["chapterId"]] = (int) $row["copMarks"] + (int) $row["courseNavigation"] + (int) $row["endOfChapter"] + (int) $row["selfAssesment"] + (int) $row["reflectionNotes"] + (int) $row["classroomApplication"];
+                // Store marks for the current chapter
+                $combinedAverages[$userId]["chapter_marks"][$row["chapterId"]] = [
+                    "copMarks" => $row["copMarks"],
+                    "courseNavigation" => $row["courseNavigation"],
+                    "endOfChapter" => $row["endOfChapter"],
+                    "selfAssesment" => $row["selfAssesment"],
+                    "reflectionNotes" => $row["reflectionNotes"],
+                    "classroomApplication" => $row["classroomApplication"],
+                    "endOfModule" => $row["endOfModule"],
+                    "endOfCourse" => $row["endOfCourse"],
+                    "selfStudy" => $row["selfStudy"],
+                    "coaching" => $row["coaching"],
+                ];
             }
 
-            // Calculate average for each unit for each user
+            // Calculate average for each chapter for each user
             foreach ($combinedAverages as $userId => &$userAvg) {
-                $numUnits = count($userAvg["unit_marks"]); // Get the number of units
+                $numChapters = count($userAvg["chapter_marks"]); // Get the number of chapters
 
                 // Initialize sum of averages
-                $averageSum = 0;
-
-                // Loop through each unit and add its average to the sum
-                foreach ($userAvg["unit_marks"] as $unit => $marks) {
-                    $averageSum += $marks / 6; // Calculate average for current unit and add
+                $copMarksAverageSum = 0;
+                $courseNavigationAverageSum = 0;
+                $endOfChapterAverageSum = 0;
+                $selfAssesmentAverageSum = 0;
+                $reflectionNotesAverageSum = 0;
+                $classroomApplicationAverageSum = 0;
+                $endOfModuleAverageSum = 0;
+                $endOfCourseAverageSum = 0;
+                $selfStudyAverageSum = 0;
+                $coachingAverageSum = 0;
+                // Loop through each chapter and add its average to the sum
+                foreach ($userAvg["chapter_marks"] as $chapter => $marks) {
+                    $copMarksAverageSum += $marks['copMarks'];
+                    $courseNavigationAverageSum += $marks['courseNavigation'];
+                    $endOfChapterAverageSum += $marks['endOfChapter'];
+                    $selfAssesmentAverageSum += $marks['selfAssesment'];
+                    $reflectionNotesAverageSum += $marks['reflectionNotes'];
+                    $classroomApplicationAverageSum += $marks['classroomApplication'];
+                    $endOfModuleAverageSum += $marks['endOfModule'];
+                    $endOfCourseAverageSum += $marks['endOfCourse'];
+                    $selfStudyAverageSum += $marks['selfStudy'];
+                    $coachingAverageSum += $marks['coaching'];
                 }
 
-                // Calculate final average by dividing sum by number of units
-                $userAvg["average"] = $averageSum / $numUnits;
+                $courseNavigationAverageSum = (($courseNavigationAverageSum / $numChapters) * 20) / 100;
+                $endOfChapterAverageSum = (($endOfChapterAverageSum / $numChapters) * 10) / 100;
+                $selfAssesmentAverageSum = (($selfAssesmentAverageSum / $numChapters) * 10) / 100;
+                $endOfModuleAverageSum = (($endOfModuleAverageSum / $numChapters) * 30) / 100;
+                $endOfCourseAverageSum = (($endOfCourseAverageSum / $numChapters) * 20) / 100;
+
+                $copMarksAverageSum = ($copMarksAverageSum / $numChapters);
+                $reflectionNotesAverageSum = ($reflectionNotesAverageSum / $numChapters);
+                $classroomApplicationAverageSum = ($classroomApplicationAverageSum / $numChapters);
+                $selfStudyAverageSum = ($selfStudyAverageSum / $numChapters);
+                $coachingAverageSum = ($coachingAverageSum / $numChapters);
+
+                $teacherPracticeAvarageSum = ((($copMarksAverageSum + $reflectionNotesAverageSum + $classroomApplicationAverageSum + $selfStudyAverageSum + $coachingAverageSum) / 5) * 10) / 100;
+
+                // Calculate final average by dividing sum by number of chapters
+                $userAvg["average"] = $courseNavigationAverageSum + $endOfChapterAverageSum + $selfAssesmentAverageSum + $endOfModuleAverageSum + $endOfCourseAverageSum + $teacherPracticeAvarageSum;
             }
 
             return $combinedAverages;
@@ -264,7 +319,7 @@ class TraineersController
         $timestamp = strtotime($dateString);
 
         // format date
-        $formattedDate = date("F jS Y", $timestamp);
+        $formattedDate = date("F Y", $timestamp);
 
         return $formattedDate;
     }
@@ -306,58 +361,60 @@ class TraineersController
 
             // adding header paragraph
             $pdf->SetFont('Times', '', 12);
-            $textHeader = "Florida State University, through the Tunoze Gusoma project, implemented in Rwanda jointly with Rwanda Basic Education Board under Cooperative Agreement between USAID and FHI360, \nawards to";
-            $pdf->MultiCell(190, 13, $textHeader, 0, 'C', false, 1, 10, 60);
+            $textHeader = "FHI 360, through the USAID Tunoze Gusoma project, implemented in Rwanda \njointly with Rwanda Basic Education Board, awards to:";
+            $pdf->MultiCell(0, 13, $textHeader, 0, 'C', false, 1, 10, 60);
 
             // adding Recipient Name
             $pdf->SetFont('Times', 'B', 20);
-            $recipientName = $value['traineeName'];
-            $pdf->MultiCell(190, 13, $recipientName, 0, 'C', false, 1, 10, 80);
+            $recipientName = $this->removeExtraSpacesAndNewlines($value['traineeName']);
+            $pdf->MultiCell(0, 13, $recipientName, 0, 'C', false, 1, 10, 80);
 
             // Complition
+            $complitionStatus = $this->TraineePerformanceLevelHandler($avarage);
+            $complitionMessage = $complitionStatus == "Satisfactory" ? "a Certificate of $complitionStatus \nCompletion" : "a Certificate of Completion with \n" . $complitionStatus;
             $pdf->SetFont('Times', 'I', 25);
-            $complition = "a Certificate of Completion with \n" . $this->TraineePerformanceLevelHandler($avarage);
-            $pdf->MultiCell(190, 13, $complition, 0, 'C', false, 1, 10, 95);
+            $pdf->MultiCell(0, 13, $complitionMessage, 0, 'C', false, 1, 10, 95);
 
             // Message
             $pdf->SetFont('Times', 'I', 10);
-            $message = "for successfully completing a Professional \nDevelopment Course for Rwandan Teacher \nEducation Practitioners titled";
-            $pdf->MultiCell(190, 10, $message, 0, 'C', false, 1, 10, 120);
+            $message = "for successfully completing a Blended Learning Continuous Professional \nDevelopment Course for Rwandan In- Service Primary Teachers titled:";
+            $pdf->MultiCell(0, 10, $message, 0, 'C', false, 1, 10, 120);
 
             // title
             $pdf->SetFont('Times', 'B', 10);
 
-            $title = '"' . $value['trainingName'] . '"';
-            $pdf->MultiCell(190, 13, $title, 0, 'C', false, 1, 10, 135);
+            $title = '"' . $this->removeExtraSpacesAndNewlines($value['trainingName']) . '"';
+            $pdf->MultiCell(0, 13, $title, 0, 'C', false, 1, 10, 135);
 
             // date
             $pdf->SetFont('Times', 'I', 10);
             $date = "between " . $this->displayDateHandler($value['cohortStart']) . " and " . $this->displayDateHandler($value['cohortEnd']) . ".";
-            $pdf->MultiCell(190, 13, $date, 0, 'C', false, 1, 10, 140);
+            $pdf->MultiCell(0, 13, $date, 0, 'C', false, 1, 10, 140);
 
             // Director names
             $pdf->SetFont('Times', 'B', 12);
-            $pdf->SetXY(10, 150);
-            $pdf->Ln();
-
+            $pdf->SetXY(20, 160);
             // Define data for the table
             $data = array(
-                array('Dr. Nelson Mbarushimana', 'Dr. Aliou Tall', 'Mr. Rabieh Razzouk'),
-                array('Director General for Rwanda', 'Director, Education Office', 'Director, Learning Systems Institute'),
+                array('Dr. Nelson Mbarushimana', 'Dr. Aliou Tall', 'Dr. Vincent Mutembeya Mugisha'),
+                array('Director General', 'USAID/Rwanda', 'Chief of Party, USAID Tunoze Gusoma'),
+                array('Rwanda Basic Education Board', 'Education Office Director', 'Country Representative, FHI 360 in Rwanda'),
             );
 
             // Set width for each column
-            $columnWidths = array(70, 70, 70);
+            $columnWidths = array(80, 60, 70);
 
             // Loop through the data and add rows and columns
+            $absolute_y = 170;
             foreach ($data as $row) {
                 foreach ($row as $key => $value) {
                     // Add cell with content
-                    $pdf->Cell($columnWidths[$key], 5, $value, 0, 0, 'C');
+                    $pdf->Cell($columnWidths[$key], 5, $value, 0, 0, 'L');
                 }
-                $pdf->SetFont('Times', 'I', 10);
+                $pdf->SetFont('Times', '', 10);
+                $pdf->SetXY(20, $absolute_y);
+                $absolute_y += 5;
                 // Move to the next line
-                $pdf->Ln();
             }
 
             // BarCode
@@ -377,12 +434,12 @@ class TraineersController
             $localhostUrl = "http://" . $host . "/trainee/certificate/verify/" . $staffCode . "/" . $cohortId;
             $productionUrl = "https://elearning.reb.rw/rebmis/trainee/certificate/verify/" . $staffCode . "/" . $cohortId;
             $url = $pos === false ? $productionUrl : $localhostUrl;
-            $pdf->write2DBarcode($url, 'QRCODE,Q', 240, 150, 30, 30, $style, 'R');
+            $pdf->write2DBarcode($url, 'QRCODE,Q', 240, 160, 30, 30, $style, 'R');
 
             // Warning
-            $pdf->SetXY(10, 195);
-            $pdf->SetFont('Times', 'I', 10);
-            $warning = "Note: This certificate is valid upon presentation of a detailed transcript indicating courses completed and passed.";
+            $pdf->SetXY(10, 192);
+            $pdf->SetFont('Times', '', 10);
+            $warning = "Scan to download the transcript.          ";
             $pdf->Write(1, $warning, '', false, 'R', true);
             // $pdf->MultiCell(0, 0, $warning, 0, 'C', false, 1, 10, 186);
         }
