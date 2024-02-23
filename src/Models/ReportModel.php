@@ -105,6 +105,7 @@ class ReportModel
 
     public function updateElearningMarks($data)
     {
+        $results = '';
         foreach ($data as $key => $teacherMarks) {
             $Ururimi_mvugo_nav                  = $teacherMarks['Ururimi_mvugo_nav'];
             $Ururimi_mvugo_quiz                 = $teacherMarks['Ururimi_mvugo_quiz'];
@@ -134,7 +135,12 @@ class ReportModel
             $Imbumbanyigisho_ya_4_quiz  = $teacherMarks['Imbumbanyigisho_ya_4_quiz'];
             $end_of_course_quiz         = $teacherMarks['end_of_course_quiz'];
 
+            $results +=$this->updateResults($Ururimi_mvugo_nav, $Ururimi_mvugo_quiz, $Imbumbanyigisho_ya_1_quiz, $end_of_course_quiz, $staff_code);
         }
+        return $results;
+    }
+
+    private function updateResults($Ururimi_mvugo_nav, $Ururimi_mvugo_quiz, $Imbumbanyigisho_ya_1_quiz, $end_of_course_quiz, $staff_code){
         $statement = "UPDATE general_report SET 
         courseNavigation = '".$Ururimi_mvugo_nav."', 
         endOfChapter = '".$Ururimi_mvugo_quiz."', 
@@ -143,12 +149,13 @@ class ReportModel
          WHERE 
          chapterId = '800a462f-5e81-45e3-9750-8c99311d2736' AND 
          staff_code = '".$staff_code."'";
-        try {
-            $statement = $this->db->prepare($statement);
-            $statement->execute(array());
-            return $statement;
-        } catch (\PDOException $e) {
-            throw new Error($e->getMessage());
-        }
+            try {
+                $statement = $this->db->prepare($statement);
+                $statement->execute(array());
+                return $statement->rowCount();
+            } catch (\PDOException $e) {
+                throw new Error($e->getMessage());
+            }
+        
     }
 }
