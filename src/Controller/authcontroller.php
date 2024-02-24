@@ -127,11 +127,11 @@ class AuthController
     }
 
     /**
-     * add tot training handler
+     * validating user that is going to be added to training
      * @param object $data
      * @throws InvalidDataException
      */
-    function addNewUserToTraininghandler($data)
+    function validateUserToBeAddedToTraining($data)
     {
         // checking if cohortId is provided
         if (!isset($data["cohortId"]) || empty($data["cohortId"])) {
@@ -181,29 +181,27 @@ class AuthController
 
             // checking is user training data completed
             if (isset($data["addToTraining"]) && $data["addToTraining"]) {
-                $this->addNewUserToTraininghandler($data);
+                $this->validateUserToBeAddedToTraining($data);
             }
 
             // checkking if staff_code exists
-            if (isset($data["staff_code"]) && !empty($data['staff_code'])) {
-                $userStaffCodeExist = $this->usersModel->findUserByStaffcode($data["staff_code"]);
-                if (sizeof($userStaffCodeExist) > 0) {
-                    return Errors::notFoundError("User staff code already exists!, please try again?");
-                }
+            $results = isset($data["staff_code"]) && !empty($data['staff_code']) ? $this->usersModel->findUserByStaffcode($data["staff_code"]) : [];
+            $user_id = count($results) > 0 ? $results[0]['user_id'] : null;
+
+            if (sizeof($results) == 0) {
+                // Encrypting default password
+                $default_password = 12345;
+                $default_password = Encrypt::saltEncryption($default_password);
+
+                // Generate user id
+                $user_id = UuidGenerator::gUuid();
+
+                $data['password'] = $default_password;
+                $data['user_id'] = $user_id;
+                $data['created_by'] = $created_by_user_id;
+
+                $results = $this->usersModel->insertNewUser($data);
             }
-
-            // Encrypting default password
-            $default_password = 12345;
-            $default_password = Encrypt::saltEncryption($default_password);
-
-            // Generate user id
-            $user_id = UuidGenerator::gUuid();
-
-            $data['password'] = $default_password;
-            $data['user_id'] = $user_id;
-            $data['created_by'] = $created_by_user_id;
-
-            $results = $this->usersModel->insertNewUser($data);
 
             // add to user to role
             if ($results && isset($data['role_id'])) {
