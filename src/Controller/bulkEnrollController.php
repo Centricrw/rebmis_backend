@@ -13,6 +13,8 @@ use Src\System\Errors;
 use Src\System\InvalidDataException;
 use Src\System\UuidGenerator;
 
+use function DI\string;
+
 class bulkEnrollController
 {
     private $db;
@@ -295,6 +297,7 @@ class bulkEnrollController
                 return Errors::notFoundError("Cohort id not found, please try again?");
             }
 
+            if(strlen($data["teacher"]->phone_number) == 7) {$data["teacher"]->phone_number = "0".$data["teacher"]->phone_number;}
             // Validate data
             $this->bulkEnrollInputValidation($data["teachers"]);
 
