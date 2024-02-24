@@ -198,6 +198,7 @@ class bulkEnrollController
         // Generate user id
         $role_to_user_id = UuidGenerator::gUuid();
         // checking if role exists
+        if($data['role'] =='HeadTeacher'){$data['role']='Head Teacher';}
         $roleResults = $this->rolesModel->findRoleByName($data['role']);
         $dataToInsert = [
             "role_to_user_id" => $role_to_user_id,
