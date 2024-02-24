@@ -206,7 +206,7 @@ class ReportModel
         endOfModule = '".$Imbumbanyigisho_ya_1_quiz."', 
         endOfCourse = '".$end_of_course_quiz."'
          WHERE 
-         chapterId = '800a462f-5e81-45e3-9750-8c99311d2736' AND 
+         chapterId = '2e18d784-cf0c-43d3-88b7-8a22c50deab7' AND 
          staff_code = '".$staff_code."'";
             try {
                 $statement = $this->db->prepare($statement);
@@ -224,7 +224,7 @@ class ReportModel
         endOfModule = '".$Imbumbanyigisho_ya_1_quiz."', 
         endOfCourse = '".$end_of_course_quiz."'
          WHERE 
-         chapterId = 'a9e267bd-8965-42c5-8252-52ba1039ff20' AND 
+         chapterId = '4c279022-decc-4458-bb1f-65015e2cdb38' AND 
          staff_code = '".$staff_code."'";
             try {
                 $statement = $this->db->prepare($statement);
@@ -242,7 +242,7 @@ class ReportModel
         endOfModule = '".$Imbumbanyigisho_ya_1_quiz."', 
         endOfCourse = '".$end_of_course_quiz."'
          WHERE 
-         chapterId = '9356f656-d400-41da-b16e-201ec8def787' AND 
+         chapterId = '2a44c460-dab1-4f06-815d-073f85661b24' AND 
          staff_code = '".$staff_code."'";
             try {
                 $statement = $this->db->prepare($statement);
@@ -260,7 +260,7 @@ class ReportModel
         endOfModule = '".$Imbumbanyigisho_ya_2_quiz."', 
         endOfCourse = '".$end_of_course_quiz."'
          WHERE 
-         chapterId = '76866db5-95fd-4db3-ac9b-d9563b5a56de' AND 
+         chapterId = 'b46e4609-7ade-4a66-8b41-8adffb51b56f' AND 
          staff_code = '".$staff_code."'";
             try {
                 $statement = $this->db->prepare($statement);
@@ -278,7 +278,7 @@ class ReportModel
         endOfModule = '".$Imbumbanyigisho_ya_2_quiz."', 
         endOfCourse = '".$end_of_course_quiz."'
          WHERE 
-         chapterId = '4402bfac-5de4-4bdf-b924-1c6a666ce5bc' AND 
+         chapterId = 'bc5d7c46-f204-43c4-b50b-3712ed671748' AND 
          staff_code = '".$staff_code."'";
             try {
                 $statement = $this->db->prepare($statement);
@@ -296,7 +296,7 @@ class ReportModel
         endOfModule = '".$Imbumbanyigisho_ya_2_quiz."', 
         endOfCourse = '".$end_of_course_quiz."'
          WHERE 
-         chapterId = '75bd8c9a-8b10-468a-9ed4-70519dccd431' AND 
+         chapterId = 'e09769f1-9ee8-44d2-bfa6-dd48e7291f61' AND 
          staff_code = '".$staff_code."'";
             try {
                 $statement = $this->db->prepare($statement);
@@ -314,7 +314,7 @@ class ReportModel
         endOfModule = '".$Imbumbanyigisho_ya_3_quiz."', 
         endOfCourse = '".$end_of_course_quiz."'
          WHERE 
-         chapterId = '8fe948cf-0b90-49ea-9be0-9ae7650a25f5' AND 
+         chapterId = '81aec3c8-4319-4d86-972b-510cdf908157' AND 
          staff_code = '".$staff_code."'";
             try {
                 $statement = $this->db->prepare($statement);
@@ -332,7 +332,7 @@ class ReportModel
         endOfModule = '".$Imbumbanyigisho_ya_3_quiz."', 
         endOfCourse = '".$end_of_course_quiz."'
          WHERE 
-         chapterId = '9284cede-c520-42ee-9656-0faabb31de6c' AND 
+         chapterId = '7dfbfb8e-3bb7-468e-944f-f1792f461068' AND 
          staff_code = '".$staff_code."'";
             try {
                 $statement = $this->db->prepare($statement);
@@ -350,7 +350,7 @@ class ReportModel
         endOfModule = '".$Imbumbanyigisho_ya_4_quiz."', 
         endOfCourse = '".$end_of_course_quiz."'
          WHERE 
-         chapterId = 'd9d5e9cb-01d0-48a9-853b-dd3e68f689f8' AND 
+         chapterId = '2986f196-3d45-4933-b338-1858cafde17f' AND 
          staff_code = '".$staff_code."'";
             try {
                 $statement = $this->db->prepare($statement);
@@ -368,7 +368,7 @@ class ReportModel
         endOfModule = '".$Imbumbanyigisho_ya_4_quiz."', 
         endOfCourse = '".$end_of_course_quiz."'
          WHERE 
-         chapterId = '93f805de-4e39-4111-bae1-ea2f4e74a282' AND 
+         chapterId = '32157200-c599-4e0f-b21e-699f1e49b0e4' AND 
          staff_code = '".$staff_code."'";
             try {
                 $statement = $this->db->prepare($statement);
