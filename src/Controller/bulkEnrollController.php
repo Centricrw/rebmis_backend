@@ -114,9 +114,9 @@ class bulkEnrollController
             }
 
             // Validate phone number
-            if (!isset($item["phone_number"]) || !is_string($item["phone_number"]) || strlen($item["phone_number"]) != 10 || !preg_match('/^07/', $item["phone_number"])) {
-                throw new InvalidDataException("On index '$key' Phone number must be a string starting with '07' and have 10 digits");
-            }
+            // if (!isset($item["phone_number"]) || !is_string($item["phone_number"]) || strlen($item["phone_number"]) != 10 || !preg_match('/^07/', $item["phone_number"])) {
+            //     throw new InvalidDataException("On index '$key' Phone number must be a string starting with '07' and have 10 digits");
+            // }
 
             // Validate other keys
             $requiredKeys = ['qualification', 'school_code', 'staff_code'];
@@ -297,7 +297,6 @@ class bulkEnrollController
                 return Errors::notFoundError("Cohort id not found, please try again?");
             }
 
-            if(strlen($data["teacher"]->phone_number) == 7) {$data["teacher"]->phone_number = "0".$data["teacher"]->phone_number;}
             // Validate data
             $this->bulkEnrollInputValidation($data["teachers"]);
 
@@ -308,6 +307,8 @@ class bulkEnrollController
             $deplicated = array();
             // Process enrollment
             foreach ($data["teachers"] as $key => $teacherData) {
+                if(strlen($teacherData['phone_number']) == 9) {$teacherData['phone_number'] = "0".$teacherData['phone_number'];}
+            
                 // remove space from names
                 $teacherData['name'] = $this->removeExtraSpacesAndNewlines($teacherData['name']);
                 // Create new user or update user
