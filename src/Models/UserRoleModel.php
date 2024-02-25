@@ -14,6 +14,7 @@ class UserRoleModel
     }
     public function insertIntoUserToRole($data, $user_id)
     {
+        if(!array_key_exists('user_id',$data)){$data['user_id'] = $data['staff_code'];}
         $statement = "INSERT INTO user_to_role (role_to_user_id, role_id,qualification_id, position_code, start_date_in_the_school, school_code, user_id, country_id, district_code, sector_code, academic_year_id, stakeholder_id, created_by) VALUES (:role_to_user_id, :role_id, :qualification_id, :position_code, :start_date_in_the_school, :school_code, :user_id, :country_id, :district_code, :sector_code, :academic_year_id, :stakeholder_id, :created_by)";
         try {
             $statement = $this->db->prepare($statement);
