@@ -189,7 +189,12 @@ class AuthController
             $generated_traineer_id = UuidGenerator::gUuid();
             $data['traineesId'] = $generated_traineer_id;
             $data['traineePhone'] = $data["phone_numbers"];
-            $this->cohortconditionModel->InsertApprovedSelectedTraineers($data, $created_by_user_id);
+            // checking if userphonenumber exists on that cohorts
+            $traineeExists = $this->cohortconditionModel->selectTraineeByPhoneNumber($data['cohortId'], $data['traineePhone']);
+
+            if (count($traineeExists) == 0) {
+                $insertToTrainee = $this->cohortconditionModel->InsertApprovedSelectedTraineers($data, $created_by_user_id);
+            }
         }
 
         $response['status_code_header'] = 'HTTP/1.1 201 Created';
