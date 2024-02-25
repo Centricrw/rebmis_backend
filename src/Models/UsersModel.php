@@ -54,7 +54,9 @@ class UsersModel
 
     public function updateUser($data, $user_id, $updated_by)
     {
-        if(array_key_exists('gender',$data)){$data['sex'] = $data['gender'];}
+        if (array_key_exists('gender', $data)) {
+            $data['sex'] = $data['gender'];
+        }
         $sql = "UPDATE users SET
           first_name=:first_name, middle_name=:middle_name,
           last_name=:last_name, full_name=:full_name,
