@@ -168,6 +168,7 @@ class UserRoleModel
             $statement = $this->db->prepare($sql);
             $statement->execute(array(
                 ':school_code' => $school_code,
+                ':status' => 'Active'
             ));
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             return $result;
