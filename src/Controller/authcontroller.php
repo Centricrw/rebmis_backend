@@ -166,7 +166,7 @@ class AuthController
 
     function UpdateCurrentUserHandler($data, $user_id, $created_by_user_id)
     {
-        $results = $this->usersModel->updateUser($data, $user_id, $created_by_user_id);
+        // $results = $this->usersModel->updateUser($data, $user_id, $created_by_user_id);
 
         // add to user to role
         // if ($results && isset($data['role_id'])) {
@@ -203,7 +203,7 @@ class AuthController
             'message' => "Created",
             'user_id' => $user_id,
             'traineesId' => isset($data['traineesId']) ? $data['traineesId'] : null,
-            'results' => $results,
+            'results' => $data,
         ]);
         return $response;
     }
