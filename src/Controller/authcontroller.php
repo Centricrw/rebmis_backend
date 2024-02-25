@@ -102,27 +102,28 @@ class AuthController
      * @param string $email
      * @throws InvalidDataException
      */
-    function checkingIfUserNameNidPhoneNumberEmailExists($nid, $phoneNumber, $userName, $email)
+    function checkingIfUserNameNidPhoneNumberEmailExists($data, $created_by_user_id)
     {
+        $username = isset($data["username"]) && !empty($data["username"]) ? $data["username"] : $data["phone_numbers"];
         // Check if user phone number, email, nid exists
-        $emailExists = $this->usersModel->findExistEmailShort($email);
+        $emailExists = $this->usersModel->findExistEmailShort($data["email"]);
         if (sizeof($emailExists) > 0) {
-            throw new InvalidDataException("Email already exist, please try again?");
+            return $this->UpdateCurrentUserHandler($data, $emailExists[0]['user_id'], $created_by_user_id);
         }
         // Check if user phone number, email, nid exists
-        $phoneNumberExists = $this->usersModel->findExistPhoneNumberShort($phoneNumber);
+        $phoneNumberExists = $this->usersModel->findExistPhoneNumberShort($data["phone_numbers"]);
         if (sizeof($phoneNumberExists) > 0) {
-            throw new InvalidDataException("Phone number already exist, please try again?");
+            return $this->UpdateCurrentUserHandler($data, $phoneNumberExists[0]['user_id'], $created_by_user_id);
         }
         // Check if user phone number, email, nid exists
-        $nidExists = $this->usersModel->findExistNidShort($nid);
+        $nidExists = $this->usersModel->findExistNidShort($data["nid"]);
         if (sizeof($nidExists) > 0) {
-            throw new InvalidDataException("NID already exist, please try again?");
+            return $this->UpdateCurrentUserHandler($data, $nidExists[0]['user_id'], $created_by_user_id);
         }
         // Check if user phone number, email, nid exists
-        $userNameExists = $this->usersModel->findByUsername($userName);
+        $userNameExists = $this->usersModel->findByUsername($username);
         if (sizeof($userNameExists) > 0) {
-            throw new InvalidDataException("Username already exist, please try again?");
+            return $this->UpdateCurrentUserHandler($data, $userNameExists[0]['user_id'], $created_by_user_id);
         }
     }
 
@@ -162,6 +163,45 @@ class AuthController
         // }
     }
 
+    function UpdateCurrentUserHandler($data, $user_id, $created_by_user_id)
+    {
+        $results = $this->usersModel->updateUser($data, $user_id, $created_by_user_id);
+
+        // add to user to role
+        if ($results && isset($data['role_id'])) {
+            // Generate user id
+            $role_to_user_id = UuidGenerator::gUuid();
+
+            // check if user already have access role
+            $userHasActiveRole = $this->userRoleModel->findCurrentUserRole($user_id);
+            if (sizeof($userHasActiveRole) > 0) {
+                //* Disable user to role
+                $this->userRoleModel->disableRole($user_id, $created_by_user_id, "Active", "TRANSFERD");
+            }
+
+            $data['role_to_user_id'] = $role_to_user_id;
+            $this->userRoleModel->insertIntoUserToRole($data, $created_by_user_id);
+        }
+
+        // insert user to training
+        if ($data["addToTraining"]) {
+            // Generate traineer id
+            $generated_traineer_id = UuidGenerator::gUuid();
+            $data['traineesId'] = $generated_traineer_id;
+            $data['traineePhone'] = $data["phone_numbers"];
+            $this->cohortconditionModel->InsertApprovedSelectedTraineers($data, $created_by_user_id);
+        }
+
+        $response['status_code_header'] = 'HTTP/1.1 201 Created';
+        $response['body'] = json_encode([
+            'message' => "Created",
+            'user_id' => $user_id,
+            'traineesId' => isset($data['traineesId']) ? $data['traineesId'] : null,
+            'results' => $results,
+        ]);
+        return $response;
+    }
+
     function createAccount()
     {
 
@@ -177,7 +217,7 @@ class AuthController
 
             // Check if user phone number, username , email, nid exists
             $username = isset($data["username"]) && !empty($data["username"]) ? $data["username"] : $data["phone_numbers"];
-            $this->checkingIfUserNameNidPhoneNumberEmailExists($data["nid"], $data["phone_numbers"], $username, $data["email"]);
+            $this->checkingIfUserNameNidPhoneNumberEmailExists($data, $created_by_user_id);
 
             // checking is user training data completed
             if (isset($data["addToTraining"]) && $data["addToTraining"]) {
@@ -185,23 +225,24 @@ class AuthController
             }
 
             // checkking if staff_code exists
-            $results = isset($data["staff_code"]) && !empty($data['staff_code']) ? $this->usersModel->findUserByStaffcode($data["staff_code"]) : [];
-            $user_id = count($results) > 0 ? $results[0]['user_id'] : null;
-
-            if (sizeof($results) == 0) {
-                // Encrypting default password
-                $default_password = 12345;
-                $default_password = Encrypt::saltEncryption($default_password);
-
-                // Generate user id
-                $user_id = UuidGenerator::gUuid();
-
-                $data['password'] = $default_password;
-                $data['user_id'] = $user_id;
-                $data['created_by'] = $created_by_user_id;
-
-                $results = $this->usersModel->insertNewUser($data);
+            if (isset($data["staff_code"]) && !empty($data['staff_code'])) {
+                $results = $this->usersModel->findUserByStaffcode($data["staff_code"]);
+                if (count($results) > 0) {
+                    return $this->UpdateCurrentUserHandler($data, $results[0]['user_id'], $created_by_user_id);
+                }
             }
+            // Encrypting default password
+            $default_password = 12345;
+            $default_password = Encrypt::saltEncryption($default_password);
+
+            // Generate user id
+            $user_id = UuidGenerator::gUuid();
+
+            $data['password'] = $default_password;
+            $data['user_id'] = $user_id;
+            $data['created_by'] = $created_by_user_id;
+
+            $results = $this->usersModel->insertNewUser($data);
 
             // add to user to role
             if ($results && isset($data['role_id'])) {
