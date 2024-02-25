@@ -61,6 +61,22 @@ class CohortconditionModel
         }
     }
 
+    public function selectTraineeByPhoneNumber($cohortId, $phoneNumber)
+    {
+        $statement = "SELECT * FROM `trainees` WHERE `traineePhone` = :traineePhone AND `cohortId` = :cohortId";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
+                ":traineePhone" => $phoneNumber,
+                ":cohortId" => $cohortId,
+            ));
+            $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $results;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
     public function selectTraineeByUserIDAndCohortID($user_id, $cohort_id)
     {
         $statement = "SELECT * FROM `trainees` WHERE `userId` = :userId AND `cohortId` = :cohortId";
@@ -141,8 +157,8 @@ class CohortconditionModel
 
     public function InsertApprovedSelectedTraineers($data, $logged_user_id)
     {
-        if(!array_key_exists('user_id',$data)){$data['user_id'] = $data['staff_code'];}
-        
+        if (!array_key_exists('user_id', $data)) {$data['user_id'] = $data['staff_code'];}
+
         $statement = "INSERT INTO `trainees`(`traineesId`, `userId`, `trainingId`, `cohortId`, `conditionId`, `status`, `traineeName`, `traineePhone`, `district_code`, `sector_code`, `school_code`) VALUES (:traineesId, :userId, :trainingId, :cohortId, :conditionId, :status, :traineeName, :traineePhone, :district_code, :sector_code, :school_code)";
         try {
             $statement = $this->db->prepare($statement);

@@ -168,20 +168,20 @@ class AuthController
         $results = $this->usersModel->updateUser($data, $user_id, $created_by_user_id);
 
         // add to user to role
-        if ($results && isset($data['role_id'])) {
-            // Generate user id
-            $role_to_user_id = UuidGenerator::gUuid();
+        // if ($results && isset($data['role_id'])) {
+        //     // Generate user id
+        //     $role_to_user_id = UuidGenerator::gUuid();
 
-            // check if user already have access role
-            $userHasActiveRole = $this->userRoleModel->findCurrentUserRole($user_id);
-            if (sizeof($userHasActiveRole) > 0) {
-                //* Disable user to role
-                $this->userRoleModel->disableRole($user_id, $created_by_user_id, "Active", "TRANSFERD");
-            }
+        //     // check if user already have access role
+        //     $userHasActiveRole = $this->userRoleModel->findCurrentUserRole($user_id);
+        //     if (sizeof($userHasActiveRole) > 0) {
+        //         //* Disable user to role
+        //         $this->userRoleModel->disableRole($user_id, $created_by_user_id, "Active", "TRANSFERD");
+        //     }
 
-            $data['role_to_user_id'] = $role_to_user_id;
-            $this->userRoleModel->insertIntoUserToRole($data, $created_by_user_id);
-        }
+        //     $data['role_to_user_id'] = $role_to_user_id;
+        //     $this->userRoleModel->insertIntoUserToRole($data, $created_by_user_id);
+        // }
 
         // insert user to training
         if ($data["addToTraining"]) {
@@ -266,7 +266,12 @@ class AuthController
                 $generated_traineer_id = UuidGenerator::gUuid();
                 $data['traineesId'] = $generated_traineer_id;
                 $data['traineePhone'] = $data["phone_numbers"];
-                $this->cohortconditionModel->InsertApprovedSelectedTraineers($data, $created_by_user_id);
+                // checking if userphonenumber exists on that cohorts
+                $traineeExists = $this->cohortconditionModel->selectTraineeByPhoneNumber($data['cohortId'], $data['traineePhone']);
+
+                if (count($traineeExists) == 0) {
+                    $insertToTrainee = $this->cohortconditionModel->InsertApprovedSelectedTraineers($data, $created_by_user_id);
+                }
             }
 
             $response['status_code_header'] = 'HTTP/1.1 201 Created';
