@@ -124,9 +124,14 @@ class CopReportsModel
         }
     }
 
+    private function updateGeneralReport($moduleId, $chapterId, $cohortId, $trainingId){
+        //SELECT TRAININEES
+        //LOOP TRAINEES
+        //UPDATE GENERAL REPORT
+    }
     private function generateReport($moduleId, $chapterId, $cohortId, $trainingId){
 
-        $statement = "INSERT INTO general_report (
+        $statement = "INSERT IGNORE INTO general_report (
         traineeId, traineeName, traineePhone, staff_code,
         district_code, sector_code, school_code, 
         district_name, sector_name, school_name, 
