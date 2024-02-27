@@ -206,7 +206,7 @@ class ReportModel
         endOfModule = '".$Imbumbanyigisho_ya_1_quiz."', 
         endOfCourse = '".$end_of_course_quiz."'
          WHERE 
-         chapterId = '2e18d784-cf0c-43d3-88b7-8a22c50deab7' AND 
+         chapterId = '4114375c-47bb-4d64-84b2-cea34ee7373e' AND 
          staff_code = '".$staff_code."'";
             try {
                 $statement = $this->db->prepare($statement);
@@ -224,7 +224,7 @@ class ReportModel
         endOfModule = '".$Imbumbanyigisho_ya_1_quiz."', 
         endOfCourse = '".$end_of_course_quiz."'
          WHERE 
-         chapterId = '4c279022-decc-4458-bb1f-65015e2cdb38' AND 
+         chapterId = 'a6e98e88-3f30-4240-96d6-632a00675ee5' AND 
          staff_code = '".$staff_code."'";
             try {
                 $statement = $this->db->prepare($statement);
@@ -242,7 +242,7 @@ class ReportModel
         endOfModule = '".$Imbumbanyigisho_ya_1_quiz."', 
         endOfCourse = '".$end_of_course_quiz."'
          WHERE 
-         chapterId = '2a44c460-dab1-4f06-815d-073f85661b24' AND 
+         chapterId = '0a0a28e4-8799-44ec-8ffb-7707295660ea' AND 
          staff_code = '".$staff_code."'";
             try {
                 $statement = $this->db->prepare($statement);
@@ -260,7 +260,7 @@ class ReportModel
         endOfModule = '".$Imbumbanyigisho_ya_2_quiz."', 
         endOfCourse = '".$end_of_course_quiz."'
          WHERE 
-         chapterId = 'b46e4609-7ade-4a66-8b41-8adffb51b56f' AND 
+         chapterId = '2493891a-2d15-48b2-9dbb-e2b8653cc595' AND 
          staff_code = '".$staff_code."'";
             try {
                 $statement = $this->db->prepare($statement);
@@ -278,7 +278,7 @@ class ReportModel
         endOfModule = '".$Imbumbanyigisho_ya_2_quiz."', 
         endOfCourse = '".$end_of_course_quiz."'
          WHERE 
-         chapterId = 'bc5d7c46-f204-43c4-b50b-3712ed671748' AND 
+         chapterId = 'ab0482b2-4e0f-4836-be9e-644e94a032cf' AND 
          staff_code = '".$staff_code."'";
             try {
                 $statement = $this->db->prepare($statement);
@@ -296,7 +296,7 @@ class ReportModel
         endOfModule = '".$Imbumbanyigisho_ya_2_quiz."', 
         endOfCourse = '".$end_of_course_quiz."'
          WHERE 
-         chapterId = 'e09769f1-9ee8-44d2-bfa6-dd48e7291f61' AND 
+         chapterId = '79ed2c47-e20f-44db-98a6-70e8f28b4034' AND 
          staff_code = '".$staff_code."'";
             try {
                 $statement = $this->db->prepare($statement);
@@ -314,7 +314,7 @@ class ReportModel
         endOfModule = '".$Imbumbanyigisho_ya_3_quiz."', 
         endOfCourse = '".$end_of_course_quiz."'
          WHERE 
-         chapterId = '81aec3c8-4319-4d86-972b-510cdf908157' AND 
+         chapterId = 'c94df19e-0f61-4b37-9328-0a26306d7797' AND 
          staff_code = '".$staff_code."'";
             try {
                 $statement = $this->db->prepare($statement);
@@ -332,7 +332,7 @@ class ReportModel
         endOfModule = '".$Imbumbanyigisho_ya_3_quiz."', 
         endOfCourse = '".$end_of_course_quiz."'
          WHERE 
-         chapterId = '7dfbfb8e-3bb7-468e-944f-f1792f461068' AND 
+         chapterId = 'd2914b04-e5ae-4bac-a3d6-12659d26aec4' AND 
          staff_code = '".$staff_code."'";
             try {
                 $statement = $this->db->prepare($statement);
@@ -350,7 +350,7 @@ class ReportModel
         endOfModule = '".$Imbumbanyigisho_ya_4_quiz."', 
         endOfCourse = '".$end_of_course_quiz."'
          WHERE 
-         chapterId = '2986f196-3d45-4933-b338-1858cafde17f' AND 
+         chapterId = '161e713e-7c88-495f-acda-2c7d830ffb88' AND 
          staff_code = '".$staff_code."'";
             try {
                 $statement = $this->db->prepare($statement);
