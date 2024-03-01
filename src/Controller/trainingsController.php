@@ -100,11 +100,6 @@ class trainingsController
         }
     }
 
-    function countTraineesHandler()
-    {
-
-    }
-
     private function getAllTranings()
     {
         // geting authorized user id
