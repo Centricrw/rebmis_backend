@@ -119,7 +119,7 @@ class ReportModel
 
             $Inyunguramagambo_nav               = $teacherMarks['Inyunguramagambo_nav'];
             if($Inyunguramagambo_nav == '-'){$Inyunguramagambo_nav = 0;}else{$Inyunguramagambo_nav = 100;}
-            $Inyunguramagambo_quiz              = ((float)$teacherMarks['Inyunguramagambo_quiz'])*10;
+            $Inyunguramagambo_quiz              = ((int)$teacherMarks['Inyunguramagambo_quiz'])*10;
             if($Inyunguramagambo_quiz == '-'){$Inyunguramagambo_quiz = 0;}
 
 
@@ -146,14 +146,14 @@ class ReportModel
 
 
 
-            $Imbumbanyigisho_ya_2_quiz          = ((float)$teacherMarks['Imbumbanyigisho_ya_2_quiz'])*10;
+            $Imbumbanyigisho_ya_2_quiz          = ((int)$teacherMarks['Imbumbanyigisho_ya_2_quiz'])*10;
             if($Imbumbanyigisho_ya_2_quiz == '-'){$Imbumbanyigisho_ya_2_quiz = 0;}
 
 
 
             $Kwandika_nav                       = $teacherMarks['Kwandika_nav'];
             if($Kwandika_nav == '-'){$Kwandika_nav = 0;}else{$Kwandika_nav = 100;}
-            $Kwandika_quiz                      = (float)($teacherMarks['Kwandika_quiz'])*10;
+            $Kwandika_quiz                      = ((int)$teacherMarks['Kwandika_quiz']*10);
             if($Kwandika_quiz == '-'){$Kwandika_quiz = 0;}
 
             $Ihangamwandiko_nav                 = $teacherMarks['Ihangamwandiko_nav'];
