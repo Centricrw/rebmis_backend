@@ -277,7 +277,7 @@ class CohortconditionModel
                 ":school_name" => $data["school_name"],
                 ":trainingId" => $data["trainingId"],
             ));
-            $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $results = $statement->rowCount();
             return $results;
         } catch (\PDOException $e) {
             throw new Error($e->getMessage());
