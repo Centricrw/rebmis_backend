@@ -314,7 +314,7 @@ class ReportModel
         endOfModule = '".$Imbumbanyigisho_ya_3_quiz."', 
         endOfCourse = '".$end_of_course_quiz."'
          WHERE 
-         chapterId = 'c94df19e-0f61-4b37-9328-0a26306d7797' AND 
+         chapterId = 'bfc0be81-ad35-4aff-aeec-82265c166396' AND 
          staff_code = '".$staff_code."'";
             try {
                 $statement = $this->db->prepare($statement);
