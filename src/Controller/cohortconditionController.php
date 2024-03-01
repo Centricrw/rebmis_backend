@@ -39,6 +39,8 @@ class locationsController
                         $response = $this->getTrainees($this->params['id']);
                     } else if ($this->params['action'] == "studyhierarchy") {
                         $response = $this->GetStudyHierarchy();
+                    } else if ($this->params['action'] == "generalreport") {
+                        $response = $this->getAvailableChapters($this->params['id']);
                     } else {
                         $response = Errors::notFoundError("No route found!");
                     }
@@ -163,6 +165,20 @@ class locationsController
             $response['body'] = json_encode([
                 'message' => "Traineers assigned succefully!",
             ]);
+            return $response;
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
+        }
+    }
+
+    private function getAvailableChapters($traineensId)
+    {
+        $logged_user_id = AuthValidation::authorized()->id;
+
+        try {
+            $chapters = $this->cohortconditionModel->getAllReportsAssignedToTraining($traineensId);
+            $response['status_code_header'] = 'HTTP/1.1 200 OK';
+            $response['body'] = json_encode($chapters);
             return $response;
         } catch (\Throwable $th) {
             return Errors::databaseError($th->getMessage());

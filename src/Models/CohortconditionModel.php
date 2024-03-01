@@ -1,6 +1,7 @@
 <?php
 namespace Src\Models;
 
+use DateTime;
 use Error;
 
 class CohortconditionModel
@@ -53,6 +54,22 @@ class CohortconditionModel
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array(":cohortconditionId" => $conditionId,
+            ));
+            $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $results;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    public function selectTraineeByPhoneNumber($cohortId, $phoneNumber)
+    {
+        $statement = "SELECT * FROM `trainees` WHERE `traineePhone` = :traineePhone AND `cohortId` = :cohortId";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
+                ":traineePhone" => $phoneNumber,
+                ":cohortId" => $cohortId,
             ));
             $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
             return $results;
@@ -139,10 +156,140 @@ class CohortconditionModel
         }
     }
 
+    public function getAllReportsAssignedToTraining($trainingId)
+    {
+        $COPstatement = "SELECT cop_report_id, trainingId, cop_report_title  FROM cop_report WHERE trainingId = :trainingId";
+
+        $DatilsQuery = "SELECT cop_report_details_id, cop_report_details_title FROM cop_report_details WHERE cop_report_id = :cop_report_id";
+        try {
+            $COPstatement = $this->db->prepare($COPstatement);
+            $COPstatement->execute(array(
+                ':trainingId' => $trainingId,
+            ));
+            $COPresult = $COPstatement->fetchAll(\PDO::FETCH_ASSOC);
+
+            foreach ($COPresult as $key => $value) {
+                $Dstatement = $this->db->prepare($DatilsQuery);
+                $Dstatement->execute(array(
+                    ':cop_report_id' => $value['cop_report_id'],
+                ));
+                $results = $Dstatement->fetchAll(\PDO::FETCH_ASSOC);
+                $COPresult[$key]["details"] = $results;
+            }
+            return $COPresult;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    function traineeHasChapterHandler($data, $chapterId)
+    {
+        $query = "SELECT generalReportId FROM general_report WHERE userId = :userId AND cohortId = :cohortId AND chapterId = :chapterId";
+        try {
+            $statement = $this->db->prepare($query);
+            $statement->execute(array(
+                ':userId' => $data['user_id'],
+                ':cohortId' => $data['cohortId'],
+                ':chapterId' => $chapterId,
+            ));
+            $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $results;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    function getTraineeInfo($user_id)
+    {
+        $query = "SELECT * FROM users WHERE user_id = :user_id LIMIT 1";
+        try {
+            $statement = $this->db->prepare($query);
+            $statement->execute(array(
+                ':user_id' => $user_id,
+            ));
+            $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $results;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    function getTraineeSchoolLactionInfo($school_code)
+    {
+        $schoolQuery = "SELECT school_name FROM `schools` WHERE school_code = :school_code LIMIT 1";
+        $districtQuery = "SELECT namedistrict FROM `districts` WHERE districtcode = :districtcode LIMIT 1";
+        $sectorQuery = "SELECT namesector FROM `sectors` WHERE sectorcode = :sectorcode LIMIT 1";
+        try {
+            // getting school info
+            $schoolStatement = $this->db->prepare($schoolQuery);
+            $schoolStatement->execute(array(':school_code' => $school_code));
+            $schoolInfo = $schoolStatement->fetchAll(\PDO::FETCH_ASSOC);
+
+            // getting district info
+            $districtStatement = $this->db->prepare($districtQuery);
+            $districtStatement->execute(array(':districtcode' => substr($school_code, 0, 2)));
+            $districtInfo = $districtStatement->fetchAll(\PDO::FETCH_ASSOC);
+
+            // getting sector info
+            $sectorStatement = $this->db->prepare($sectorQuery);
+            $sectorStatement->execute(array(':sectorcode' => substr($school_code, 0, 4)));
+            $sectorInfo = $sectorStatement->fetchAll(\PDO::FETCH_ASSOC);
+
+            return array(
+                "district_code" => substr($school_code, 0, 2),
+                "district_name" => $districtInfo[0]["namedistrict"],
+                "sector_code" => substr($school_code, 0, 4),
+                "sector_name" => $sectorInfo[0]["namesector"],
+                "school_code" => $school_code,
+                "school_name" => $schoolInfo[0]["school_name"],
+            );
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    public function insertTraineeToGeneralReport($data)
+    {
+        // get allowed chapters
+        $statement = "INSERT INTO `general_report`(`traineeId`, `userId`, `traineeName`, `traineePhone`, `staff_code`, `cohortId`, `moduleId`, `moduleName`, `chapterId`, `chapterName`, `age`, `gender`, `disability`, `district_code`, `district_name`, `sector_code`, `sector_name`, `school_code`, `school_name`, `trainingId`) VALUES (:traineeId, :userId, :traineeName, :traineePhone, :staff_code, :cohortId, :moduleId, :moduleName, :chapterId, :chapterName, :age, :gender, :disability, :district_code, :district_name, :sector_code, :sector_name, :school_code, :school_name, :trainingId)
+        ";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
+                ":traineeId" => $data["traineeId"],
+                ":userId" => $data["userId"],
+                ":traineeName" => $data["traineeName"],
+                ":traineePhone" => $data["traineePhone"],
+                ":staff_code" => $data["staff_code"],
+                ":cohortId" => $data["cohortId"],
+                ":moduleId" => $data["moduleId"],
+                ":moduleName" => $data["moduleName"],
+                ":chapterId" => $data["chapterId"],
+                ":chapterName" => $data["chapterName"],
+                ":age" => $data["age"],
+                ":gender" => $data["gender"],
+                ":disability" => $data["disability"],
+                ":district_code" => $data["district_code"],
+                ":district_name" => $data["district_name"],
+                ":sector_code" => $data["sector_code"],
+                ":sector_name" => $data["sector_name"],
+                ":school_code" => $data["school_code"],
+                ":school_name" => $data["school_name"],
+                ":trainingId" => $data["trainingId"],
+            ));
+            $results = $statement->rowCount();
+            return $results;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
     public function InsertApprovedSelectedTraineers($data, $logged_user_id)
     {
-        if(!array_key_exists('user_id',$data)){$data['user_id'] = $data['staff_code'];}
-        
+        if (!array_key_exists('user_id', $data)) {
+            $data['user_id'] = $data['staff_code'];
+        }
+        $currentYear = date("Y");
         $statement = "INSERT INTO `trainees`(`traineesId`, `userId`, `trainingId`, `cohortId`, `conditionId`, `status`, `traineeName`, `traineePhone`, `district_code`, `sector_code`, `school_code`) VALUES (:traineesId, :userId, :trainingId, :cohortId, :conditionId, :status, :traineeName, :traineePhone, :district_code, :sector_code, :school_code)";
         try {
             $statement = $this->db->prepare($statement);
@@ -159,6 +306,55 @@ class CohortconditionModel
                 ":sector_code" => substr($data['school_code'], 0, 4),
                 ":school_code" => $data['school_code'],
             ));
+            $insertedRow = $statement->rowCount();
+            // trainee is inserted then we add him/her to genral report
+            if ($insertedRow) {
+                // get available chapters
+                $modules = $this->getAllReportsAssignedToTraining($data['trainingId']);
+                foreach ($modules as $key => $module) {
+                    foreach ($module['details'] as $index => $chapter) {
+                        // checking if user has chapter
+                        $traineeHasChapter = $this->traineeHasChapterHandler($data, $chapter['cop_report_details_id']);
+                        if (count($traineeHasChapter) == 0) {
+                            // get trainee information
+                            $userDetails = $this->getTraineeInfo($data['user_id'])[0];
+                            // get age from dob
+                            $age = null;
+                            if (isset($userDetails["dob"])) {
+                                $dob = DateTime::createFromFormat("Y-m-d", $userDetails["dob"]);
+                                $age = $currentYear - $dob->format("Y");
+                            }
+                            // get school location
+                            $schoolLocation = $this->getTraineeSchoolLactionInfo($data['school_code']);
+                            // insert trainee to general report
+                            $traineeInfo = array(
+                                "traineeId" => $data["traineesId"],
+                                "userId" => $data["user_id"],
+                                "traineeName" => $data["full_name"],
+                                "traineePhone" => $data["traineePhone"],
+                                "staff_code" => $userDetails["staff_code"],
+                                "cohortId" => $data["cohortId"],
+                                "moduleId" => $module['cop_report_id'],
+                                "moduleName" => $module['cop_report_title'],
+                                "chapterId" => $chapter["cop_report_details_id"],
+                                "chapterName" => $chapter["cop_report_details_title"],
+                                "age" => $age,
+                                "gender" => $userDetails["sex"],
+                                "disability" => $userDetails["disability"],
+                                "district_code" => $schoolLocation["district_code"],
+                                "district_name" => $schoolLocation["district_name"],
+                                "sector_code" => $schoolLocation["sector_code"],
+                                "sector_name" => $schoolLocation["sector_name"],
+                                "school_code" => $schoolLocation["school_code"],
+                                "school_name" => $schoolLocation["school_name"],
+                                "trainingId" => $data["trainingId"],
+                            );
+                            $this->insertTraineeToGeneralReport($traineeInfo);
+                        }
+                    }
+                }
+            }
+            return $statement->rowCount();
         } catch (\PDOException $e) {
             throw new Error($e->getMessage());
         }

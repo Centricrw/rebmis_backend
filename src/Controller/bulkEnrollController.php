@@ -13,8 +13,6 @@ use Src\System\Errors;
 use Src\System\InvalidDataException;
 use Src\System\UuidGenerator;
 
-use function DI\string;
-
 class bulkEnrollController
 {
     private $db;
@@ -198,7 +196,7 @@ class bulkEnrollController
         // Generate user id
         $role_to_user_id = UuidGenerator::gUuid();
         // checking if role exists
-        if($data['role'] =='HeadTeacher'){$data['role']='Head Teacher';}
+        if ($data['role'] == 'HeadTeacher') {$data['role'] = 'Head Teacher';}
         $roleResults = $this->rolesModel->findRoleByName($data['role']);
         $dataToInsert = [
             "role_to_user_id" => $role_to_user_id,
@@ -308,8 +306,8 @@ class bulkEnrollController
             $deplicated = array();
             // Process enrollment
             foreach ($data["teachers"] as $key => $teacherData) {
-                if(strlen($teacherData['phone_number']) == 9) {$teacherData['phone_number'] = "0".$teacherData['phone_number'];}
-            
+                if (strlen($teacherData['phone_number']) == 9) {$teacherData['phone_number'] = "0" . $teacherData['phone_number'];}
+
                 // remove space from names
                 $teacherData['name'] = $this->removeExtraSpacesAndNewlines($teacherData['name']);
                 // Create new user or update user
