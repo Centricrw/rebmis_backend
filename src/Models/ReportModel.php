@@ -153,7 +153,7 @@ class ReportModel
 
             $Kwandika_nav                       = $teacherMarks['Kwandika_nav'];
             if($Kwandika_nav == '-'){$Kwandika_nav = 0;}else{$Kwandika_nav = 100;}
-            $Kwandika_quiz                      = $teacherMarks['Kwandika_quiz'];
+            $Kwandika_quiz                      = ((int)$teacherMarks['Kwandika_quiz']*10);
             if($Kwandika_quiz == '-'){$Kwandika_quiz = 0;}
 
             $Ihangamwandiko_nav                 = $teacherMarks['Ihangamwandiko_nav'];
