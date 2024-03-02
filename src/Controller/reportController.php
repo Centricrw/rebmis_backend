@@ -47,6 +47,8 @@ class reportController
                     $response = $this->headTeacherTraineeMarkhandler();
                 } elseif (sizeof($this->params) > 0 && $this->params['action'] == "updateelearningmarks") {
                     $response = $this->updateElearningMarks();
+                } elseif (sizeof($this->params) > 0 && $this->params['action'] == "updateelearningselfassesment") {
+                    $response = $this->updateElearningMarks();
                 } else {
                     $response = Errors::notFoundError('Report route not found');
                 }
@@ -127,6 +129,22 @@ class reportController
 
         try {
             $result = $this->reportModel->updateElearningMarks($inputData);
+            // response
+            $response['status_code_header'] = 'HTTP/1.1 201 Created';
+            $response['body'] = json_encode($result);
+            return $response;
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
+        }
+    }
+
+    private function updateelearningselfassesment() 
+    {
+        // getting input data
+        $inputData = (array) json_decode(file_get_contents('php://input'), true);
+
+        try {
+            $result = $this->reportModel->updateelearningselfassesment($inputData);
             // response
             $response['status_code_header'] = 'HTTP/1.1 201 Created';
             $response['body'] = json_encode($result);

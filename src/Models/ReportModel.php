@@ -103,6 +103,36 @@ class ReportModel
         }
     }
 
+    public function updateelearningselfassesment($data)
+    {
+        $results = '';
+        foreach ($data as $key => $teacher) {
+            $staff_code = $teacher['Staff_code'];
+            foreach ($teacher as $key => $value) {
+                $chapterId = $key;
+                $marks = 0;
+                if($value === 'Completed'){$marks = 100;}
+                $results .=$this->updateSelfAssessment($chapterId,$marks,$staff_code);
+            }
+        }
+    }
+        
+    private function updateSelfAssessment($chapterId,$marks,$staff_code)
+    {
+        $statement = "UPDATE general_report SET selfAssesment = :marks WHERE staff_code = :staff_code AND chapterId = :chapterId";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
+                ":staff_code" => $staff_code,
+                ":amount" => $marks,
+                ":chapterId" => $chapterId
+            ));
+            return $statement->rowCount();
+        } catch (\PDOException $e) {
+            exit($e->getMessage());
+        }
+    }
+
     public function updateElearningMarks($data)
     {
         $results = '';
