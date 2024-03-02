@@ -105,14 +105,14 @@ class ReportModel
 
     public function updateelearningselfassesment($data)
     {
-        $results = '';
+        $results = 0;
         foreach ($data as $key => $teacher) {
             $staff_code = $teacher['Staff_code'];
             foreach ($teacher as $key => $value) {
                 $chapterId = $key;
                 $marks = 0;
                 if($value === 'Completed'){$marks = 100;}
-                $results +=$this->updateSelfAssessment($chapterId,$marks,$staff_code);
+                $results +=(int)($this->updateSelfAssessment($chapterId,$marks,$staff_code));
             }
         }
         return $results;
