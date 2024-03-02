@@ -112,7 +112,7 @@ class ReportModel
                 $chapterId = $key;
                 $marks = 0;
                 if($value === 'Completed'){$marks = 100;}
-                $results .=$this->updateSelfAssessment($chapterId,$marks,$staff_code);
+                $results +=$this->updateSelfAssessment($chapterId,$marks,$staff_code);
             }
         }
         return $results;
@@ -120,14 +120,10 @@ class ReportModel
         
     private function updateSelfAssessment($chapterId,$marks,$staff_code)
     {
-        $statement = "UPDATE general_report SET selfAssesment = :marks WHERE staff_code = :staff_code AND chapterId = :chapterId";
+        $statement = "UPDATE general_report SET selfAssesment = '".$marks."' WHERE staff_code = '".$staff_code."' AND chapterId = '".$chapterId."'";
         try {
             $statement = $this->db->prepare($statement);
-            $statement->execute(array(
-                ":staff_code" => $staff_code,
-                ":amount" => $marks,
-                ":chapterId" => $chapterId
-            ));
+            $statement->execute(array());
             return $statement->rowCount();
         } catch (\PDOException $e) {
             exit($e->getMessage());
