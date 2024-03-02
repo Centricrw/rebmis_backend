@@ -115,6 +115,7 @@ class ReportModel
                 $results .=$this->updateSelfAssessment($chapterId,$marks,$staff_code);
             }
         }
+        return $results;
     }
         
     private function updateSelfAssessment($chapterId,$marks,$staff_code)
