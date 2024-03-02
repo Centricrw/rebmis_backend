@@ -48,7 +48,7 @@ class reportController
                 } elseif (sizeof($this->params) > 0 && $this->params['action'] == "updateelearningmarks") {
                     $response = $this->updateElearningMarks();
                 } elseif (sizeof($this->params) > 0 && $this->params['action'] == "updateelearningselfassesment") {
-                    $response = $this->updateElearningMarks();
+                    $response = $this->updateelearningselfassesment();
                 } else {
                     $response = Errors::notFoundError('Report route not found');
                 }
