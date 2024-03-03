@@ -88,6 +88,14 @@ class UserValidation
             return ["validated" => false, "message" => "Full name not provided!"];
         }
 
+        if (empty($input['resident_district_id'])) {
+            return ["validated" => false, "message" => "Resident district id not provided!"];
+        }
+
+        if (!isset($input['addToTraining']) || empty($input['addToTraining'])) {
+            return ["validated" => false, "message" => "addToTraining not provided!"];
+        }
+
         return ["validated" => true, "message" => "OK"];
     }
 

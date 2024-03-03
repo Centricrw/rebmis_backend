@@ -14,7 +14,7 @@ class UserRoleModel
     }
     public function insertIntoUserToRole($data, $user_id)
     {
-        if(!array_key_exists('user_id',$data)){$data['user_id'] = $data['staff_code'];}
+        $data['user_id'] = !array_key_exists('user_id', $data) ? $data['staff_code'] : $data['user_id'];
         $statement = "INSERT INTO user_to_role (role_to_user_id, role_id,qualification_id, position_code, start_date_in_the_school, school_code, user_id, country_id, district_code, sector_code, academic_year_id, stakeholder_id, created_by) VALUES (:role_to_user_id, :role_id, :qualification_id, :position_code, :start_date_in_the_school, :school_code, :user_id, :country_id, :district_code, :sector_code, :academic_year_id, :stakeholder_id, :created_by)";
         try {
             $statement = $this->db->prepare($statement);
@@ -168,7 +168,7 @@ class UserRoleModel
             $statement = $this->db->prepare($sql);
             $statement->execute(array(
                 ':school_code' => $school_code,
-                ':status' => 'Active'
+                ':status' => 'Active',
             ));
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             return $result;
