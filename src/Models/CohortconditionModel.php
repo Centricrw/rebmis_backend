@@ -286,9 +286,7 @@ class CohortconditionModel
 
     public function InsertApprovedSelectedTraineers($data, $logged_user_id)
     {
-        if (!array_key_exists('user_id', $data)) {
-            $data['user_id'] = $data['staff_code'];
-        }
+        $data['user_id'] = !array_key_exists('user_id', $data) ? $data['staff_code'] : $data['user_id'];
         $currentYear = date("Y");
         $statement = "INSERT INTO `trainees`(`traineesId`, `userId`, `trainingId`, `cohortId`, `conditionId`, `status`, `traineeName`, `traineePhone`, `district_code`, `sector_code`, `school_code`) VALUES (:traineesId, :userId, :trainingId, :cohortId, :conditionId, :status, :traineeName, :traineePhone, :district_code, :sector_code, :school_code)";
         try {
