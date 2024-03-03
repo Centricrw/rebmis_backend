@@ -17,6 +17,7 @@ use Src\Models\UserRoleModel;
 use Src\Models\UsersModel;
 use Src\System\AuthValidation;
 use Src\System\Errors;
+use Src\System\InvalidDataException;
 use Src\System\UuidGenerator;
 use Src\Validations\BasicValidation;
 use Src\Validations\UserValidation;
@@ -85,6 +86,8 @@ class UsersController
             case 'PATCH':
                 if ($this->params['action'] == "suspend") {
                     $response = $this->suspendUser($this->params['user_id']);
+                } elseif ($this->params['action'] == "transfer") {
+                    $response = $this->transferTeacherHandler($this->params['user_id']);
                 } elseif ($this->params['action'] == "activate") {
                     $response = $this->activateUser($this->params['user_id']);
                 } elseif ($this->params['action'] == "status") {
@@ -336,6 +339,56 @@ class UsersController
         $response['body'] = json_encode($result);
         return $response;
     }
+
+    function disableTeacherHandler($user_id)
+    {
+
+    }
+
+    // Suspend a user by id
+    function transferTeacherHandler($user_id)
+    {
+        $data = (array) json_decode(file_get_contents('php://input'), true);
+        // geting authorized user id
+        $created_by_user_id = AuthValidation::authorized()->id;
+
+        try {
+            // validate input
+            $this->validateTransferTeachersInput($data);
+
+            $user = $this->usersModel->findOneUser($user_id);
+            if (count($user) == 0) {
+                return Errors::notFoundError("user not found!, please try again?");
+            }
+
+            // Generate user id
+            $role_to_user_id = UuidGenerator::gUuid();
+
+            // check if user already have access role
+            $userHasActiveRole = $this->userRoleModel->findCurrentUserRole($user_id);
+            if (count($userHasActiveRole) > 0) {
+                //* Disable user to role
+                $this->userRoleModel->disableRole($user_id, $created_by_user_id, "Active", "TRANSFERD");
+            }
+
+            $data['role_to_user_id'] = $role_to_user_id;
+            $data['user_id'] = $user_id;
+            $assigned = $this->userRoleModel->insertIntoUserToRole($data, $created_by_user_id);
+            $results = isset($assigned) ? "Transfered successfuly" : "Transfer failed";
+
+            $response['status_code_header'] = 'HTTP/1.1 200 OK';
+            $response['body'] = json_encode([
+                "message" => "User $results!",
+                "data" => $data,
+            ]);
+            return $response;
+        } catch (InvalidDataException $e) {
+            return Errors::existError($e->getMessage());
+        } catch (\Throwable $e) {
+            return Errors::notAuthorized();
+        }
+    }
+
     // Suspend a user by id
     function suspendUser($user_id)
     {
@@ -443,6 +496,33 @@ class UsersController
             return $response;
         } catch (\Throwable $e) {
             return Errors::notAuthorized();
+        }
+    }
+
+    /**
+     * validating user that is going to be added to training
+     * @param object $data
+     * @throws InvalidDataException
+     */
+    function validateTransferTeachersInput($data)
+    {
+        if (!isset($data["role_id"]) || empty($data["role_id"])) {
+            throw new InvalidDataException("role is required, please try again?");
+        }
+        if (isset($data["role_id"]) && !in_array($data["role_id"], ["1", "2"])) {
+            throw new InvalidDataException("We only transfer teachers and headteachers for now, please try again?");
+        }
+        if (!isset($data["school_code"]) || empty($data["school_code"])) {
+            throw new InvalidDataException("School code is required, please try again?");
+        }
+        if (!isset($data["district_code"]) || empty($data["district_code"])) {
+            throw new InvalidDataException("District code is required, please try again?");
+        }
+        if (!isset($data["sector_code"]) || empty($data["sector_code"])) {
+            throw new InvalidDataException("Sector code is required, please try again?");
+        }
+        if (!isset($data["qualification_id"]) || empty($data["qualification_id"])) {
+            throw new InvalidDataException("Qualification is required, please try again?");
         }
     }
 }
