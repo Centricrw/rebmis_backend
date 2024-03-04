@@ -64,7 +64,7 @@ class CohortconditionModel
 
     public function selectTraineeByPhoneNumber($cohortId, $phoneNumber)
     {
-        $statement = "SELECT * FROM `trainees` WHERE `traineePhone` = :traineePhone AND `cohortId` = :cohortId";
+        $statement = "SELECT * FROM `trainees` WHERE `traineePhone` = :traineePhone AND `cohortId` = :cohortId AND status != 'Removed'";
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array(
@@ -80,7 +80,7 @@ class CohortconditionModel
 
     public function selectTraineeByUserIDAndCohortID($user_id, $cohort_id)
     {
-        $statement = "SELECT * FROM `trainees` WHERE `userId` = :userId AND `cohortId` = :cohortId";
+        $statement = "SELECT * FROM `trainees` WHERE `userId` = :userId AND `cohortId` = :cohortId AND status != 'Removed'";
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array(":userId" => $user_id, ":cohortId" => $cohort_id,
@@ -94,7 +94,7 @@ class CohortconditionModel
 
     public function selectTraineeOnThatDistrict($cohort_id, $district_code)
     {
-        $statement = "SELECT * FROM `trainees` WHERE `district_code` = :district_code AND `cohortId` = :cohort_id";
+        $statement = "SELECT * FROM `trainees` WHERE `district_code` = :district_code AND `cohortId` = :cohort_id AND status != 'Removed'";
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array(":district_code" => $district_code, ":cohort_id" => $cohort_id,
@@ -112,10 +112,10 @@ class CohortconditionModel
         // $statement = "SELECT TRN.traineesId, TRN.userId FROM `trainees` TRN
         // INNER JOIN trainings TR ON TRN.trainingId = TR.trainingId
         // INNER JOIN training_type TY ON TR.training_type_id = TY.training_type_id
-        // WHERE TY.`training_type_id` = :training_type_id";
+        // WHERE TY.`training_type_id` = :training_type_id AND TRN.status != 'Removed'";
 
         $statement = "SELECT traineesId, userId FROM `trainees`
-        WHERE `cohortId` = :cohortId";
+        WHERE `cohortId` = :cohortId AND status != 'Removed'";
 
         try {
             $statement = $this->db->prepare($statement);
@@ -130,7 +130,7 @@ class CohortconditionModel
 
     public function selectTraineesOnThatSchools($training_id, $school_code)
     {
-        $statement = "SELECT * FROM `trainees` WHERE `school_code` = :school_code AND `trainingId` = :trainingId";
+        $statement = "SELECT * FROM `trainees` WHERE `school_code` = :school_code AND `trainingId` = :trainingId AND status != 'Removed'";
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array(":school_code" => $school_code, ":trainingId" => $training_id,
@@ -144,7 +144,7 @@ class CohortconditionModel
 
     public function countTraineersOnCondition($data)
     {
-        $statement = "SELECT userId FROM trainees WHERE conditionId = :conditionId";
+        $statement = "SELECT userId FROM trainees WHERE conditionId = :conditionId AND status != 'Removed'";
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array(":conditionId" => $data['cohortconditionId'],
@@ -360,7 +360,7 @@ class CohortconditionModel
 
     public function checkIfTraineerAvailable($trainingId, $userId)
     {
-        $statement = "SELECT * FROM trainees WHERE trainingId = :trainingId AND userId = :userId ";
+        $statement = "SELECT * FROM trainees WHERE trainingId = :trainingId AND userId = :userId AND status != 'Removed' ";
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array(
@@ -403,14 +403,14 @@ class CohortconditionModel
             INNER JOIN school_location SL ON SL.village_id = S.region_code
             INNER JOIN user_to_role UR ON T.userId = UR.user_id
             INNER JOIN users U ON U.user_id = UR.user_id
-            WHERE T.cohortId = ? AND UR.status = ? AND T.district_code = $userDistrictCode";
+            WHERE T.cohortId = ? AND UR.status = ? AND T.district_code = $userDistrictCode AND T.status != 'Removed'";
         } else {
             $statement = "SELECT T.*, S.school_name, SL.sector_name, SL.district_name, UR.role_id, UR.qualification_id, UR.position_code, UR.status, U.staff_code, U.email, U.nid, U.sex FROM trainees T
             INNER JOIN schools S ON S.school_code = T.school_code
             INNER JOIN school_location SL ON SL.village_id = S.region_code
             INNER JOIN user_to_role UR ON T.userId = UR.user_id
             INNER JOIN users U ON U.user_id = UR.user_id
-            WHERE T.cohortId = ? AND UR.status = ?";
+            WHERE T.cohortId = ? AND UR.status = ? AND T.status != 'Removed'";
         }
         try {
             $statement = $this->db->prepare($statement);

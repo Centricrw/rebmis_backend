@@ -56,7 +56,7 @@ class TraineersModel
             INNER JOIN school_location SL ON SL.village_id = S.region_code
             INNER JOIN user_to_role UR ON T.userId = UR.user_id
             INNER JOIN users U ON U.user_id = UR.user_id
-            WHERE T.cohortId = :cohortId AND UR.status = :status $condition";
+            WHERE T.cohortId = :cohortId AND UR.status = :status $condition AND T.status != 'Removed'";
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute($conditionArray);
@@ -162,25 +162,25 @@ class TraineersModel
         try {
             switch ($userType) {
                 case 'School':
-                    $statement = "SELECT COUNT(traineesId) AS numberOfTrainees FROM trainees WHERE school_code = :school_code AND trainingId = :trainingId";
+                    $statement = "SELECT COUNT(traineesId) AS numberOfTrainees FROM trainees WHERE school_code = :school_code AND trainingId = :trainingId AND status != 'Removed'";
                     $statement = $this->db->prepare($statement);
                     $statement->execute(array(":trainingId" => $trainingId, ":school_code" => $location_code));
                     $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
                     return $result;
                 case 'Sector':
-                    $statement = "SELECT COUNT(traineesId) AS numberOfTrainees  FROM trainees WHERE sector_code = :sector_code AND trainingId = :trainingId";
+                    $statement = "SELECT COUNT(traineesId) AS numberOfTrainees  FROM trainees WHERE sector_code = :sector_code AND trainingId = :trainingId AND status != 'Removed'";
                     $statement = $this->db->prepare($statement);
                     $statement->execute(array(":trainingId" => $trainingId, ":sector_code" => $location_code));
                     $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
                     return $result;
                 case 'District':
-                    $statement = "SELECT COUNT(traineesId) AS numberOfTrainees  FROM trainees WHERE district_code = :district_code AND trainingId = :trainingId";
+                    $statement = "SELECT COUNT(traineesId) AS numberOfTrainees  FROM trainees WHERE district_code = :district_code AND trainingId = :trainingId AND status != 'Removed'";
                     $statement = $this->db->prepare($statement);
                     $statement->execute(array(":trainingId" => $trainingId, ":district_code" => $location_code));
                     $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
                     return $result;
                 default:
-                    $statement = "SELECT COUNT(traineesId) AS numberOfTrainees  FROM trainees WHERE trainingId = :trainingId";
+                    $statement = "SELECT COUNT(traineesId) AS numberOfTrainees  FROM trainees WHERE trainingId = :trainingId AND status != 'Removed'";
                     $statement = $this->db->prepare($statement);
                     $statement->execute(array(":trainingId" => $trainingId));
                     $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
