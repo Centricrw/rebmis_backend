@@ -184,7 +184,7 @@ class CohortconditionModel
 
     function traineeHasChapterHandler($data, $chapterId)
     {
-        $query = "SELECT generalReportId FROM general_report WHERE userId = :userId AND cohortId = :cohortId AND chapterId = :chapterId";
+        $query = "SELECT generalReportId FROM general_report WHERE userId = :userId AND cohortId = :cohortId AND chapterId = :chapterId AND status = 'Active'";
         try {
             $statement = $this->db->prepare($query);
             $statement->execute(array(

@@ -340,11 +340,6 @@ class UsersController
         return $response;
     }
 
-    function disableTeacherHandler($user_id)
-    {
-
-    }
-
     // Suspend a user by id
     function transferTeacherHandler($user_id)
     {
@@ -385,7 +380,7 @@ class UsersController
         } catch (InvalidDataException $e) {
             return Errors::existError($e->getMessage());
         } catch (\Throwable $e) {
-            return Errors::notAuthorized();
+            return Errors::databaseError($e->getMessage());
         }
     }
 
@@ -441,14 +436,14 @@ class UsersController
                 return Errors::unprocessableEntityResponse($validateUserInputData['message']);
             }
 
-            // checking if not === 'New','Active','Disabled','TRANSFERD','TERMINATED','SUSPENDED','Upgraded'
-            $validStatus = ['New', 'Active', 'Disabled', 'TRANSFERD', 'TERMINATED', 'SUSPENDED', 'Upgraded'];
+            // checking if not === 'New','Active','Disabled','TERMINATED','SUSPENDED','Upgraded'
+            $validStatus = ['New', 'Active', 'Disabled', 'TERMINATED', 'SUSPENDED', 'Upgraded'];
             if (!in_array($data["new_status"], $validStatus)) {
-                return Errors::unprocessableEntityResponse("New status has invalid status, must be one this New, Active, Disabled, TRANSFERD, TERMINATED, SUSPENDED and Upgraded");
+                return Errors::unprocessableEntityResponse("New status has invalid status, must be one this New, Active, Disabled, TERMINATED, SUSPENDED and Upgraded");
             }
 
             if (!in_array($data["current_status"], $validStatus)) {
-                return Errors::unprocessableEntityResponse("Current status has invalid status, must be one this New, Active, Disabled, TRANSFERD, TERMINATED, SUSPENDED and Upgraded");
+                return Errors::unprocessableEntityResponse("Current status has invalid status, must be one this New, Active, Disabled, TERMINATED, SUSPENDED and Upgraded");
             }
 
             // geting authorized user id

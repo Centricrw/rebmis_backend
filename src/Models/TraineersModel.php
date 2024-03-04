@@ -73,7 +73,7 @@ class TraineersModel
             $statement = "SELECT GR.*, TR.trainingName, CH.cohortStart, CH.cohortEnd FROM `general_report` GR
             INNER JOIN trainings TR ON TR.trainingId = GR.trainingId
             INNER JOIN cohorts CH ON CH.cohortId = GR.cohortId
-            WHERE GR.`cohortId` = :cohortId AND GR.`school_code` = :school_code";
+            WHERE GR.`cohortId` = :cohortId AND GR.`school_code` = :school_code AND GR.status = 'Active'";
 
             $statement = $this->db->prepare($statement);
             $statement->execute(array(":cohortId" => $cohortId, ":school_code" => $school));
@@ -91,7 +91,7 @@ class TraineersModel
             $statement = "SELECT GR.*, TR.trainingName, CH.cohortStart, CH.cohortEnd FROM `general_report` GR
             INNER JOIN trainings TR ON TR.trainingId = GR.trainingId
             INNER JOIN cohorts CH ON CH.cohortId = GR.cohortId
-            WHERE GR.`userId` = :userId AND GR.`cohortId` = :cohortId";
+            WHERE GR.`userId` = :userId AND GR.`cohortId` = :cohortId AND GR.status = 'Active'";
 
             $statement = $this->db->prepare($statement);
             $statement->execute(array(":userId" => $userId, ":cohortId" => $cohortId));
@@ -109,7 +109,7 @@ class TraineersModel
             $statement = "SELECT GR.*, TR.trainingName, CH.cohortStart, CH.cohortEnd FROM `general_report` GR
             INNER JOIN trainings TR ON TR.trainingId = GR.trainingId
             INNER JOIN cohorts CH ON CH.cohortId = GR.cohortId
-            WHERE GR.`staff_code` = :staff_code AND GR.`cohortId` = :cohortId";
+            WHERE GR.`staff_code` = :staff_code AND GR.`cohortId` = :cohortId AND GR.status = 'Active'";
 
             $statement = $this->db->prepare($statement);
             $statement->execute(array(":staff_code" => $staffCode, ":cohortId" => $cohortId));
@@ -127,7 +127,25 @@ class TraineersModel
             $statement = "SELECT GR.*, TR.trainingName, CH.cohortStart, CH.cohortEnd FROM `general_report` GR
             INNER JOIN trainings TR ON TR.trainingId = GR.trainingId
             INNER JOIN cohorts CH ON CH.cohortId = GR.cohortId
-            WHERE GR.`cohortId` = :cohortId";
+            WHERE GR.`cohortId` = :cohortId AND GR.status = 'Active'";
+
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(":cohortId" => $cohortId));
+
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $result;
+        } catch (\Throwable $th) {
+            throw new Error($th->getMessage());
+        }
+    }
+
+    public function deleteTraineeFromTrainingList($trainee_id)
+    {
+        try {
+            $statement = "SELECT GR.*, TR.trainingName, CH.cohortStart, CH.cohortEnd FROM `general_report` GR
+            INNER JOIN trainings TR ON TR.trainingId = GR.trainingId
+            INNER JOIN cohorts CH ON CH.cohortId = GR.cohortId
+            WHERE GR.`cohortId` = :cohortId AND GR.status = 'Active'";
 
             $statement = $this->db->prepare($statement);
             $statement->execute(array(":cohortId" => $cohortId));
