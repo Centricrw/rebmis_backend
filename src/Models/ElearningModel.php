@@ -24,7 +24,7 @@ class ElearningModel
                 ':cohortId' => $cohortId,
                 ':courseLink' => $courseLink,
             ));
-            return $data;
+            return $statement->rowCount();
         } catch (\PDOException $e) {
             throw new Error($e->getMessage());
         }

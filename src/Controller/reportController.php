@@ -36,6 +36,8 @@ class reportController
                     $response = $this->getGeneralReportPerTraining($this->params['id']);
                 } elseif (sizeof($this->params) > 0 && $this->params['action'] == "getPerTrainee") {
                     $response = $this->getGeneralReportPerTrainee($this->params['id'], $this->params['cohort_id']);
+                } elseif (sizeof($this->params) > 0 && $this->params['action'] == "status") {
+                    $response = $this->getGeneralReportByStatus($this->params['id']);
                 } else {
                     $response = Errors::notFoundError('Report route not found');
                 }
@@ -122,7 +124,7 @@ class reportController
         }
     }
 
-    private function updateElearningMarks() 
+    private function updateElearningMarks()
     {
         // getting input data
         $inputData = (array) json_decode(file_get_contents('php://input'), true);
@@ -138,7 +140,7 @@ class reportController
         }
     }
 
-    private function updateelearningselfassesment() 
+    private function updateelearningselfassesment()
     {
         // getting input data
         $inputData = (array) json_decode(file_get_contents('php://input'), true);
@@ -171,6 +173,20 @@ class reportController
             $result = $this->reportModel->headTeacherTraineeMarking($inputData);
             // response
             $response['status_code_header'] = 'HTTP/1.1 201 Created';
+            $response['body'] = json_encode($result);
+            return $response;
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
+        }
+    }
+
+    private function getGeneralReportByStatus($status = "Removed")
+    {
+        $logged_user_id = AuthValidation::authorized()->id;
+        try {
+            $result = $this->reportModel->selectGeneralReportByStatus($status);
+            // response
+            $response['status_code_header'] = 'HTTP/1.1 200 OK';
             $response['body'] = json_encode($result);
             return $response;
         } catch (\Throwable $th) {
