@@ -428,12 +428,10 @@ class ReportModel
     {
         try {
             $statement = "SELECT * FROM `general_report` WHERE `status` = :status";
-
             $statement = $this->db->prepare($statement);
             $statement->execute(array(
                 ":status" => $status,
             ));
-
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             return $result;
         } catch (\Throwable $th) {
@@ -445,12 +443,10 @@ class ReportModel
     {
         try {
             $statement = "SELECT * FROM `general_report` WHERE `traineeId` = :traineeId";
-
             $statement = $this->db->prepare($statement);
             $statement->execute(array(
                 ":traineeId" => $trainee_id,
             ));
-
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             return $result;
         } catch (\Throwable $th) {

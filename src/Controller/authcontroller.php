@@ -304,6 +304,10 @@ class AuthController
             if (count($traineeExists) == 0) {
                 $insertToTrainee = $this->cohortconditionModel->InsertApprovedSelectedTraineers($data, $created_by_user_id);
                 $useIsAddedToTraining = isset($insertToTrainee) ? true : false;
+            } else {
+                // update trainee info and general report
+                $updateToTrainee = $this->cohortconditionModel->updateApprovedSelectedTrainee($data, $traineeExists[0]['traineesId']);
+                $traineeInfoUpdated = isset($updateToTrainee) ? true : false;
             }
             return $useIsAddedToTraining;
         } catch (\Throwable $th) {
@@ -383,6 +387,7 @@ class AuthController
                     'user_id' => $user_id,
                     'access_assigned' => isset($userAssignedAccess) ? $userAssignedAccess : false,
                     'added_to_training' => isset($addingUserToTrainig) ? $addingUserToTrainig : false,
+                    'trainee_info_updated' => isset($traineeInfoUpdated) ? $traineeInfoUpdated : false,
                     'traineesId' => isset($data['traineesId']) ? $data['traineesId'] : null,
                     'results' => $data,
                 ]);
