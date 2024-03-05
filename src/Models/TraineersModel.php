@@ -139,16 +139,47 @@ class TraineersModel
         }
     }
 
-    public function deleteTraineeFromTrainingList($trainee_id)
+    public function updateTraineeStatus($data, $trainee_id)
     {
         try {
-            $statement = "SELECT GR.*, TR.trainingName, CH.cohortStart, CH.cohortEnd FROM `general_report` GR
-            INNER JOIN trainings TR ON TR.trainingId = GR.trainingId
-            INNER JOIN cohorts CH ON CH.cohortId = GR.cohortId
-            WHERE GR.`cohortId` = :cohortId AND GR.status = 'Active'";
+            $statement = "UPDATE `trainees` SET `status`= :new_status WHERE `traineesId`= :traineesId AND `status` = :current_status";
 
             $statement = $this->db->prepare($statement);
-            $statement->execute(array(":cohortId" => $cohortId));
+            $statement->execute(array(
+                ":new_status" => $data['new_status'],
+                ":traineesId" => $trainee_id,
+                ":current_status" => $data['current_status'],
+            ));
+
+            $result = $statement->rowCount();
+            return $result;
+        } catch (\Throwable $th) {
+            throw new Error($th->getMessage());
+        }
+    }
+
+    public function selectTraineeBYStatus($status)
+    {
+        try {
+            $statement = "SELECT * FROM `trainees` WHERE `status` = :status";
+
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(":status" => $status));
+
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $result;
+        } catch (\Throwable $th) {
+            throw new Error($th->getMessage());
+        }
+    }
+
+    public function selectTraineeBYId($trainee_id)
+    {
+        try {
+            $statement = "SELECT * FROM `trainees` WHERE `traineesId` = :traineesId LIMIT 1";
+
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(":traineesId" => $trainee_id));
 
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             return $result;

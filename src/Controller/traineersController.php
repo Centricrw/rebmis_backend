@@ -3,10 +3,12 @@ namespace Src\Controller;
 
 use setasign\Fpdi\Tcpdf\Fpdi;
 use Src\Models\CohortsModel;
+use Src\Models\ReportModel;
 use Src\Models\TraineersModel;
 use Src\Models\UserRoleModel;
 use Src\System\AuthValidation;
 use Src\System\Errors;
+use Src\Validations\BasicValidation;
 
 class TraineersController
 {
@@ -14,6 +16,7 @@ class TraineersController
     private $traineersModel;
     private $request_method;
     private $userRoleModel;
+    private $reportModel;
     private $cohortsModel;
     private $params;
     private $homeDir;
@@ -26,6 +29,7 @@ class TraineersController
         $this->traineersModel = new TraineersModel($db);
         $this->userRoleModel = new UserRoleModel($db);
         $this->cohortsModel = new CohortsModel($db);
+        $this->reportModel = new ReportModel($db);
         $this->homeDir = dirname(__DIR__, 2);
     }
 
@@ -37,8 +41,17 @@ class TraineersController
                     $response = $this->generateTraineesCertificate($this->params['user_id']);
                 } else if (sizeof($this->params) > 0 && $this->params['action'] == "traineecertificate") {
                     $response = $this->generateTraineesCertificateForOne($this->params['user_id'], $this->params['cohort_id']);
+                } else if (sizeof($this->params) > 0 && $this->params['action'] == "status") {
+                    $response = $this->getTraineeByStatus($this->params['user_id']);
                 } else {
                     $response = sizeof($this->params) > 0 ? $this->getTrainees($this->params['action']) : Errors::notFoundError("User trainees route not found, please try again?");
+                }
+                break;
+            case 'PATCH':
+                if (sizeof($this->params) > 0 && $this->params['action'] == "status") {
+                    $response = $this->updateTraineeStatusHandler($this->params['user_id']);
+                } else {
+                    $response = Errors::notFoundError("User trainees route not found, please try again?");
                 }
                 break;
             default:
@@ -322,6 +335,73 @@ class TraineersController
         $formattedDate = date("F Y", $timestamp);
 
         return $formattedDate;
+    }
+
+    function getTraineeByStatus($status = "Removed")
+    {
+        $created_by_user_id = AuthValidation::authorized()->id;
+        try {
+            $results = $this->traineersModel->selectTraineeBYStatus($status);
+            $response['status_code_header'] = 'HTTP/1.1 200 OK';
+            $response['body'] = json_encode($results);
+            return $response;
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
+        }
+    }
+
+    function updateTraineeStatusHandler($trainee_id)
+    {
+        $data = (array) json_decode(file_get_contents('php://input'), true);
+        // geting authorized user id
+        $created_by_user_id = AuthValidation::authorized()->id;
+        try {
+            // validating input
+            $validateThisValues = [
+                "current_status" => "Current status is required",
+                "new_status" => "New Status is required",
+            ];
+            $validateUserInputData = BasicValidation::validate($data, $validateThisValues);
+            if (!$validateUserInputData['validated']) {
+                return Errors::unprocessableEntityResponse($validateUserInputData['message']);
+            }
+
+            // checking if not === 'Shortlisted','Approved','Invited','Rejected','Removed'
+            $validStatus = ['Shortlisted', 'Approved', 'Invited', 'Rejected', 'Removed'];
+            if (!in_array($data["new_status"], $validStatus)) {
+                return Errors::unprocessableEntityResponse("New status has invalid status, must be one this Shortlisted, Approved, Invited, Rejected and Removed");
+            }
+            if (!in_array($data["current_status"], $validStatus)) {
+                return Errors::unprocessableEntityResponse("New status has invalid status, must be one this Shortlisted, Approved, Invited, Rejected and Removed");
+            }
+
+            // checking if user is availeble
+            $traineeExists = $this->traineersModel->selectTraineeBYId($trainee_id);
+            if (count($traineeExists) == 0) {
+                return Errors::badRequestError("Trainee not found, plaese try again later?");
+            }
+
+            // update tarainee status
+            $updateStatus = $this->traineersModel->updateTraineeStatus($data, $trainee_id);
+            $romovedExists = $data["new_status"] == "Removed" || $data["current_status"] == "Removed" ? true : false;
+            if (isset($updateStatus) && $romovedExists) {
+                // update general report status if trainee Removed
+                $traineeExistsInReaport = $this->reportModel->selectGeneralReportByTraineeId($trainee_id);
+                if (count($traineeExistsInReaport) > 0) {
+                    $status = $data["new_status"] == "Removed" ? "Removed" : "Active";
+                    $updateReport = $this->reportModel->updateTraineeGeneralReportStatus($status, $trainee_id);
+                }
+            }
+
+            $response['status_code_header'] = 'HTTP/1.1 200 OK';
+            $response['body'] = json_encode([
+                "message" => "Trainee " . $data["new_status"] . " successfuly",
+                "Updated_genaral_report" => isset($updateReport) ? true : false,
+            ]);
+            return $response;
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
+        }
     }
 
     public function createPDFSample2($trainees)

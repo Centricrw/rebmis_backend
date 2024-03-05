@@ -405,4 +405,56 @@ class ReportModel
         }
 
     }
+
+    public function updateTraineeGeneralReportStatus($status, $trainee_id)
+    {
+        try {
+            $statement = "UPDATE `general_report` SET `status`= :status WHERE `traineeId`= :traineeId";
+
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
+                ":status" => $status,
+                ":traineeId" => $trainee_id,
+            ));
+
+            $result = $statement->rowCount();
+            return $result;
+        } catch (\Throwable $th) {
+            throw new Error($th->getMessage());
+        }
+    }
+
+    public function selectGeneralReportByStatus($status)
+    {
+        try {
+            $statement = "SELECT * FROM `general_report` WHERE `status` = :status";
+
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
+                ":status" => $status,
+            ));
+
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $result;
+        } catch (\Throwable $th) {
+            throw new Error($th->getMessage());
+        }
+    }
+
+    public function selectGeneralReportByTraineeId($trainee_id)
+    {
+        try {
+            $statement = "SELECT * FROM `general_report` WHERE `traineeId` = :traineeId";
+
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
+                ":traineeId" => $trainee_id,
+            ));
+
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $result;
+        } catch (\Throwable $th) {
+            throw new Error($th->getMessage());
+        }
+    }
 }
