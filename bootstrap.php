@@ -2,10 +2,7 @@
 session_start();
 require_once 'vendor/autoload.php';
 
-use Src\System\DatabaseConnector;
-use Src\System\Token;
+Dotenv\Dotenv::createImmutable(__DIR__)->load();
 
 // $dbConnection = (new DatabaseConnector())->getConnection();
 // $token = (new Token());
-
-?>

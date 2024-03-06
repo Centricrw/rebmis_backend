@@ -13,31 +13,79 @@ class TrainingsModel
         $this->db = $db;
     }
 
-    private function addTrainingProviderlogo($trainingsArray)
+    public function getAllTranings($data, $userType = "")
     {
-        $newTrainingsArray = array();
-        foreach ($trainingsArray as $trainingItem) {
-            $trainingItem['TrainingProviderlogo'] = '/trainingProviders/' . $trainingItem['trainingProviderId'] . '.jpg';
-            $newTrainingsArray[] = $trainingItem;
-        }
-        return $newTrainingsArray;
-    }
-
-    public function getAllTranings($userDistrictCode)
-    {
-        if (isset($userDistrictCode) && $userDistrictCode !== "") {
-            $statement = "SELECT  T.trainingId, T.trainingProviderId, TP.trainingProviderName, T.trainingName, T.offerMode, T.trainingDescription, T.startDate, T.endDate, T.status, ifnull((SELECT COUNT(TN.traineesId) FROM trainees TN WHERE TN.trainingId = T.trainingId AND TN.status = 'Approved'),0) trainees FROM trainings T INNER JOIN trainingProviders TP ON T.trainingProviderId = TP.trainingProviderId INNER JOIN cohorts C ON T.trainingId = C.trainingId INNER JOIN cohortconditions CND ON C.cohortId = CND.cohortId WHERE CND.district_code = $userDistrictCode GROUP BY T.trainingId";
-        } else {
-            $statement = "SELECT  T.trainingId, T.trainingProviderId, TP.trainingProviderName, T.trainingName, T.offerMode, T.trainingDescription, T.startDate, T.endDate, T.status, ifnull((SELECT COUNT(TN.traineesId) FROM trainees TN WHERE TN.trainingId = T.trainingId AND TN.status = 'Approved'),0) trainees FROM trainings T INNER JOIN trainingProviders TP ON T.trainingProviderId = TP.trainingProviderId GROUP BY T.trainingId";
-        }
         try {
-            $statement = $this->db->query($statement);
-            $statement->execute();
-            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
-            if (sizeof($result) > 0) {
-                $result = $this->addTrainingProviderlogo($result);
+            switch ($userType) {
+                case 'class':
+                    $user_id = $data["user_id"];
+                    $statement = "SELECT  T.*, TP.trainingProviderName, TP.TrainingProviderlogo FROM trainings T
+                    INNER JOIN trainingProviders TP ON T.trainingProviderId = TP.trainingProviderId INNER JOIN trainees TN ON T.trainingId = TN.trainingId
+                    WHERE TN.userId = :userId GROUP BY T.trainingId";
+                    $statement = $this->db->prepare($statement);
+                    $statement->execute(array(":userId" => $user_id));
+                    $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+                    return $result;
+                case 'School':
+                    $district_code = substr($data['school_code'], 0, 2);
+                    $statement = "SELECT  T.*, TP.trainingProviderName, TP.TrainingProviderlogo FROM trainings T
+                    INNER JOIN trainingProviders TP ON T.trainingProviderId = TP.trainingProviderId
+                    INNER JOIN cohorts C ON C.trainingId = T.trainingId
+                    INNER JOIN  cohortconditions CC ON CC.cohortId = C.cohortId
+                    WHERE CC.district_code = :district_code GROUP BY T.trainingId ";
+                    $statement = $this->db->prepare($statement);
+                    $statement->execute(array(":district_code" => $district_code));
+                    $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+                    return $result;
+                case 'Sector':
+                    $sector_code = $data["sector_code"];
+                    $statement = "SELECT  T.*, TP.trainingProviderName, TP.TrainingProviderlogo FROM trainings T
+                    INNER JOIN trainingProviders TP ON T.trainingProviderId = TP.trainingProviderId
+                    INNER JOIN cohorts C ON C.trainingId = T.trainingId
+                    INNER JOIN  cohortconditions CC ON CC.cohortId = C.cohortId
+                    WHERE CC.sector_code = :sector_code GROUP BY T.trainingId ";
+                    $statement = $this->db->prepare($statement);
+                    $statement->execute(array(":sector_code" => $sector_code));
+                    $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+                    return $result;
+                case 'District':
+                    $district_code = $data["district_code"];
+                    $statement = "SELECT  T.*, TP.trainingProviderName, TP.TrainingProviderlogo FROM trainings T
+                    INNER JOIN trainingProviders TP ON T.trainingProviderId = TP.trainingProviderId
+                    INNER JOIN cohorts C ON C.trainingId = T.trainingId
+                    INNER JOIN  cohortconditions CC ON CC.cohortId = C.cohortId
+                    WHERE CC.district_code = :district_code GROUP BY T.trainingId ";
+                    $statement = $this->db->prepare($statement);
+                    $statement->execute(array(":district_code" => $district_code));
+                    $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+                    return $result;
+                case 'TRAINING PROVIDER':
+                    $user_id = $data["user_id"];
+                    $statement = "SELECT  T.*, TP.trainingProviderName, TP.TrainingProviderlogo FROM trainings T
+                    INNER JOIN trainingProviders TP ON T.trainingProviderId = TP.trainingProviderId
+                    INNER JOIN user_to_trainingprovider UTP ON T.trainingProviderId = UTP.training_provider_id
+                    WHERE UTP.user_id = :user_id GROUP BY T.trainingId";
+                    $statement = $this->db->prepare($statement);
+                    $statement->execute(array(":user_id" => $user_id));
+                    $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+                    return $result;
+                case 'Trainer':
+                    $user_id = $data["user_id"];
+                    $statement = "SELECT  T.*, TP.trainingProviderName, TP.TrainingProviderlogo FROM trainings T
+                    INNER JOIN trainingProviders TP ON TP.trainingProviderId = T.trainingProviderId
+                    INNER JOIN trainers TR ON TR.training_id = T.trainingId
+                    WHERE TR.user_id = :user_id GROUP BY T.trainingId ";
+                    $statement = $this->db->prepare($statement);
+                    $statement->execute(array(":user_id" => $user_id));
+                    $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+                    return $result;
+                default:
+                    $statement = "SELECT  T.*, TP.trainingProviderName, TP.TrainingProviderlogo FROM trainings T INNER JOIN trainingProviders TP ON T.trainingProviderId = TP.trainingProviderId";
+                    $statement = $this->db->prepare($statement);
+                    $statement->execute();
+                    $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+                    return $result;
             }
-            return $result;
         } catch (\PDOException $e) {
             throw new Error($e->getMessage());
         }
@@ -47,7 +95,7 @@ class TrainingsModel
     {
         $statement = "SELECT trainees.*, trainings.trainingName FROM trainees
         INNER JOIN trainings ON trainees.trainingId = trainings.trainingId
-        WHERE trainees.trainingId = :trainingId";
+        WHERE trainees.trainingId = :trainingId AND trainees.status != 'Removed'";
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array(':trainingId' => $training_id));
@@ -60,15 +108,33 @@ class TrainingsModel
 
     public function getOneTraining($training_id)
     {
-        $statement = "SELECT  T.trainingId, T.trainingProviderId, TP.trainingProviderName, T.trainingName, T.offerMode, T.trainingDescription, T.startDate, T.endDate, T.status, ifnull((SELECT COUNT(TN.traineesId) FROM trainees TN WHERE TN.trainingId
+        $statement = "SELECT  T.trainingId, T.trainingProviderId, TP.trainingProviderName, TP.TrainingProviderlogo, T.trainingName, T.offerMode, T.trainingDescription, T.startDate, T.endDate, T.status, ifnull((SELECT COUNT(TN.traineesId) FROM trainees TN WHERE TN.trainingId
       = T.trainingId AND TN.status = 'Approved'),0) trainees FROM trainings T INNER JOIN trainingProviders TP ON T.trainingProviderId = TP.trainingProviderId WHERE T.trainingId = :trainingId LIMIT 1";
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array(':trainingId' => $training_id));
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
-            if (sizeof($result) > 0) {
-                $result = $this->addTrainingProviderlogo($result)[0];
-            }
+            return $result;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    public function selectTrainingsOnSchool($school_code)
+    {
+
+        $statement = "SELECT  T.* FROM trainings T
+        INNER JOIN cohorts C ON C.trainingId = T.trainingId
+        INNER JOIN  cohortconditions CC ON CC.cohortId = C.cohortId
+        WHERE CC.school_code = :school_code OR CC.sector_code = :sector_code OR CC.district_code = :district_code ";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
+                ":school_code" => $school_code,
+                ":sector_code" => substr($school_code, 0, 4),
+                ":district_code" => substr($school_code, 0, 2),
+            ));
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             return $result;
         } catch (\PDOException $e) {
             throw new Error($e->getMessage());
@@ -85,7 +151,7 @@ class TrainingsModel
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             return $result;
         } catch (\PDOException $e) {
-            exit($e->getMessage());
+            throw new Error($e->getMessage());
         }
     }
 
@@ -107,8 +173,8 @@ class TrainingsModel
 
     public function addAtraining($data, $user_id)
     {
-        $statement = "INSERT INTO trainings (trainingName,trainingDescription,offerMode,trainingProviderId,startDate,endDate,createdBy)
-      VALUES(:trainingName,:trainingDescription,:offerMode,:trainingProviderId,:startDate,:endDate,:createdBy)";
+        $statement = "INSERT INTO trainings (trainingName, trainingDescription, offerMode, trainingProviderId, startDate, endDate, training_type_id, createdBy)
+      VALUES(:trainingName, :trainingDescription, :offerMode, :trainingProviderId, :startDate, :endDate, :training_type_id,:createdBy)";
 
         try {
             $statement = $this->db->prepare($statement);
@@ -119,24 +185,25 @@ class TrainingsModel
                 ':trainingProviderId' => $data['trainingProviderId'],
                 ':startDate' => $data['startDate'],
                 ':endDate' => $data['endDate'],
+                ':training_type_id' => $data['training_type_id'],
                 ':createdBy' => $user_id,
             ));
             $data['trainingId'] = $this->db->lastInsertId();
-            $data['TrainingProviderlogo'] = '/trainingProviders/' . $data['trainingProviderId'] . '.jpg';
+            $data['TrainingProviderlogo'] = null;
             $data['trainees'] = '0';
             $data['status'] = 'Waiting';
 
             return $data;
         } catch (\PDOException $e) {
-            exit($e->getMessage());
+            throw new Error($e->getMessage());
         }
     }
 
     public function getTraningsByStatus($status)
     {
-        $statement = "SELECT  T.trainingId, T.trainingProviderId, TP.trainingProviderName, T.trainingName, T.trainingDescription, T.startDate, T.endDate, T.status,
+        $statement = "SELECT  T.trainingId, T.trainingProviderId, TP.trainingProviderName, TP.TrainingProviderlogo, T.trainingName, T.trainingDescription, T.startDate, T.endDate, T.status,
         ifnull((SELECT COUNT(TN.traineesId) FROM trainees TN WHERE TN.trainingId
-      = T.trainingId),0) trainees FROM trainings T INNER JOIN trainingProviders TP ON T.trainingProviderId = TP.trainingProviderId WHERE T.status = ? ";
+      = T.trainingId AND AND TN.status != 'Removed'),0) trainees FROM trainings T INNER JOIN trainingProviders TP ON T.trainingProviderId = TP.trainingProviderId WHERE T.status = ? ";
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array($status));
@@ -163,7 +230,9 @@ class TrainingsModel
 
     public function CreateTrainingProvider($data, $doneBY)
     {
-        $statement = "INSERT INTO `trainingProviders`(`trainingProviderName`, `description`, `email`, `address`, `phone_number`, `supporting_documents`, `createdBy`) VALUES (:trainingProviderName,:description,:email,:address,:phone_number,:supporting_documents,:createdBy)";
+        $documents = "supporting_documents";
+        $logo = "TrainingProviderlogo";
+        $statement = "INSERT INTO `trainingProviders`(`trainingProviderName`, `description`, `email`, `address`, `phone_number`, `supporting_documents`, `TrainingProviderlogo`, `createdBy`) VALUES (:trainingProviderName, :description, :email, :address, :phone_number, :supporting_documents, :TrainingProviderlogo, :createdBy)";
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array(
@@ -172,9 +241,128 @@ class TrainingsModel
                 ':email' => $data->email,
                 ':address' => $data->address,
                 ':phone_number' => $data->phone_number,
-                ':supporting_documents' => $data->supporting_documents,
+                ':supporting_documents' => $data->$documents,
+                ':TrainingProviderlogo' => $data->$logo,
                 ':createdBy' => $doneBY,
             ));
+
+            return $statement->rowCount();
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    public function createNewTrainingProviderUser($data, $doneBY)
+    {
+        $statement = "INSERT INTO `user_to_trainingprovider`(`user_to_trainingprovider_id`, `user_id`, `training_provider_id`, `status`, `created_by`) VALUES (:user_to_trainingprovider_id, :user_id, :training_provider_id, :status, :created_by)";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
+                ':user_to_trainingprovider_id' => $data['user_to_trainingprovider_id'],
+                ':user_id' => $data['user_id'],
+                ':training_provider_id' => $data['training_provider_id'],
+                ':status' => $data['status'],
+                ':created_by' => $doneBY,
+            ));
+
+            return $data;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    public function updateTrainingProviderUser($data, $doneBY)
+    {
+
+        $statement = "UPDATE `user_to_trainingprovider` SET `user_id`= :user_id,`training_provider_id`= :training_provider_id,`status`= :status, `updated_by`= :updated_by WHERE `user_to_trainingprovider_id`= :user_to_trainingprovider_id ";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
+                ':user_id' => $data['user_id'],
+                ':training_provider_id' => $data['training_provider_id'],
+                ':status' => $data['status'],
+                ':updated_by' => $doneBY,
+                ':user_to_trainingprovider_id' => $data['user_to_trainingprovider_id'],
+            ));
+
+            return $data;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    public function selectTrainingProviderUsers($training_provider_id)
+    {
+
+        $statement = "SELECT U.* FROM `user_to_trainingprovider` UTP
+        INNER JOIN users U ON UTP.user_id = U.user_id
+        WHERE UTP.`training_provider_id`= :training_provider_id ";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
+                ':training_provider_id' => $training_provider_id,
+            ));
+
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $removeUnwantedKeys = function ($object) {
+                unset($object["username"]);
+                unset($object["password"]);
+                return $object;
+            };
+            $resultsDetails = array_map($removeUnwantedKeys, $result);
+            return $resultsDetails;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    public function selectTrainingProviderUserDetails($user_id)
+    {
+
+        $statement = "SELECT TP.*, UTP.user_to_trainingprovider_id, UTP.user_id, UTP.status FROM `user_to_trainingprovider` UTP
+        INNER JOIN trainingProviders TP ON TP.trainingProviderId = UTP.training_provider_id
+        WHERE UTP.`user_id`= :user_id ";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
+                ':user_id' => $user_id,
+            ));
+
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $result;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    public function selectOneTrainingProviderUser($user_to_trainingprovider_id)
+    {
+        $statement = "SELECT * FROM `user_to_trainingprovider`
+        WHERE `user_to_trainingprovider_id`= :user_to_trainingprovider_id ";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
+                ':user_to_trainingprovider_id' => $user_to_trainingprovider_id,
+            ));
+
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $result;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    public function ProviderExists($data)
+    {
+        $sql = "SELECT * FROM trainingProviders WHERE trainingProviderName = :trainingProviderName OR email = :email OR phone_number = :phone_number LIMIT 1";
+        try {
+            $statement = $this->db->prepare($sql);
+            $statement->execute(array(
+                ':trainingProviderName' => $data['trainingProviderName'],
+                ':phone_number' => $data['phone_number'],
+                ':email' => $data['email'],
+            ));
+
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             return $result;
         } catch (\PDOException $e) {
@@ -182,15 +370,13 @@ class TrainingsModel
         }
     }
 
-    public function ProviderExists($data)
+    public function findOneTrainingProvider($trainingProviderId)
     {
-        $sql = "SELECT trainingProviderName, email, phone_number FROM trainingProviders WHERE trainingProviderName = :trainingProviderName OR email = :email OR phone_number = :phone_number LIMIT 1";
+        $sql = "SELECT * FROM trainingProviders WHERE trainingProviderId = :trainingProviderId LIMIT 1";
         try {
             $statement = $this->db->prepare($sql);
             $statement->execute(array(
-                ':trainingProviderName' => $data['trainingProviderName'],
-                ':phone_number' => $data['phone_number'],
-                ':email' => $data['email'],
+                ':trainingProviderId' => $trainingProviderId,
             ));
 
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);

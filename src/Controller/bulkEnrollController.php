@@ -112,9 +112,9 @@ class bulkEnrollController
             }
 
             // Validate phone number
-            if (!isset($item["phone_number"]) || !is_string($item["phone_number"]) || strlen($item["phone_number"]) != 10 || !preg_match('/^07/', $item["phone_number"])) {
-                throw new InvalidDataException("On index '$key' Phone number must be a string starting with '07' and have 10 digits");
-            }
+            // if (!isset($item["phone_number"]) || !is_string($item["phone_number"]) || strlen($item["phone_number"]) != 10 || !preg_match('/^07/', $item["phone_number"])) {
+            //     throw new InvalidDataException("On index '$key' Phone number must be a string starting with '07' and have 10 digits");
+            // }
 
             // Validate other keys
             $requiredKeys = ['qualification', 'school_code', 'staff_code'];
@@ -154,7 +154,7 @@ class bulkEnrollController
         if (sizeof($userNameExists) > 0) {
             //* update user
             $this->usersModel->updateUser($insertedData, $userNameExists[0]['user_id'], $created_by_user_id);
-            return $userNameExists;
+            return ["deplicate" => false, "user" => $userNameExists];
         }
 
         // Check if user already exists
@@ -162,13 +162,14 @@ class bulkEnrollController
         if (sizeof($existingUser) > 0) {
             //* update user
             $this->usersModel->updateUser($insertedData, $existingUser[0]['user_id'], $created_by_user_id);
-            return $existingUser;
+            return ["deplicate" => false, "user" => $existingUser];
         }
 
         // Check if user phone number, email, nid exists
-        $phoneNumberExists = $this->usersModel->findExistPhoneNumberEmailNid($userData['phone_number'], $userData['email'], $userData['nid']);
+        $phoneNumberExists = $this->usersModel->findExistPhoneNumberEmailNid($userData['phone_number'], $userData['email'], $userData['nid'], $userData['staff_code']);
         if (sizeof($phoneNumberExists) > 0) {
-            throw new InvalidDataException($userData['name'] . " has already exist Phone number, nid or email");
+            // throw new InvalidDataException($userData['name'] . " has already exist Phone number, nid or email");
+            return ["deplicate" => true, "user" => $userData];
         }
 
         // Encrypting default password
@@ -183,7 +184,7 @@ class bulkEnrollController
 
         // inert new user
         $this->usersModel->insertNewUser($insertedData);
-        return $insertedData;
+        return ["deplicate" => false, "user" => $insertedData];
     }
 
     /**
@@ -195,6 +196,7 @@ class bulkEnrollController
         // Generate user id
         $role_to_user_id = UuidGenerator::gUuid();
         // checking if role exists
+        if ($data['role'] == 'HeadTeacher') {$data['role'] = 'Head Teacher';}
         $roleResults = $this->rolesModel->findRoleByName($data['role']);
         $dataToInsert = [
             "role_to_user_id" => $role_to_user_id,
@@ -215,6 +217,25 @@ class bulkEnrollController
         // insert new access to user
         $this->userRoleModel->insertIntoUserToRole($dataToInsert, $created_by_user_id);
         return $dataToInsert;
+    }
+    /**
+     * remove extra space and new lines from string
+     *
+     */
+
+    function removeExtraSpacesAndNewlines($string)
+    {
+        // Replace consecutive whitespace characters with a single space:
+        $string = preg_replace('/\s+/', ' ', $string);
+
+        // Optionally, replace consecutive newlines with a single newline:
+        if (!stristr($string, "\r")) { // No carriage returns, so use \n
+            $string = preg_replace('/\n+/', "\n", $string);
+        } else { // Remove all newlines if carriage returns exist
+            $string = str_replace(["\r\n", "\r", "\n"], "", $string);
+        }
+
+        return $string;
     }
 
     /**
@@ -281,28 +302,39 @@ class bulkEnrollController
             // temparary array
             $temp_success_array = array();
 
+            // deplcated user
+            $deplicated = array();
             // Process enrollment
             foreach ($data["teachers"] as $key => $teacherData) {
+                if (strlen($teacherData['phone_number']) == 9) {$teacherData['phone_number'] = "0" . $teacherData['phone_number'];}
+
+                // remove space from names
+                $teacherData['name'] = $this->removeExtraSpacesAndNewlines($teacherData['name']);
                 // Create new user or update user
-                $processUser = $this->createNewUserHandler($teacherData, $created_by_user_id);
-                if ($processUser) {
+                $techerUploadStatus = "success";
+                $processUserhandler = $this->createNewUserHandler($teacherData, $created_by_user_id);
+                $processUser = $processUserhandler["user"];
+                if (!$processUserhandler["deplicate"] && $processUser) {
                     // process user to role
                     $tempUserId = isset($processUser[0]["user_id"]) ? $processUser[0]["user_id"] : $processUser["user_id"];
                     $this->createUserAccessToRole($teacherData, $created_by_user_id, $tempUserId);
-                }
 
-                if (isset($teacherData["role"]) && strpos(strtolower($teacherData["role"]), "focal")) {
-                    // insert user to user custom role
-                    $this->createUserRoleCUstom($teacherData, $cohort_id);
-                } else if (isset($teacherData["role"]) && strtolower($teacherData["role"]) == "ssl") {
-                    // insert user to user custom role
-                    $this->createUserRoleCUstom($teacherData, $cohort_id);
+                    if (isset($teacherData["role"]) && strpos(strtolower($teacherData["role"]), "focal")) {
+                        // insert user to user custom role
+                        $this->createUserRoleCUstom($teacherData, $cohort_id);
+                    } else if (isset($teacherData["role"]) && strtolower($teacherData["role"]) == "ssl") {
+                        // insert user to user custom role
+                        $this->createUserRoleCUstom($teacherData, $cohort_id);
+                    } else {
+                        // handle Teacher Study Hierarchy
+                        $this->handleTeacherStudyHierarchy($teacherData);
+                    }
                 } else {
-                    // handle Teacher Study Hierarchy
-                    $this->handleTeacherStudyHierarchy($teacherData);
+                    array_push($deplicated, $processUser);
+                    $techerUploadStatus = "Failed";
                 }
 
-                $teacherData["status"] = "success";
+                $teacherData["status"] = $techerUploadStatus;
                 array_push($temp_success_array, $teacherData);
 
                 // save data to json file
@@ -312,7 +344,7 @@ class bulkEnrollController
 
             // Prepare response
             $response['status_code_header'] = 'HTTP/1.1 201 Created';
-            $response['body'] = json_encode($data["teachers"]);
+            $response['body'] = json_encode(["deplicated" => $deplicated, "teachers" => $data["teachers"]]);
             return $response;
         } catch (InvalidDataException $e) {
             return Errors::badRequestError($e->getMessage());

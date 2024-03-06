@@ -31,6 +31,7 @@ $route = new MainRoutes();
 $route->router("/user", "src/Controller/userscontroller.php");
 $route->router("/user/{id}", "src/Controller/userscontroller.php");
 $route->router("/user/list/{page}/{role_id}", "src/Controller/userscontroller.php");
+$route->router("/user/list/{page}/{role_id}/{status}", "src/Controller/userscontroller.php");
 $route->router("/user/assign/role", "src/Controller/userscontroller.php");
 $route->router("/user/current/info", "src/Controller/authcontroller.php");
 $route->router("/user/account/{action}", "src/Controller/authcontroller.php");
@@ -136,6 +137,33 @@ $route->router("/studyhierarchy/{action}/{user_id}", "src/Controller/TeacherStud
 // POSITION
 $route->router("/positions", "src/Controller/positionscontroller.php");
 $route->router("/positions/{position_id}", "src/Controller/positionscontroller.php");
+
+// COP REPORTS
+$route->router("/copreports", "src/Controller/copReportsController.php");
+$route->router("/copreports/{action}", "src/Controller/copReportsController.php");
+$route->router("/copreports/{action}/{user_id}", "src/Controller/copReportsController.php");
+
+// MODULE PROGRESS REPORTS
+$route->router("/moduleprogress", "src/Controller/moduleProgressReportsController.php");
+$route->router("/moduleprogress/{action}", "src/Controller/moduleProgressReportsController.php");
+$route->router("/moduleprogress/{action}/{user_id}", "src/Controller/moduleProgressReportsController.php");
+
+// NOTIFICATION
+$route->router("/notification", "src/Controller/notificationController.php");
+$route->router("/notification/{type}", "src/Controller/notificationController.php");
+$route->router("/notification/{type}/{action}", "src/Controller/notificationController.php");
+$route->router("/notification/{type}/{action}/{message_id}", "src/Controller/notificationController.php");
+
+// GENERAL REPORT
+$route->router("/generalreport/{action}", "src/Controller/reportController.php");
+$route->router("/generalreport/{action}/{id}", "src/Controller/reportController.php");
+$route->router("/generalreport/{action}/{id}/{cohort_id}", "src/Controller/reportController.php");
+
+// TRAINEERS
+$route->router("/traineers", "src/Controller/traineersController.php");
+$route->router("/traineers/{action}", "src/Controller/traineersController.php");
+$route->router("/traineers/{action}/{user_id}", "src/Controller/traineersController.php");
+$route->router("/traineers/{action}/{user_id}/{cohort_id}", "src/Controller/traineersController.php");
 
 //write it at the last
 //arg is 404 file location

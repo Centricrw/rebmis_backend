@@ -54,13 +54,16 @@ class UsersModel
 
     public function updateUser($data, $user_id, $updated_by)
     {
+        if (array_key_exists('gender', $data)) {
+            $data['sex'] = $data['gender'];
+        }
         $sql = "UPDATE users SET
-          first_name=:first_name,middle_name=:middle_name,
-          last_name=:last_name,full_name=:full_name,
-          phone_numbers=:phone_numbers,email=:email,
-          staff_code=:staff_code,sex=:sex,marital_status=:marital_status,
-          dob=:dob,rssb_number=:rssb_number,nationality_id=:nationality_id,
-          bank_account=:bank_account,bank_id=:bank_id,
+          first_name=:first_name, middle_name=:middle_name,
+          last_name=:last_name, full_name=:full_name,
+          phone_numbers=:phone_numbers, email=:email,
+          staff_code=:staff_code, sex=:sex, marital_status=:marital_status,
+          dob=:dob,rssb_number=:rssb_number, nationality_id=:nationality_id,
+          bank_account=:bank_account, bank_id=:bank_id,
           specialization_id=:specialization_id,village_code=:village_code,
           education_domain_id=:education_domain_id,education_sub_dommain_id=:education_sub_dommain_id,graduation_date=:graduation_date,hired_date=:hired_date,nid=:nid,username=:username,resident_district_id=:resident_district_id,
           contract_type=:contract_type,updated_by=:updated_by,updated_at=:updated_at
@@ -74,7 +77,7 @@ class UsersModel
                 ':bank_id' => empty($data['bank_id']) ? null : $data['bank_id'],
                 ':village_code' => empty($data['village_code']) ? null : $data['village_code'],
                 ':full_name' => $data['full_name'],
-                ':sex' => $data['gender'],
+                ':sex' => $data['sex'],
                 ':dob' => empty($data['dob']) ? null : $data['dob'],
                 ':marital_status' => empty($data['marital_status']) ? null : $data['marital_status'],
                 ':nid' => $data['nid'],
@@ -101,7 +104,7 @@ class UsersModel
             ));
             return $statement->rowCount();
         } catch (\PDOException $e) {
-            exit($e->getMessage());
+            throw new Error($e->getMessage());
         }
     }
 
@@ -152,30 +155,30 @@ class UsersModel
         }
     }
 
-    public function findUsersByRole($role_id, $page = 1)
+    public function findUsersByRole($role_id, $status, $page = 1)
     {
         $results_per_page = 10;
         $page_first_result = ($page - 1) * $results_per_page;
         $queryCount = "SELECT u.nid FROM users u
         INNER JOIN user_to_role ur ON u.user_id = ur.user_id
         INNER JOIN roles r ON ur.role_id = r.role_id
-        WHERE ur.role_id = :role_id AND u.status = 1";
+        WHERE ur.role_id = :role_id AND ur.status = :status AND u.status = 1";
         try {
             $resultCount = $this->db->prepare($queryCount);
-            $resultCount->execute(array(":role_id" => $role_id));
+            $resultCount->execute(array(":role_id" => $role_id, ":status" => $status));
             $number_of_result = $resultCount->rowCount();
 
             // determining the total number of pages available
             $number_of_page = ceil($number_of_result / $results_per_page);
 
             // Selecting from limited data from table
-            $query = "SELECT u.staff_code, u.staff_category_id, u.full_name,u.sex,u.dob,u.marital_status,u.nid,u.email,u.phone_numbers,u.rssb_number,u.hired_date,u.contract_type,u.bank_account,u.nationality_id,u.province_code,u.district_code,u.sector_code,u.cell_code,u.village_id,u.village,u.school_code,u.school_name,u.user_id,u.disability,u.photo_url,u.first_name,u.middle_name,u.last_name,u.specialization_id,u.village_code, r.role_id, r.role FROM users u
+            $query = "SELECT u.staff_code, u.staff_category_id, u.full_name,u.sex,u.dob,u.marital_status,u.nid,u.email,u.phone_numbers,u.rssb_number,u.hired_date,u.contract_type,u.bank_account,u.nationality_id,u.province_code,u.district_code,u.sector_code,u.cell_code,u.village_id,u.village,u.school_code,u.school_name,u.user_id,u.disability,u.photo_url,u.first_name,u.middle_name,u.last_name,u.specialization_id,u.village_code, r.role_id, r.role, ur.status FROM users u
             INNER JOIN user_to_role ur ON u.user_id = ur.user_id
             INNER JOIN roles r ON ur.role_id = r.role_id
-            WHERE ur.role_id = :role_id AND u.status = 1
+            WHERE ur.role_id = :role_id AND u.status = 1 AND ur.status = :status
             LIMIT " . $page_first_result . ',' . $results_per_page;
             $statement = $this->db->prepare($query);
-            $statement->execute(array(":role_id" => $role_id));
+            $statement->execute(array(":role_id" => $role_id, ":status" => $status));
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
 
             $object = new \stdClass();
@@ -202,7 +205,7 @@ class UsersModel
         }
     }
 
-    public function findExistPhoneNumberEmailNid($phone_number, $email, $nid)
+    public function findExistPhoneNumberEmailNid($phone_number, $email, $nid, $staff_code)
     {
         $statement = "SELECT U.*,
         R.role_id, R.role, UR.position_code, P.position_name,
@@ -212,11 +215,11 @@ class UsersModel
         LEFT JOIN schools SCL ON UR.school_code = SCL.school_code
         LEFT JOIN positions P ON UR.position_code = P.position_code
         LEFT JOIN qualifications Q ON UR.qualification_id = Q.qualification_id
-        WHERE UR.status = 'Active' AND U.phone_numbers=? OR U.email = ? OR U.nid = ? LIMIT 1";
+        WHERE UR.status = 'Active' AND U.phone_numbers=? OR U.email = ? OR U.nid = ? OR U.staff_code = ? LIMIT 1";
 
         try {
             $statement = $this->db->prepare($statement);
-            $statement->execute(array($phone_number, $email, $nid));
+            $statement->execute(array($phone_number, $email, $nid, $staff_code));
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             return $result;
         } catch (\PDOException $e) {
@@ -233,6 +236,25 @@ class UsersModel
             $statement->execute(array($phone_number));
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             return $result;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    /**
+     * getting pages number of users
+     * @param int $no_of_records_per_page
+     * @return float $total_pages
+     */
+    public function getUsersPage($no_of_records_per_page)
+    {
+        $statement = "SELECT COUNT(*) FROM users";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array());
+            $total_rows = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $total_pages = ceil($total_rows[0] / $no_of_records_per_page);
+            return $total_pages;
         } catch (\PDOException $e) {
             throw new Error($e->getMessage());
         }
@@ -266,6 +288,20 @@ class UsersModel
         }
     }
 
+    public function findExistStaffCodeShort($staffCode)
+    {
+        $statement = "SELECT `user_id`, `staff_code`, `full_name` FROM users WHERE staff_code=? LIMIT 1";
+
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array($staffCode));
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $result;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
     public function findByUsername($username)
     {
         $statement = "SELECT * FROM users WHERE username = ? AND status = ? LIMIT 1";
@@ -273,6 +309,25 @@ class UsersModel
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array($username, 1));
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $result;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    public function findByUsernamePhoneNumberAndStaffCode($username)
+    {
+        $statement = "SELECT * FROM `users` WHERE `username` = :username OR `phone_numbers` = :phone_numbers OR `staff_code` = :staff_code  AND `status` = :status LIMIT 1";
+
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
+                ":username" => $username,
+                ":phone_numbers" => $username,
+                ":staff_code" => $username,
+                ":status" => 1,
+            ));
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             return $result;
         } catch (\PDOException $e) {
