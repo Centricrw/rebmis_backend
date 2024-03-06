@@ -95,7 +95,7 @@ class TrainingsModel
     {
         $statement = "SELECT trainees.*, trainings.trainingName FROM trainees
         INNER JOIN trainings ON trainees.trainingId = trainings.trainingId
-        WHERE trainees.trainingId = :trainingId";
+        WHERE trainees.trainingId = :trainingId AND trainees.status != 'Removed'";
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array(':trainingId' => $training_id));
@@ -203,7 +203,7 @@ class TrainingsModel
     {
         $statement = "SELECT  T.trainingId, T.trainingProviderId, TP.trainingProviderName, TP.TrainingProviderlogo, T.trainingName, T.trainingDescription, T.startDate, T.endDate, T.status,
         ifnull((SELECT COUNT(TN.traineesId) FROM trainees TN WHERE TN.trainingId
-      = T.trainingId),0) trainees FROM trainings T INNER JOIN trainingProviders TP ON T.trainingProviderId = TP.trainingProviderId WHERE T.status = ? ";
+      = T.trainingId AND AND TN.status != 'Removed'),0) trainees FROM trainings T INNER JOIN trainingProviders TP ON T.trainingProviderId = TP.trainingProviderId WHERE T.status = ? ";
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array($status));

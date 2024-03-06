@@ -75,7 +75,7 @@ class AuthController
                     if ($this->params['action'] == "password") {
                         $response = $this->login();
                     } elseif ($this->params['action'] == "profile") {
-                        $response = $this->updateAccount($this->params['user_id']);
+                        $response = $this->updateUserInfo($this->params['user_id']);
                     } else {
                         $response = Errors::notFoundError("Route not found!");
                     }
@@ -108,22 +108,72 @@ class AuthController
         // Check if user phone number, email, nid exists
         $emailExists = $this->usersModel->findExistEmailShort($data["email"]);
         if (sizeof($emailExists) > 0) {
-            return $this->UpdateCurrentUserHandler($data, $emailExists[0]['user_id'], $created_by_user_id);
+            throw new InvalidDataException("User email already in use!, please try again?");
         }
         // Check if user phone number, email, nid exists
         $phoneNumberExists = $this->usersModel->findExistPhoneNumberShort($data["phone_numbers"]);
         if (sizeof($phoneNumberExists) > 0) {
-            return $this->UpdateCurrentUserHandler($data, $phoneNumberExists[0]['user_id'], $created_by_user_id);
+            throw new InvalidDataException("User phone number already in use!, please try again?");
         }
         // Check if user phone number, email, nid exists
         $nidExists = $this->usersModel->findExistNidShort($data["nid"]);
         if (sizeof($nidExists) > 0) {
-            return $this->UpdateCurrentUserHandler($data, $nidExists[0]['user_id'], $created_by_user_id);
+            throw new InvalidDataException("User NID(National Idetinfication Number) already in use!, please try again?");
         }
         // Check if user phone number, email, nid exists
         $userNameExists = $this->usersModel->findByUsername($username);
         if (sizeof($userNameExists) > 0) {
-            return $this->UpdateCurrentUserHandler($data, $userNameExists[0]['user_id'], $created_by_user_id);
+            throw new InvalidDataException("User username already in use!, please try again?");
+        }
+        return true;
+    }
+
+    /**
+     * Validate teacher information to be updated
+     * @param string $nid
+     * @param string $phoneNumber
+     * @param string $userName
+     * @param string $email
+     * @throws InvalidDataException
+     */
+    function validatingUserInfoToUpdate($data, $currentUser)
+    {
+        $username = isset($data["username"]) && !empty($data["username"]) ? $data["username"] : $data["phone_numbers"];
+        // Check if user phone number, email, nid exists
+        if ($currentUser["email"] !== $data["email"]) {
+            $emailExists = $this->usersModel->findExistEmailShort($data["email"]);
+            if (sizeof($emailExists) > 0) {
+                throw new InvalidDataException("User email already in use!, please try again?");
+            }
+        }
+        // Check if user phone number, email, nid exists
+        if ($currentUser["phone_numbers"] !== $data["phone_numbers"]) {
+            $phoneNumberExists = $this->usersModel->findExistPhoneNumberShort($data["phone_numbers"]);
+            if (sizeof($phoneNumberExists) > 0) {
+                throw new InvalidDataException("User phone number already in use!, please try again?");
+            }
+        }
+        // Check if user phone number, email, nid exists
+        if ($currentUser["nid"] !== $data["nid"]) {
+            $nidExists = $this->usersModel->findExistNidShort($data["nid"]);
+            if (sizeof($nidExists) > 0) {
+                throw new InvalidDataException("User NID(National Idetinfication Number) already in use!, please try again?");
+            }
+        }
+        // Check if user phone number, email, nid exists
+        if ($currentUser["nid"] !== $data["nid"]) {
+            $userNameExists = $this->usersModel->findByUsername($username);
+            if (sizeof($userNameExists) > 0) {
+                throw new InvalidDataException("User username already in use!, please try again?");
+            }
+        }
+
+        // checkking if staff_code exists
+        if ($currentUser["staff_code"] !== $data["staff_code"]) {
+            $staffCodeExists = $this->usersModel->findUserByStaffcode($data["staff_code"]);
+            if (count($staffCodeExists) > 0) {
+                throw new InvalidDataException("User Staff code already in use!, please try again?");
+            }
         }
         return true;
     }
@@ -164,28 +214,86 @@ class AuthController
         // }
     }
 
-    function UpdateCurrentUserHandler($data, $user_id, $created_by_user_id)
+    /**
+     * validating user that is going to be added to training
+     * @param object $data
+     * @throws InvalidDataException
+     */
+    function validateRoleAccessInput($data)
     {
-        // $results = $this->usersModel->updateUser($data, $user_id, $created_by_user_id);
+        $role = $data['role_id'];
+        switch ($role) {
+            case '1':
+                // Class teacher
+                // checking if school_code is provided
+                if (!isset($data["school_code"]) || empty($data["school_code"])) {
+                    throw new InvalidDataException("School code is required, please try again?");
+                }
+                if (!isset($data["district_code"]) || empty($data["district_code"])) {
+                    throw new InvalidDataException("District code is required, please try again?");
+                }
+                if (!isset($data["sector_code"]) || empty($data["sector_code"])) {
+                    throw new InvalidDataException("Sector code is required, please try again?");
+                }
+                return true;
+            case '2':
+                // Head Teacher
+                // checking if school_code is provided
+                if (!isset($data["school_code"]) || empty($data["school_code"])) {
+                    throw new InvalidDataException("School code is required, please try again?");
+                }
+                if (!isset($data["district_code"]) || empty($data["district_code"])) {
+                    throw new InvalidDataException("District code is required, please try again?");
+                }
+                if (!isset($data["sector_code"]) || empty($data["sector_code"])) {
+                    throw new InvalidDataException("Sector code is required, please try again?");
+                }
+                return true;
 
-        // add to user to role
-        // if ($results && isset($data['role_id'])) {
-        //     // Generate user id
-        //     $role_to_user_id = UuidGenerator::gUuid();
+            case '3':
+                // DDE
+                // checking if district_code is provided
+                if (!isset($data["district_code"]) || empty($data["district_code"])) {
+                    throw new InvalidDataException("District code is required, please try again?");
+                }
+                return true;
 
-        //     // check if user already have access role
-        //     $userHasActiveRole = $this->userRoleModel->findCurrentUserRole($user_id);
-        //     if (sizeof($userHasActiveRole) > 0) {
-        //         //* Disable user to role
-        //         $this->userRoleModel->disableRole($user_id, $created_by_user_id, "Active", "TRANSFERD");
-        //     }
+            case '4':
+                // REB
+                return true;
+            case '7':
+                // DOS
+                // checking if district_code is provided
+                if (!isset($data["district_code"]) || empty($data["district_code"])) {
+                    throw new InvalidDataException("District code is required, please try again?");
+                }
+                return true;
+            case '18':
+                // SEO
+                // checking if district_code and sector_code is provided
+                if (!isset($data["district_code"]) || empty($data["district_code"])) {
+                    throw new InvalidDataException("District code is required, please try again?");
+                }
+                if (!isset($data["sector_code"]) || empty($data["sector_code"])) {
+                    throw new InvalidDataException("Sector code is required, please try again?");
+                }
+                return true;
+            case '26':
+                // TRAINING PROVIDER
+                return true;
+            case '27':
+                // Trainer
+                return true;
+            default:
+                return true;
+        }
+    }
 
-        //     $data['role_to_user_id'] = $role_to_user_id;
-        //     $this->userRoleModel->insertIntoUserToRole($data, $created_by_user_id);
-        // }
-
-        // insert user to training
-        if ($data["addToTraining"]) {
+    // addin user or teacher to training
+    function addUserToTraining($data, $created_by_user_id)
+    {
+        try {
+            $useIsAddedToTraining = false;
             // Generate traineer id
             $generated_traineer_id = UuidGenerator::gUuid();
             $data['traineesId'] = $generated_traineer_id;
@@ -195,17 +303,102 @@ class AuthController
 
             if (count($traineeExists) == 0) {
                 $insertToTrainee = $this->cohortconditionModel->InsertApprovedSelectedTraineers($data, $created_by_user_id);
+                $useIsAddedToTraining = isset($insertToTrainee) ? true : false;
+            } else {
+                // update trainee info and general report
+                $updateToTrainee = $this->cohortconditionModel->updateApprovedSelectedTrainee($data, $traineeExists[0]['traineesId']);
+                $useIsAddedToTraining = isset($updateToTrainee) ? true : false;
             }
+            return $useIsAddedToTraining;
+        } catch (\Throwable $th) {
+            throw new InvalidDataException("Something went wrong adding user to training, " . $th->getMessage());
+        }
+    }
+
+    // assign user access role
+    function assignUserAccessRole($data, $user_id, $created_by_user_id)
+    {
+        try {
+            // Generate user id
+            $role_to_user_id = UuidGenerator::gUuid();
+
+            // check if user already have access role
+            $userHasActiveRole = $this->userRoleModel->findCurrentUserRole($user_id);
+            if (sizeof($userHasActiveRole) > 0) {
+                //* Disable user to role
+                $this->userRoleModel->disableRole($user_id, $created_by_user_id, "Active", "TRANSFERD");
+            }
+
+            $data['role_to_user_id'] = $role_to_user_id;
+            $assigned = $this->userRoleModel->insertIntoUserToRole($data, $created_by_user_id);
+            return isset($assigned) ? true : false;
+        } catch (\Throwable $th) {
+            throw new InvalidDataException("Something went wrong assing user role access, " . $th->getMessage());
+        }
+    }
+
+    function updateUserInfo($user_id)
+    {
+        $data = (array) json_decode(file_get_contents('php://input'), true);
+        // geting authorized user id
+        $created_by_user_id = AuthValidation::authorized()->id;
+        $validateUserInputData = UserValidation::validateUserUpdateInput($data);
+        if (!$validateUserInputData['validated']) {
+            return Errors::unprocessableEntityResponse($validateUserInputData['message']);
         }
 
-        $response['status_code_header'] = 'HTTP/1.1 201 Created';
-        $response['body'] = json_encode([
-            'message' => "Created",
-            'user_id' => $user_id,
-            'traineesId' => isset($data['traineesId']) ? $data['traineesId'] : null,
-            'results' => $data,
-        ]);
-        return $response;
+        try {
+            // checking is user training data completed
+            if (isset($data["addToTraining"]) && $data["addToTraining"]) {
+                $this->validateUserToBeAddedToTraining($data);
+            }
+
+            // validating needed if access role is needed
+            if (isset($data['role_id'])) {
+                $this->validateRoleAccessInput($data);
+            }
+
+            // Check if user is registered
+            $userExists = $this->usersModel->findOneUser($user_id, 1);
+            if (sizeof($userExists) <= 0) {
+                return Errors::notFoundError("User not found");
+            }
+            $user = $userExists[0];
+
+            // validating user information
+            $validateUserInfo = $this->validatingUserInfoToUpdate($data, $user);
+
+            if ($validateUserInfo) {
+                $results = $this->usersModel->updateUser($data, $user_id, $created_by_user_id);
+
+                // add to user to role
+                if ($results && isset($data['role_id'])) {
+                    $userAssignedAccess = $this->assignUserAccessRole($data, $user_id, $created_by_user_id);
+                }
+
+                // insert user to training
+                if ($data["addToTraining"]) {
+                    $addingUserToTrainig = $this->addUserToTraining($data, $created_by_user_id);
+                }
+
+                $response['status_code_header'] = 'HTTP/1.1 201 Created';
+                $response['body'] = json_encode([
+                    'message' => "Created",
+                    'user_id' => $user_id,
+                    'access_assigned' => isset($userAssignedAccess) ? $userAssignedAccess : false,
+                    'added_to_training' => isset($addingUserToTrainig) ? $addingUserToTrainig : false,
+                    'traineesId' => isset($data['traineesId']) ? $data['traineesId'] : null,
+                    'results' => $data,
+                ]);
+                return $response;
+            } else {
+                return $validateUserInfo;
+            }
+        } catch (InvalidDataException $e) {
+            return Errors::existError($e->getMessage());
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
+        }
     }
 
     function createAccount()
@@ -221,14 +414,17 @@ class AuthController
 
         try {
 
-            // Check if user phone number, username , email, nid exists
-            $username = isset($data["username"]) && !empty($data["username"]) ? $data["username"] : $data["phone_numbers"];
-
             // checking is user training data completed
             if (isset($data["addToTraining"]) && $data["addToTraining"]) {
                 $this->validateUserToBeAddedToTraining($data);
             }
 
+            // validating needed if access role is needed
+            if (isset($data['role_id'])) {
+                $this->validateRoleAccessInput($data);
+            }
+
+            // Check if user phone number, username , email, nid exists
             $validated = $this->checkingIfUserNameNidPhoneNumberEmailExists($data, $created_by_user_id);
 
             if ($validated == true) {
@@ -237,9 +433,10 @@ class AuthController
                 if (isset($data["staff_code"]) && !empty($data['staff_code'])) {
                     $results = $this->usersModel->findUserByStaffcode($data["staff_code"]);
                     if (count($results) > 0) {
-                        return $this->UpdateCurrentUserHandler($data, $results[0]['user_id'], $created_by_user_id);
+                        throw new InvalidDataException("User Staff code already in use!, please try again?");
                     }
                 }
+
                 // Encrypting default password
                 $default_password = 12345;
                 $default_password = Encrypt::saltEncryption($default_password);
@@ -255,38 +452,20 @@ class AuthController
 
                 // add to user to role
                 if ($results && isset($data['role_id'])) {
-                    // Generate user id
-                    $role_to_user_id = UuidGenerator::gUuid();
-
-                    // check if user already have access role
-                    $userHasActiveRole = $this->userRoleModel->findCurrentUserRole($user_id);
-                    if (sizeof($userHasActiveRole) > 0) {
-                        //* Disable user to role
-                        $this->userRoleModel->disableRole($user_id, $created_by_user_id, "Active", "TRANSFERD");
-                    }
-
-                    $data['role_to_user_id'] = $role_to_user_id;
-                    $this->userRoleModel->insertIntoUserToRole($data, $created_by_user_id);
+                    $userAssignedAccess = $this->assignUserAccessRole($data, $user_id, $created_by_user_id);
                 }
 
                 // insert user to training
                 if ($data["addToTraining"]) {
-                    // Generate traineer id
-                    $generated_traineer_id = UuidGenerator::gUuid();
-                    $data['traineesId'] = $generated_traineer_id;
-                    $data['traineePhone'] = $data["phone_numbers"];
-                    // checking if userphonenumber exists on that cohorts
-                    $traineeExists = $this->cohortconditionModel->selectTraineeByPhoneNumber($data['cohortId'], $data['traineePhone']);
-
-                    if (count($traineeExists) == 0) {
-                        $insertToTrainee = $this->cohortconditionModel->InsertApprovedSelectedTraineers($data, $created_by_user_id);
-                    }
+                    $addingUserToTrainig = $this->addUserToTraining($data, $created_by_user_id);
                 }
 
                 $response['status_code_header'] = 'HTTP/1.1 201 Created';
                 $response['body'] = json_encode([
                     'message' => "Created",
                     'user_id' => $user_id,
+                    'access_assigned' => isset($userAssignedAccess) ? $userAssignedAccess : false,
+                    'added_to_training' => isset($addingUserToTrainig) ? $addingUserToTrainig : false,
                     'traineesId' => isset($data['traineesId']) ? $data['traineesId'] : null,
                     'results' => $results,
                 ]);
@@ -299,74 +478,6 @@ class AuthController
         } catch (\Throwable $th) {
             return Errors::databaseError($th->getMessage());
         }
-    }
-
-    function updateAccount($user_id)
-    {
-        $inputData = (array) json_decode(file_get_contents('php://input'), true);
-        // geting authorized user id
-        $loggedUserId = AuthValidation::authorized()->id;
-        $validateUserInputData = UserValidation::validateUserUpdateInput($inputData);
-        if (!$validateUserInputData['validated']) {
-            return Errors::unprocessableEntityResponse($validateUserInputData['message']);
-        }
-
-        // Check if user is registered
-        $userExists = $this->usersModel->findOneUser($user_id, 1);
-        if (sizeof($userExists) <= 0) {
-            return Errors::notFoundError("User not found");
-        }
-        $user = $userExists[0];
-
-        // checking if the user changed phone number, username, email, nid
-        // checking phone number
-        if ($user['phone_numbers'] !== $inputData['phone_numbers']) {
-            $phoneNumberExists = $this->usersModel->findExistPhoneNumberShort($inputData['phone_numbers']);
-            if (sizeof($phoneNumberExists) > 0) {
-                return Errors::badRequestError("Phone number already exist, please try again?");
-            }
-        }
-
-        // checking username
-        if ($user['username'] !== $inputData['username']) {
-            $userNameExists = $this->usersModel->findByUsername($inputData['username']);
-            if (sizeof($userNameExists) > 0) {
-                return Errors::badRequestError("Phone number already exist, please try again?");
-            }
-        }
-
-        // Check if user email exists
-        if ($user['email'] !== $inputData['email']) {
-            $emailExists = $this->usersModel->findExistEmailShort($inputData['email']);
-            if (sizeof($emailExists) > 0) {
-                return Errors::badRequestError("Email already exist, please try again?");
-            }
-        }
-
-        // Check if user nid exists
-        if ($user['nid'] !== $inputData['nid']) {
-            $nidExists = $this->usersModel->findExistNidShort($inputData['nid']);
-            if (sizeof($nidExists) > 0) {
-                return Errors::badRequestError("NID already exist, please try again?");
-            }
-        }
-
-        // Check if user nid exists
-        if ($user['staff_code'] !== $inputData['staff_code']) {
-            $nidExists = $this->usersModel->findExistStaffCodeShort($inputData['staff_code']);
-            if (sizeof($nidExists) > 0) {
-                return Errors::badRequestError("Staff code already exist, please try again?");
-            }
-        }
-
-        $this->usersModel->updateUser($inputData, $user_id, $loggedUserId);
-
-        $response['status_code_header'] = 'HTTP/1.1 200 OK';
-        $response['body'] = json_encode([
-            'message' => "User updated successfuly!",
-            "user" => $inputData,
-        ]);
-        return $response;
     }
 
     // Get all users

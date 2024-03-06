@@ -64,7 +64,7 @@ class CohortconditionModel
 
     public function selectTraineeByPhoneNumber($cohortId, $phoneNumber)
     {
-        $statement = "SELECT * FROM `trainees` WHERE `traineePhone` = :traineePhone AND `cohortId` = :cohortId";
+        $statement = "SELECT * FROM `trainees` WHERE `traineePhone` = :traineePhone AND `cohortId` = :cohortId AND status != 'Removed'";
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array(
@@ -80,7 +80,7 @@ class CohortconditionModel
 
     public function selectTraineeByUserIDAndCohortID($user_id, $cohort_id)
     {
-        $statement = "SELECT * FROM `trainees` WHERE `userId` = :userId AND `cohortId` = :cohortId";
+        $statement = "SELECT * FROM `trainees` WHERE `userId` = :userId AND `cohortId` = :cohortId AND status != 'Removed'";
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array(":userId" => $user_id, ":cohortId" => $cohort_id,
@@ -94,7 +94,7 @@ class CohortconditionModel
 
     public function selectTraineeOnThatDistrict($cohort_id, $district_code)
     {
-        $statement = "SELECT * FROM `trainees` WHERE `district_code` = :district_code AND `cohortId` = :cohort_id";
+        $statement = "SELECT * FROM `trainees` WHERE `district_code` = :district_code AND `cohortId` = :cohort_id AND status != 'Removed'";
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array(":district_code" => $district_code, ":cohort_id" => $cohort_id,
@@ -112,10 +112,10 @@ class CohortconditionModel
         // $statement = "SELECT TRN.traineesId, TRN.userId FROM `trainees` TRN
         // INNER JOIN trainings TR ON TRN.trainingId = TR.trainingId
         // INNER JOIN training_type TY ON TR.training_type_id = TY.training_type_id
-        // WHERE TY.`training_type_id` = :training_type_id";
+        // WHERE TY.`training_type_id` = :training_type_id AND TRN.status != 'Removed'";
 
         $statement = "SELECT traineesId, userId FROM `trainees`
-        WHERE `cohortId` = :cohortId";
+        WHERE `cohortId` = :cohortId AND status != 'Removed'";
 
         try {
             $statement = $this->db->prepare($statement);
@@ -130,7 +130,7 @@ class CohortconditionModel
 
     public function selectTraineesOnThatSchools($training_id, $school_code)
     {
-        $statement = "SELECT * FROM `trainees` WHERE `school_code` = :school_code AND `trainingId` = :trainingId";
+        $statement = "SELECT * FROM `trainees` WHERE `school_code` = :school_code AND `trainingId` = :trainingId AND status != 'Removed'";
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array(":school_code" => $school_code, ":trainingId" => $training_id,
@@ -144,7 +144,7 @@ class CohortconditionModel
 
     public function countTraineersOnCondition($data)
     {
-        $statement = "SELECT userId FROM trainees WHERE conditionId = :conditionId";
+        $statement = "SELECT userId FROM trainees WHERE conditionId = :conditionId AND status != 'Removed'";
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array(":conditionId" => $data['cohortconditionId'],
@@ -182,9 +182,24 @@ class CohortconditionModel
         }
     }
 
+    public function selectGeneralReportByTraineeId($trainee_id)
+    {
+        try {
+            $statement = "SELECT * FROM `general_report` WHERE `traineeId` = :traineeId";
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
+                ":traineeId" => $trainee_id,
+            ));
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $result;
+        } catch (\Throwable $th) {
+            throw new Error($th->getMessage());
+        }
+    }
+
     function traineeHasChapterHandler($data, $chapterId)
     {
-        $query = "SELECT generalReportId FROM general_report WHERE userId = :userId AND cohortId = :cohortId AND chapterId = :chapterId";
+        $query = "SELECT generalReportId FROM general_report WHERE userId = :userId AND cohortId = :cohortId AND chapterId = :chapterId AND status = 'Active'";
         try {
             $statement = $this->db->prepare($query);
             $statement->execute(array(
@@ -284,11 +299,44 @@ class CohortconditionModel
         }
     }
 
+    public function updateTraineeToGeneralReport($data, $generalReportId)
+    {
+        // get allowed chapters
+        $statement = "UPDATE `general_report` SET `traineeName`, `traineePhone`, `staff_code`, `cohortId`, `moduleId`, `moduleName`, `chapterId`, `chapterName`, `age`, `gender`, `disability`, `district_code`, `district_name`, `sector_code`, `sector_name`, `school_code`, `school_name`, `trainingId` WHERE `generalReportId`=:generalReportId
+        ";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
+                ":generalReportId" => $generalReportId,
+                ":traineeName" => $data["traineeName"],
+                ":traineePhone" => $data["traineePhone"],
+                ":staff_code" => $data["staff_code"],
+                ":cohortId" => $data["cohortId"],
+                ":moduleId" => $data["moduleId"],
+                ":moduleName" => $data["moduleName"],
+                ":chapterId" => $data["chapterId"],
+                ":chapterName" => $data["chapterName"],
+                ":age" => $data["age"],
+                ":gender" => $data["gender"],
+                ":disability" => $data["disability"],
+                ":district_code" => $data["district_code"],
+                ":district_name" => $data["district_name"],
+                ":sector_code" => $data["sector_code"],
+                ":sector_name" => $data["sector_name"],
+                ":school_code" => $data["school_code"],
+                ":school_name" => $data["school_name"],
+                ":trainingId" => $data["trainingId"],
+            ));
+            $results = $statement->rowCount();
+            return $results;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
     public function InsertApprovedSelectedTraineers($data, $logged_user_id)
     {
-        if (!array_key_exists('user_id', $data)) {
-            $data['user_id'] = $data['staff_code'];
-        }
+        $data['user_id'] = !array_key_exists('user_id', $data) ? $data['staff_code'] : $data['user_id'];
         $currentYear = date("Y");
         $statement = "INSERT INTO `trainees`(`traineesId`, `userId`, `trainingId`, `cohortId`, `conditionId`, `status`, `traineeName`, `traineePhone`, `district_code`, `sector_code`, `school_code`) VALUES (:traineesId, :userId, :trainingId, :cohortId, :conditionId, :status, :traineeName, :traineePhone, :district_code, :sector_code, :school_code)";
         try {
@@ -360,9 +408,75 @@ class CohortconditionModel
         }
     }
 
+    public function updateApprovedSelectedTrainee($data, $trainee_id)
+    {
+        $currentYear = date("Y");
+        $statement = "UPDATE trainees SET `trainingId`=:trainingId, `cohortId`=:cohortId, `conditionId`=:conditionId, `status`=:status, `traineeName`=:traineeName, `traineePhone`=:traineePhone, `district_code`=:district_code, `sector_code`=:sector_code, `school_code`=:school_code WHERE `traineesId` = :traineesId";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
+                ":traineesId" => $trainee_id,
+                ":trainingId" => $data['trainingId'],
+                ":cohortId" => $data['cohortId'],
+                ":conditionId" => $data['cohortconditionId'],
+                ":status" => $data['status'],
+                ":traineeName" => $data['full_name'],
+                ":traineePhone" => $data['traineePhone'],
+                ":district_code" => substr($data['school_code'], 0, 2),
+                ":sector_code" => substr($data['school_code'], 0, 4),
+                ":school_code" => $data['school_code'],
+            ));
+            $insertedRow = $statement->rowCount();
+            // trainee is inserted then we add him/her to genral report
+            if ($insertedRow) {
+                // get trainee information
+                $userDetails = $this->getTraineeInfo($data['user_id'])[0];
+                // get age from dob
+                $age = null;
+                if (isset($userDetails["dob"])) {
+                    $dob = DateTime::createFromFormat("Y-m-d", $userDetails["dob"]);
+                    $age = $currentYear - $dob->format("Y");
+                }
+                // get school location
+                $schoolLocation = $this->getTraineeSchoolLactionInfo($data['school_code']);
+                // get available chapters
+                $traineeReport = $this->selectGeneralReportByTraineeId($trainee_id);
+                foreach ($traineeReport as $key => $report) {
+                    // update trainee to general report
+                    $traineeInfo = array(
+                        "traineeId" => $data["traineesId"],
+                        "userId" => $data["user_id"],
+                        "traineeName" => $data["full_name"],
+                        "traineePhone" => $data["traineePhone"],
+                        "staff_code" => $userDetails["staff_code"],
+                        "cohortId" => $data["cohortId"],
+                        "moduleId" => $report['cop_report_id'],
+                        "moduleName" => $report['cop_report_title'],
+                        "chapterId" => $report["cop_report_details_id"],
+                        "chapterName" => $report["cop_report_details_title"],
+                        "age" => $age,
+                        "gender" => $userDetails["sex"],
+                        "disability" => $userDetails["disability"],
+                        "district_code" => $schoolLocation["district_code"],
+                        "district_name" => $schoolLocation["district_name"],
+                        "sector_code" => $schoolLocation["sector_code"],
+                        "sector_name" => $schoolLocation["sector_name"],
+                        "school_code" => $schoolLocation["school_code"],
+                        "school_name" => $schoolLocation["school_name"],
+                        "trainingId" => $data["trainingId"],
+                    );
+                    $this->updateTraineeToGeneralReport($traineeInfo, $report['generalReportId']);
+                }
+            }
+            return $statement->rowCount();
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
     public function checkIfTraineerAvailable($trainingId, $userId)
     {
-        $statement = "SELECT * FROM trainees WHERE trainingId = :trainingId AND userId = :userId ";
+        $statement = "SELECT * FROM trainees WHERE trainingId = :trainingId AND userId = :userId AND status != 'Removed' ";
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array(
@@ -405,14 +519,14 @@ class CohortconditionModel
             INNER JOIN school_location SL ON SL.village_id = S.region_code
             INNER JOIN user_to_role UR ON T.userId = UR.user_id
             INNER JOIN users U ON U.user_id = UR.user_id
-            WHERE T.cohortId = ? AND UR.status = ? AND T.district_code = $userDistrictCode";
+            WHERE T.cohortId = ? AND UR.status = ? AND T.district_code = $userDistrictCode AND T.status != 'Removed'";
         } else {
             $statement = "SELECT T.*, S.school_name, SL.sector_name, SL.district_name, UR.role_id, UR.qualification_id, UR.position_code, UR.status, U.staff_code, U.email, U.nid, U.sex FROM trainees T
             INNER JOIN schools S ON S.school_code = T.school_code
             INNER JOIN school_location SL ON SL.village_id = S.region_code
             INNER JOIN user_to_role UR ON T.userId = UR.user_id
             INNER JOIN users U ON U.user_id = UR.user_id
-            WHERE T.cohortId = ? AND UR.status = ?";
+            WHERE T.cohortId = ? AND UR.status = ? AND T.status != 'Removed'";
         }
         try {
             $statement = $this->db->prepare($statement);
