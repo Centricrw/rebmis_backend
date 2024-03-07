@@ -47,12 +47,41 @@ class DirectorSignatureModel
         }
     }
 
+    public function selectDirectorSignatureUserTraining($training_id, $user_id)
+    {
+        $statement = "SELECT * FROM `directorSignature` WHERE `training_id`=:training_id AND `user_id`=:user_id";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
+                ":training_id" => $training_id,
+                ":user_id" => $user_id,
+            ));
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $result;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
     public function selectDirectorSignatureBYUser($user_id)
     {
         $statement = "SELECT * FROM `directorSignature` WHERE `user_id`=:user_id";
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array(":user_id" => $user_id));
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $result;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    public function selectDirectorSignatureBYId($Signator_id)
+    {
+        $statement = "SELECT * FROM `directorSignature` WHERE `Signator_id`=:Signator_id";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(":Signator_id" => $Signator_id));
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             return $result;
         } catch (\PDOException $e) {
@@ -80,14 +109,14 @@ class DirectorSignatureModel
         }
     }
 
-    public function updateSignature($Signator_id, $data)
+    public function updateSignature($Signator_id, $director_signature_url)
     {
         $statement = "UPDATE `directorSignature` SET `director_signature_url`=:director_signature_url WHERE `Signator_id`=:Signator_id ";
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array(
                 ":Signator_id" => $Signator_id,
-                ":director_signature_url" => $data['director_signature_url'],
+                ":director_signature_url" => $director_signature_url,
             ));
             $result = $statement->rowCount();
             return $result;
