@@ -196,6 +196,16 @@ class trainingsController
                     $response['status_code_header'] = 'HTTP/1.1 200 OK';
                     $response['body'] = json_encode($trainingResults);
                     return $response;
+                case '28':
+                    // Signator
+                    $trainingResults = $this->trainingsModel->getAllTranings($user_role_details, "Signator");
+                    foreach ($trainingResults as $key => $value) {
+                        $numberOfTrainees = $this->traineersModel->countTrainees($value['trainingId']);
+                        $trainingResults[$key]["trainees"] = $numberOfTrainees[0]['numberOfTrainees'];
+                    }
+                    $response['status_code_header'] = 'HTTP/1.1 200 OK';
+                    $response['body'] = json_encode($trainingResults);
+                    return $response;
                 default:
                     $trainingResults = [];
                     $response['status_code_header'] = 'HTTP/1.1 200 OK';
