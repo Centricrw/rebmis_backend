@@ -53,8 +53,6 @@ class trainingsController
                     } elseif (isset($this->params['training_id']) && isset($this->params['cohort_id'])) {
                         $response = $this->getTrainingsTrainees($this->params['training_id'], $this->params['cohort_id']);
                     } else {
-                        // echo ($this->request_path());
-                        print_r($this->params);
                         $response = Errors::notFoundError("Route not found!");
                     }
                 } else {
