@@ -172,7 +172,7 @@ class ReportModel
 
             $Kwandika_nav = $teacherMarks['Kwandika_nav'];
             if ($Kwandika_nav == '-') {$Kwandika_nav = 0;} else { $Kwandika_nav = 100;}
-            $Kwandika_quiz = ((int) $teacherMarks['Kwandika_quiz'] * 10);
+            $Kwandika_quiz = ((int) $teacherMarks['Kwandika_quiz']) * 10;
             if ($Kwandika_quiz == '-') {$Kwandika_quiz = 0;}
 
             $Ihangamwandiko_nav = $teacherMarks['Ihangamwandiko_nav'];
@@ -351,13 +351,13 @@ class ReportModel
     private function updateIhangamwandiko($Ihangamwandiko_nav, $Ihangamwandiko_quiz, $Imbumbanyigisho_ya_3_quiz, $end_of_course_quiz, $staff_code)
     {
         $statement = "UPDATE general_report SET
-        courseNavigation = '" . $Ihangamwandiko_nav . "',
-        endOfChapter = '" . $Ihangamwandiko_quiz . "',
-        endOfModule = '" . $Imbumbanyigisho_ya_3_quiz . "',
-        endOfCourse = '" . $end_of_course_quiz . "'
+        courseNavigation = '".$Ihangamwandiko_nav."',
+        endOfChapter = '".$Ihangamwandiko_quiz."',
+        endOfModule = '".$Imbumbanyigisho_ya_3_quiz."',
+        endOfCourse = '".$end_of_course_quiz."'
          WHERE
          chapterId = 'd2914b04-e5ae-4bac-a3d6-12659d26aec4' AND
-         staff_code = '" . $staff_code . "'";
+         staff_code = '".$staff_code ."'";
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array());
