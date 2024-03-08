@@ -275,9 +275,9 @@ class directorSignatureController
         }
 
         // Check if file extension
-        $extensions = array("jpeg", "jpg", "png", "pdf");
+        $extensions = array("jpeg", "jpg", "png", "PNG", "JPEG", "JPG");
         if (in_array($file_ext, $extensions) === false) {
-            $results->message = $file[$fileName]["name"] . " extension not allowed, please choose a JPEG, PNG, pdf file.";
+            $results->message = $file[$fileName]["name"] . " extension not allowed, please choose a JPEG, PNG, JPG file.";
             $results->success = false;
             $results->$fileName = $file_name;
             return $results;
