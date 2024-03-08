@@ -261,7 +261,8 @@ class directorSignatureController
         $file_name = $target_dir . basename($file[$fileName]["name"]);
         $file_size = $file[$fileName]['size'];
         $file_tmp = $file[$fileName]['tmp_name'];
-        $file_type = $file[$fileName]['type'];
+        $temp = str_replace(array(" ", "-"), "_", basename($file[$fileName]["name"]));
+        $newfilename = $target_dir . round(microtime(true)) . '_' . $temp;
         $tmp = explode('.', $file_name);
         $file_ext = end($tmp);
 
@@ -290,10 +291,10 @@ class directorSignatureController
             return $results;
         }
 
-        move_uploaded_file($file_tmp, SITE_ROOT . "/" . $file_name);
+        move_uploaded_file($file_tmp, SITE_ROOT . "/" . $newfilename);
         $results->message = $file[$fileName]["name"] . " file uploaded succesfuly";
         $results->success = true;
-        $results->$fileName = $file_name;
+        $results->$fileName = $newfilename;
         return $results;
     }
 
