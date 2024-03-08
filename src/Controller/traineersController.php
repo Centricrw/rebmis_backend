@@ -482,29 +482,32 @@ class TraineersController
 
             // Director names
             $pdf->SetFont('Times', 'B', 12);
-            $pdf->SetXY(20, 150);
+            $pdf->SetXY(20, 160);
             // Define data for the table
+            // Get the number of directors
+            $directorCount = count($signatures);
 
-            if (count($signatures) == 3) {
-                $data = array(
-                    array($signatures[0]['director_name'], $signatures[1]['director_name'], $signatures[2]['director_name']),
-                    array($signatures[0]['director_role'], $signatures[1]['director_role'], $signatures[2]['director_role']),
-                    array($signatures[0]['director_institution'], $signatures[1]['director_institution'], $signatures[2]['director_institution']),
-                    array($signatures[0]['director_signature_url'], $signatures[1]['director_signature_url'], $signatures[2]['director_signature_url']),
-                );
-            } else {
-                $data = array(
-                    array('Dr. Nelson Mbarushimana', 'Dr. Aliou Tall', 'Dr. Vincent Mutembeya Mugisha'),
-                    array('Director General', 'USAID/Rwanda', 'Chief of Party, USAID Tunoze Gusoma'),
-                    array('Rwanda Basic Education Board', 'Education Office Director', 'Country Representative, FHI 360 in Rwanda'),
-                );
+            $data = array();
+            // Loop through each director's information key
+            $infoKeys = array('director_name', 'director_role', 'director_institution', 'director_signature_url');
+            // Add director names to the first row
+            $data[0] = array();
+            for ($i = 0; $i < $directorCount; $i++) {
+                $data[0][] = $signatures[$i]['director_name'];
+            }
+            // Add remaining information for each director in separate rows
+            for ($j = 1; $j < count($infoKeys); $j++) {
+                $data[$j] = array();
+                for ($i = 0; $i < $directorCount; $i++) {
+                    $data[$j][] = $signatures[$i][$infoKeys[$j]];
+                }
             }
 
             // Set width for each column
             $columnWidths = array(80, 60, 70);
 
             // Loop through the data and add rows and columns
-            $absolute_y = 160;
+            $absolute_y = 165;
             foreach ($data as $row) {
                 foreach ($row as $key => $value) {
                     // Add cell with content
