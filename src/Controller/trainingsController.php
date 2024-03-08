@@ -195,8 +195,28 @@ class trainingsController
                     $response['body'] = json_encode($trainingResults);
                     return $response;
                 case '28':
-                    // Signator
-                    $trainingResults = $this->trainingsModel->getAllTranings($user_role_details, "Signator");
+                    // DIRECTOR_REB
+                    $trainingResults = $this->trainingsModel->getAllTranings($user_role_details, "DIRECTOR_REB");
+                    foreach ($trainingResults as $key => $value) {
+                        $numberOfTrainees = $this->traineersModel->countTrainees($value['trainingId']);
+                        $trainingResults[$key]["trainees"] = $numberOfTrainees[0]['numberOfTrainees'];
+                    }
+                    $response['status_code_header'] = 'HTTP/1.1 200 OK';
+                    $response['body'] = json_encode($trainingResults);
+                    return $response;
+                case '29':
+                    // DERECTOR_USAID
+                    $trainingResults = $this->trainingsModel->getAllTranings($user_role_details);
+                    foreach ($trainingResults as $key => $value) {
+                        $numberOfTrainees = $this->traineersModel->countTrainees($value['trainingId']);
+                        $trainingResults[$key]["trainees"] = $numberOfTrainees[0]['numberOfTrainees'];
+                    }
+                    $response['status_code_header'] = 'HTTP/1.1 200 OK';
+                    $response['body'] = json_encode($trainingResults);
+                    return $response;
+                case '30':
+                    // DERECTOR_FHI
+                    $trainingResults = $this->trainingsModel->getAllTranings($user_role_details);
                     foreach ($trainingResults as $key => $value) {
                         $numberOfTrainees = $this->traineersModel->countTrainees($value['trainingId']);
                         $trainingResults[$key]["trainees"] = $numberOfTrainees[0]['numberOfTrainees'];
