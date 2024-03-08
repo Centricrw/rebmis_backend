@@ -485,7 +485,7 @@ class TraineersController
             $pdf->SetXY(20, 150);
             // Define data for the table
 
-            if (count($signatures) > 0) {
+            if (count($signatures) == 3) {
                 $data = array(
                     array($signatures[0]['director_name'], $signatures[1]['director_name'], $signatures[2]['director_name']),
                     array($signatures[0]['director_role'], $signatures[1]['director_role'], $signatures[2]['director_role']),
