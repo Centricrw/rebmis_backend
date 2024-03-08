@@ -15,7 +15,7 @@ class DirectorSignatureModel
 
     public function insertDirectorSignature($data)
     {
-        $statement = "INSERT INTO `directorSignature`(`Signator_id`, `user_id`, `director_name`, `director_role`, `director_institution`, `director_signature_url`, `training_id`) VALUES (:Signator_id, :user_id, :director_name, :director_role, :director_institution, :director_signature_url, :training_id)";
+        $statement = "INSERT INTO `directorSignature`(`Signator_id`, `user_id`, `director_name`, `director_role`, `director_institution`, `director_signature_url`, `training_id`, `position`) VALUES (:Signator_id, :user_id, :director_name, :director_role, :director_institution, :director_signature_url, :training_id, :position)";
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array(
@@ -26,6 +26,7 @@ class DirectorSignatureModel
                 ":director_institution" => $data['director_institution'],
                 ":director_signature_url" => $data['director_signature_url'],
                 ":training_id" => $data['training_id'],
+                ":position" => $data['position'],
             ));
             $result = $statement->rowCount();
             return $result;
@@ -91,7 +92,7 @@ class DirectorSignatureModel
 
     public function updateDirectorSignatureInfo($Signator_id, $data)
     {
-        $statement = "UPDATE `directorSignature` SET `director_name`=:director_name,`director_role`=:director_role, `director_institution`=:director_institution, `training_id`=:training_id,`status`=:status WHERE `Signator_id`=:Signator_id ";
+        $statement = "UPDATE `directorSignature` SET `director_name`=:director_name,`director_role`=:director_role, `director_institution`=:director_institution, `training_id`=:training_id, `position`=:position,`status`=:status WHERE `Signator_id`=:Signator_id ";
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array(
@@ -100,6 +101,7 @@ class DirectorSignatureModel
                 ":director_role" => $data['director_role'],
                 ":director_institution" => $data['director_institution'],
                 ":training_id" => $data['training_id'],
+                ":position" => $data['position'],
                 ":status" => $data['status'],
             ));
             $result = $statement->rowCount();

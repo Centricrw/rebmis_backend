@@ -82,6 +82,7 @@ class directorSignatureController
                 "director_role" => "Director role is required",
                 "director_institution" => "Director institution is required",
                 "training_id" => "Training id is required",
+                "position" => "Position is required",
             ];
             $validateUserInputData = BasicValidation::validate($_POST, $validateThisValues);
             if (!$validateUserInputData['validated']) {
@@ -186,6 +187,7 @@ class directorSignatureController
                 "director_role" => "Director role is required",
                 "director_institution" => "Director institution is required",
                 "training_id" => "Training id is required",
+                "position" => "Position is required",
             ];
             $validateUserInputData = BasicValidation::validate($data, $validateThisValues);
             if (!$validateUserInputData['validated']) {
