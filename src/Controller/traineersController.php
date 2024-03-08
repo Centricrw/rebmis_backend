@@ -3,6 +3,7 @@ namespace Src\Controller;
 
 use setasign\Fpdi\Tcpdf\Fpdi;
 use Src\Models\CohortsModel;
+use Src\Models\DirectorSignatureModel;
 use Src\Models\ReportModel;
 use Src\Models\TraineersModel;
 use Src\Models\UserRoleModel;
@@ -16,6 +17,7 @@ class TraineersController
     private $traineersModel;
     private $request_method;
     private $userRoleModel;
+    private $directorSignatureModel;
     private $reportModel;
     private $cohortsModel;
     private $params;
@@ -30,6 +32,7 @@ class TraineersController
         $this->userRoleModel = new UserRoleModel($db);
         $this->cohortsModel = new CohortsModel($db);
         $this->reportModel = new ReportModel($db);
+        $this->directorSignatureModel = new DirectorSignatureModel($db);
         $this->homeDir = dirname(__DIR__, 2);
     }
 
@@ -125,7 +128,10 @@ class TraineersController
             if (sizeof($cohortsExists) == 0) {
                 return Errors::badRequestError("Cohort not found!, please try again?");
             }
+            // get director signature
+            $signatures = $this->directorSignatureModel->selectDirectorSignatureBYTraining($cohortsExists[0]['trainingId']);
 
+            // find logged in user current role
             $current_user_role = $this->userRoleModel->findCurrentUserRole($logged_user_id);
             if (sizeof($current_user_role) == 0) {
                 return Errors::badRequestError("No current role found!, please try again?");
@@ -141,19 +147,19 @@ class TraineersController
                     $result = $this->traineersModel->getGenratedReportTraineesBySchool($cohortId, $user_role_details['school_code']);
                     // calculate trainee's avarage
                     $results = $this->calculateCombinedAverage($result);
-                    return sizeof($result) > 0 ? $this->createPDFSample2($results) : Errors::badRequestError("Report not found!, please try again?");
+                    return sizeof($result) > 0 ? $this->createPDFSample2($results, $signatures) : Errors::badRequestError("Report not found!, please try again?");
                 case '1':
                     $result = $this->traineersModel->getGenratedReportTraineesByUser($user_role_details['user_id'], $cohortId);
                     // calculate trainee's avarage
                     $results = $this->calculateCombinedAverage($result);
-                    return sizeof($result) > 0 ? $this->createPDFSample2($results) : Errors::badRequestError("Report not found!, please try again?");
+                    return sizeof($result) > 0 ? $this->createPDFSample2($results, $signatures) : Errors::badRequestError("Report not found!, please try again?");
                 default:
                     $result = $this->traineersModel->getGenratedReportTrainees($cohortId);
                     // calculate trainee's avarage
                     $results = $this->calculateCombinedAverage($result);
                     $filterTrainees = array_filter($results, array($this, 'filterHighScorers'));
                     if (sizeof($filterTrainees) > 0) {
-                        return $this->createPDFSample2($filterTrainees);
+                        return $this->createPDFSample2($filterTrainees, $signatures);
                     } else {
                         return Errors::badRequestError("No trainees with high scores found!, please try again?");
                     }
@@ -316,8 +322,11 @@ class TraineersController
             // calculate trainee's avarage
             $results = $this->calculateCombinedAverage($result);
 
+            // get director signature
+            $signatures = $this->directorSignatureModel->selectDirectorSignatureBYTraining($cohortsExists[0]['trainingId']);
+
             if (sizeof($result) > 0) {
-                return $this->createPDFSample2($results);
+                return $this->createPDFSample2($results, $signatures);
             }
 
             return Errors::badRequestError("Report not found!, please try again?");
@@ -404,7 +413,7 @@ class TraineersController
         }
     }
 
-    public function createPDFSample2($trainees)
+    public function createPDFSample2($trainees, $signatures)
     {
         // create new PDF document
         $pdf = new Fpdi('L', 'mm', 'A4', true, 'UTF-8', false);
@@ -473,23 +482,41 @@ class TraineersController
 
             // Director names
             $pdf->SetFont('Times', 'B', 12);
-            $pdf->SetXY(20, 160);
+            $pdf->SetXY(20, 150);
             // Define data for the table
-            $data = array(
-                array('Dr. Nelson Mbarushimana', 'Dr. Aliou Tall', 'Dr. Vincent Mutembeya Mugisha'),
-                array('Director General', 'USAID/Rwanda', 'Chief of Party, USAID Tunoze Gusoma'),
-                array('Rwanda Basic Education Board', 'Education Office Director', 'Country Representative, FHI 360 in Rwanda'),
-            );
+
+            if (count($signatures) > 0) {
+                $data = array(
+                    array($signatures[0]['director_name'], $signatures[1]['director_name'], $signatures[2]['director_name']),
+                    array($signatures[0]['director_role'], $signatures[1]['director_role'], $signatures[2]['director_role']),
+                    array($signatures[0]['director_institution'], $signatures[1]['director_institution'], $signatures[2]['director_institution']),
+                    array($signatures[0]['director_signature_url'], $signatures[1]['director_signature_url'], $signatures[2]['director_signature_url']),
+                );
+            } else {
+                $data = array(
+                    array('Dr. Nelson Mbarushimana', 'Dr. Aliou Tall', 'Dr. Vincent Mutembeya Mugisha'),
+                    array('Director General', 'USAID/Rwanda', 'Chief of Party, USAID Tunoze Gusoma'),
+                    array('Rwanda Basic Education Board', 'Education Office Director', 'Country Representative, FHI 360 in Rwanda'),
+                );
+            }
 
             // Set width for each column
             $columnWidths = array(80, 60, 70);
 
             // Loop through the data and add rows and columns
-            $absolute_y = 170;
+            $absolute_y = 160;
             foreach ($data as $row) {
                 foreach ($row as $key => $value) {
                     // Add cell with content
-                    $pdf->Cell($columnWidths[$key], 5, $value, 0, 0, 'L');
+                    $imageUrl = $this->homeDir . $value;
+                    if (strpos($value, "public/uploads/") !== false) {
+                        $absolute_X = 20;
+                        if ($key == 1) {$absolute_X = 100;}
+                        if ($key == 2) {$absolute_X = 160;}
+                        $pdf->Image($this->homeDir . "/" . $value, $absolute_X, $absolute_y, 50, 15);
+                    } else {
+                        $pdf->Cell($columnWidths[$key], 5, $value, 0, 0, 'L');
+                    }
                 }
                 $pdf->SetFont('Times', '', 10);
                 $pdf->SetXY(20, $absolute_y);
