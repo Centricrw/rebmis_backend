@@ -22,6 +22,7 @@ class TraineersController
     private $cohortsModel;
     private $params;
     private $homeDir;
+    private $widthColumn;
 
     public function __construct($db, $request_method, $params)
     {
@@ -34,6 +35,7 @@ class TraineersController
         $this->reportModel = new ReportModel($db);
         $this->directorSignatureModel = new DirectorSignatureModel($db);
         $this->homeDir = dirname(__DIR__, 2);
+        $this->widthColumn = 70;
     }
 
     function processRequest()
@@ -504,7 +506,11 @@ class TraineersController
             }
 
             // Set width for each column
-            $columnWidths = array(70, 70, 70);
+            $this->widthColumn = 210 / $directorCount;
+            $widthColumnHandler = function ($values) {
+                return $this->widthColumn;
+            };
+            $columnWidths = array_map($widthColumnHandler, $signatures);
 
             // Loop through the data and add rows and columns
             $absolute_y = 165;
@@ -513,9 +519,7 @@ class TraineersController
                     // Add cell with content
                     $imageUrl = $this->homeDir . $value;
                     if (strpos($value, "public/uploads/") !== false) {
-                        $absolute_X = 20;
-                        if ($key == 1) {$absolute_X = 90;}
-                        if ($key == 2) {$absolute_X = 160;}
+                        $absolute_X = ($this->widthColumn * $key) + 20;
                         $pdf->Image($this->homeDir . "/" . $value, $absolute_X, $absolute_y, 50, 15);
                     } else {
                         $pdf->Cell($columnWidths[$key], 5, $value, 0, 0, 'L');
