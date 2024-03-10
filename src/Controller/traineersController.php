@@ -504,7 +504,7 @@ class TraineersController
             }
 
             // Set width for each column
-            $columnWidths = array(80, 60, 70);
+            $columnWidths = array(70, 70, 70);
 
             // Loop through the data and add rows and columns
             $absolute_y = 165;
@@ -514,7 +514,7 @@ class TraineersController
                     $imageUrl = $this->homeDir . $value;
                     if (strpos($value, "public/uploads/") !== false) {
                         $absolute_X = 20;
-                        if ($key == 1) {$absolute_X = 100;}
+                        if ($key == 1) {$absolute_X = 90;}
                         if ($key == 2) {$absolute_X = 160;}
                         $pdf->Image($this->homeDir . "/" . $value, $absolute_X, $absolute_y, 50, 15);
                     } else {
