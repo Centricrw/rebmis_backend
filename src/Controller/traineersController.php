@@ -517,7 +517,6 @@ class TraineersController
             foreach ($data as $row) {
                 foreach ($row as $key => $value) {
                     // Add cell with content
-                    $imageUrl = $this->homeDir . $value;
                     if (strpos($value, "public/uploads/") !== false) {
                         $absolute_X = ($this->widthColumn * $key) + 20;
                         $pdf->Image($this->homeDir . "/" . $value, $absolute_X, $absolute_y, 50, 15);
