@@ -37,10 +37,10 @@ class DirectorSignatureModel
 
     public function selectDirectorSignatureBYTraining($training_id)
     {
-        $statement = "SELECT * FROM `directorSignature` WHERE `training_id`=:training_id ORDER BY `position` ASC";
+        $statement = "SELECT * FROM `directorSignature` WHERE `training_id`=:training_id AND `status`=:status ORDER BY `position` ASC";
         try {
             $statement = $this->db->prepare($statement);
-            $statement->execute(array(":training_id" => $training_id));
+            $statement->execute(array(":training_id" => $training_id, ":status" => 1));
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             return $result;
         } catch (\PDOException $e) {
