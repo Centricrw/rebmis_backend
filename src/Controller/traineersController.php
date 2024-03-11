@@ -452,7 +452,7 @@ class TraineersController
 
             // adding header paragraph
             $pdf->SetFont('Times', '', 12);
-            $textHeader = "FHI 360, through the USAID Tunoze Gusoma project, implemented in Rwanda \njointly with Rwanda Basic Education Board, awards to:";
+            $textHeader = "FHI 360, through the USAID Tunoze Gusoma project, implemented in Rwanda jointly\n with Rwanda Basic Education Board, awards to:";
             $pdf->MultiCell(0, 13, $textHeader, 0, 'C', false, 1, 10, 60);
 
             // adding Recipient Name
@@ -468,7 +468,7 @@ class TraineersController
 
             // Message
             $pdf->SetFont('Times', 'I', 10);
-            $message = "for successfully completing a Blended Learning Continuous Professional \nDevelopment Course for Rwandan In- Service Primary Teachers titled:";
+            $message = "for successfully completing a Blended Learning Continuous Professional Development \nCourse for Rwandan In- Service Primary Teachers titled:";
             $pdf->MultiCell(0, 10, $message, 0, 'C', false, 1, 10, 120);
 
             // title
@@ -484,18 +484,18 @@ class TraineersController
 
             // Director names
             $pdf->SetFont('Times', 'B', 12);
-            $pdf->SetXY(20, 160);
+            $pdf->SetXY(20, 172);
             // Define data for the table
             // Get the number of directors
             $directorCount = count($signatures);
 
             $data = array();
             // Loop through each director's information key
-            $infoKeys = array('director_name', 'director_role', 'director_institution', 'director_signature_url');
+            $infoKeys = array('director_signature_url', 'director_name', 'director_role', 'director_institution');
             // Add director names to the first row
             $data[0] = array();
             for ($i = 0; $i < $directorCount; $i++) {
-                $data[0][] = $signatures[$i]['director_name'];
+                $data[0][] = $signatures[$i]['director_signature_url'];
             }
             // Add remaining information for each director in separate rows
             for ($j = 1; $j < count($infoKeys); $j++) {
@@ -513,20 +513,24 @@ class TraineersController
             $columnWidths = array_map($widthColumnHandler, $signatures);
 
             // Loop through the data and add rows and columns
-            $absolute_y = 165;
+            $absolute_y = 180;
+            $countRows = 0;
             foreach ($data as $row) {
                 foreach ($row as $key => $value) {
                     // Add cell with content
                     if (strpos($value, "public/uploads/") !== false) {
                         $absolute_X = ($this->widthColumn * $key) + 20;
-                        $pdf->Image($this->homeDir . "/" . $value, $absolute_X, $absolute_y, 50, 15);
+                        $pdf->Image($this->homeDir . "/" . $value, $absolute_X, 155, 50, 15);
                     } else {
                         $pdf->Cell($columnWidths[$key], 5, $value, 0, 0, 'L');
                     }
                 }
-                $pdf->SetFont('Times', '', 10);
-                $pdf->SetXY(20, $absolute_y);
-                $absolute_y += 5;
+                $countRows++;
+                if ($countRows > 1) {
+                    $pdf->SetFont('Times', '', 10);
+                    $pdf->SetXY(20, $absolute_y);
+                    $absolute_y += 5;
+                }
                 // Move to the next line
             }
 
