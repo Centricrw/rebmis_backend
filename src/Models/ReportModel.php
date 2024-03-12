@@ -351,13 +351,13 @@ class ReportModel
     private function updateIhangamwandiko($Ihangamwandiko_nav, $Ihangamwandiko_quiz, $Imbumbanyigisho_ya_3_quiz, $end_of_course_quiz, $staff_code)
     {
         $statement = "UPDATE general_report SET
-        courseNavigation = '".$Ihangamwandiko_nav."',
-        endOfChapter = '".$Ihangamwandiko_quiz."',
-        endOfModule = '".$Imbumbanyigisho_ya_3_quiz."',
-        endOfCourse = '".$end_of_course_quiz."'
+        courseNavigation = '" . $Ihangamwandiko_nav . "',
+        endOfChapter = '" . $Ihangamwandiko_quiz . "',
+        endOfModule = '" . $Imbumbanyigisho_ya_3_quiz . "',
+        endOfCourse = '" . $end_of_course_quiz . "'
          WHERE
          chapterId = 'd2914b04-e5ae-4bac-a3d6-12659d26aec4' AND
-         staff_code = '".$staff_code ."'";
+         staff_code = '" . $staff_code . "'";
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array());
@@ -431,6 +431,21 @@ class ReportModel
             $statement = $this->db->prepare($statement);
             $statement->execute(array(
                 ":status" => $status,
+            ));
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $result;
+        } catch (\Throwable $th) {
+            throw new Error($th->getMessage());
+        }
+    }
+
+    public function selectCountGeneralReportByTraining($trainingId)
+    {
+        try {
+            $statement = "SELECT userId, trainingId, COUNT(*) AS count FROM general_report WHERE `trainingId` = :trainingId GROUP BY userId;";
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
+                ":trainingId" => $trainingId,
             ));
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             return $result;
