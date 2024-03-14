@@ -358,13 +358,11 @@ class TraineersController
                 "Mukamana Eugenie",
                 "Mukubwire Emerance",
                 "Niyomukiza Valens",
-                "Mujawimana Marie Emma",
                 "Nizeyimana Deogratias",
                 "Mutuyeyezu Jacqueline",
                 "Mukamusafiri Venerande",
                 "Uwamahoro Assoumpta",
                 "Nibakure Chantal",
-                "Ufitinema Marie  Glatie",
                 "Uwamahoro Jeanette",
                 "Mujawamariya Annoncee",
                 "Musoni Thadee",
@@ -378,7 +376,6 @@ class TraineersController
                 "Beza Nakure Vestine",
                 "Mukaneza Donathile",
                 "Mukamusoni Elisabeth",
-                "Ntawe Marie Femaleth",
                 "Niyongabire Marie",
                 "Twizerimana Dada",
                 "Olive Uwimbabazi",
@@ -397,7 +394,11 @@ class TraineersController
                 "KANYANGE ALINE",
                 "Jacqueline Uwimana",
                 "Annonciata Mujawingoma",
-            ];
+                "Ufitinema Marie  Gratie",
+                "Mukamana Marie Gorette",
+                "Ntawe Marie Goreth",
+                "Mujawimana Emma Marie",
+                ];
             $trainees = array();
             $notFound = array();
             // checking if cohort exists
