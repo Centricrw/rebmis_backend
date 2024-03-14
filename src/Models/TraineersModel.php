@@ -121,6 +121,24 @@ class TraineersModel
         }
     }
 
+    public function getGenratedReportTraineesByName($name, $cohortId)
+    {
+        try {
+            $statement = "SELECT GR.*, TR.trainingName, CH.cohortStart, CH.cohortEnd FROM `general_report` GR
+            INNER JOIN trainings TR ON TR.trainingId = GR.trainingId
+            INNER JOIN cohorts CH ON CH.cohortId = GR.cohortId
+            WHERE GR.`traineeName` = :traineeName AND GR.`cohortId` = :cohortId AND GR.status = 'Active'";
+
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(":traineeName" => $name, ":cohortId" => $cohortId));
+
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $result;
+        } catch (\Throwable $th) {
+            throw new Error($th->getMessage());
+        }
+    }
+
     public function getGenratedReportTrainees($cohortId)
     {
         try {

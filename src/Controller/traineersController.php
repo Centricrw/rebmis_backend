@@ -46,6 +46,8 @@ class TraineersController
                     $response = $this->generateTraineesCertificate($this->params['user_id']);
                 } else if (sizeof($this->params) > 0 && $this->params['action'] == "traineecertificate") {
                     $response = $this->generateTraineesCertificateForOne($this->params['user_id'], $this->params['cohort_id']);
+                } else if (sizeof($this->params) > 0 && $this->params['action'] == "selected") {
+                    $response = $this->generateCertificateForSelectedTrainee($this->params['user_id'], $this->params['cohort_id']);
                 } else if (sizeof($this->params) > 0 && $this->params['action'] == "status") {
                     $response = $this->getTraineeByStatus($this->params['user_id']);
                 } else {
@@ -332,6 +334,106 @@ class TraineersController
             }
 
             return Errors::badRequestError("Report not found!, please try again?");
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
+        }
+    }
+
+    private function generateCertificateForSelectedTrainee($cohortId, $deisplay = false)
+    {
+        try {
+            $names = [
+                "Nyirahabihirwe Pacifique",
+                "Dusabeyezu Jean De Dieu",
+                "Beatha Uwamahoro",
+                "Nyirakabuga Scholastique",
+                "Niyitegeka Marceline",
+                "Mukagatsinzi Mediatrice",
+                "Kanyamibwa Alphonse",
+                "Mukeshimana Jacqueline",
+                "Ingabire Cecile",
+                "Niyibizi Alphonsine",
+                "Uwamahoro Delphine",
+                "Bazubagira Marie Chantal",
+                "Mukamana Eugenie",
+                "Mukubwire Emerance",
+                "Niyomukiza Valens",
+                "Mujawimana Marie Emma",
+                "Nizeyimana Deogratias",
+                "Mutuyeyezu Jacqueline",
+                "Mukamusafiri Venerande",
+                "Uwamahoro Assoumpta",
+                "Nibakure Chantal",
+                "Ufitinema Marie  Glatie",
+                "Uwamahoro Jeanette",
+                "Mujawamariya Annoncee",
+                "Musoni Thadee",
+                "Muhaweniyera Edelbourgue",
+                "Ayobangira Immaculee",
+                "Uwajeneza Francine",
+                "Uwizeyimana Marie Chantal",
+                "Mukamusoni Clarisse",
+                "Nyirabakiga Laurence",
+                "Uwineza Olive",
+                "Beza Nakure Vestine",
+                "Mukaneza Donathile",
+                "Mukamusoni Elisabeth",
+                "Ntawe Marie Femaleth",
+                "Niyongabire Marie",
+                "Twizerimana Dada",
+                "Olive Uwimbabazi",
+                "Leonilla Mukasebanani",
+                "Ishimwe Liliane",
+                "Mushimiyimana Georgine",
+                "Nyiransabimana Julienne",
+                "Nikuze Therese",
+                "Mukamana Providence",
+                "Akimana Alice",
+                "Mukansanga Consolee",
+                "Ahishakiye Berte",
+                "Nyiraneza Jaqueline",
+                "Mukamana Marie Goretti",
+                "Nabitanga Nankema",
+                "KANYANGE ALINE",
+                "Jacqueline Uwimana",
+                "Annonciata Mujawingoma",
+            ];
+            $trainees = array();
+            $notFound = array();
+            // checking if cohort exists
+            $cohortsExists = $this->cohortsModel->getOneCohort($cohortId);
+            if (sizeof($cohortsExists) == 0) {
+                return Errors::badRequestError("Cohort not found!, please try again?");
+            }
+
+            foreach ($names as $key => $value) {
+                $details = $this->traineersModel->getGenratedReportTraineesByName($value, $cohortId);
+                if (count($details) > 0) {
+                    foreach ($details as $index => $element) {
+                        array_push($trainees, $element);
+                    }
+                } else {
+                    array_push($notFound, $value);
+                }
+            }
+            // calculate trainee's avarage
+            $results = $this->calculateCombinedAverage($trainees);
+
+            if ($deisplay == "true") {
+                // get director signature
+                $signatures = $this->directorSignatureModel->selectDirectorSignatureBYTraining($cohortsExists[0]['trainingId']);
+
+                if (sizeof($details) > 0) {
+                    return $this->createPDFSample2($results, $signatures);
+                }
+                return Errors::badRequestError("Report not found!, please try again?");
+            } else {
+                $response['status_code_header'] = 'HTTP/1.1 200 OK';
+                $response['body'] = json_encode([
+                    "not_found" => $notFound,
+                ]);
+                return $response;
+            }
         } catch (\Throwable $th) {
             return Errors::databaseError($th->getMessage());
         }
