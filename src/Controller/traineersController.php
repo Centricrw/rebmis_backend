@@ -549,7 +549,7 @@ class TraineersController
             $host = $_SERVER['HTTP_HOST'];
             $pos = strpos($host, "localhost");
             $localhostUrl = "http://" . $host . "/trainee/certificate/verify/" . $staffCode . "/" . $cohortId;
-            $productionUrl = "https://trainings.universalbridge.rw/trainee/certificate/verify/" . $staffCode . "/" . $cohortId;
+            $productionUrl = "https://elearning.reb.rw/rebmis/trainee/certificate/verify/" . $staffCode . "/" . $cohortId;
             $url = $pos === false ? $productionUrl : $localhostUrl;
             $pdf->write2DBarcode($url, 'QRCODE,Q', 240, 160, 30, 30, $style, 'R');
 
