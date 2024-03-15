@@ -394,11 +394,11 @@ class TraineersController
                 "KANYANGE ALINE",
                 "Jacqueline Uwimana",
                 "Annonciata Mujawingoma",
-                "Ufitinema Marie  Gratie",
+                "Ufitinema Marie Gratie",
                 "Mukamana Marie Gorette",
                 "Ntawe Marie Goreth",
                 "Mujawimana Emma Marie",
-                ];
+            ];
             $trainees = array();
             $notFound = array();
             // checking if cohort exists
