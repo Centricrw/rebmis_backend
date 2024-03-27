@@ -1,7 +1,10 @@
 <?php
 namespace Src\Controller;
 
+use DateTime;
+use Src\Models\CohortconditionModel;
 use Src\Models\ReportModel;
+use Src\Models\TraineersModel;
 use Src\Models\UserRoleModel;
 use Src\System\AuthValidation;
 use Src\System\Errors;
@@ -11,8 +14,12 @@ class reportController
     private $db;
     private $reportModel;
     private $userRoleModel;
+    private $cohortconditionModel;
+    private $traineersModel;
     private $request_method;
     private $params;
+    private $number;
+    private $sign;
 
     public function __construct($db, $request_method, $params)
     {
@@ -21,6 +28,10 @@ class reportController
         $this->params = $params;
         $this->reportModel = new ReportModel($db);
         $this->userRoleModel = new UserRoleModel($db);
+        $this->cohortconditionModel = new CohortconditionModel($db);
+        $this->traineersModel = new TraineersModel($db);
+        $this->number = 0;
+        $this->sign = "<";
     }
 
     function processRequest()
@@ -38,6 +49,8 @@ class reportController
                     $response = $this->getGeneralReportPerTrainee($this->params['id'], $this->params['cohort_id']);
                 } elseif (sizeof($this->params) > 0 && $this->params['action'] == "status") {
                     $response = $this->getGeneralReportByStatus($this->params['id']);
+                } elseif (sizeof($this->params) > 0 && $this->params['action'] == "addmissingreport") {
+                    $response = $this->addMissingTrainingChapterHandler($this->params['id']);
                 } else {
                     $response = Errors::notFoundError('Report route not found');
                 }
@@ -51,6 +64,8 @@ class reportController
                     $response = $this->updateElearningMarks();
                 } elseif (sizeof($this->params) > 0 && $this->params['action'] == "updateelearningselfassesment") {
                     $response = $this->updateelearningselfassesment();
+                } elseif (sizeof($this->params) > 0 && $this->params['action'] == "count") {
+                    $response = $this->countTraineeOnReport();
                 } else {
                     $response = Errors::notFoundError('Report route not found');
                 }
@@ -188,6 +203,111 @@ class reportController
             // response
             $response['status_code_header'] = 'HTTP/1.1 200 OK';
             $response['body'] = json_encode($result);
+            return $response;
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
+        }
+    }
+
+    private function addMissingTrainingChapterHandler($trainingId)
+    {
+        $logged_user_id = AuthValidation::authorized()->id;
+        $currentYear = date("Y");
+        $userNotFound = array();
+        try {
+            $trainees = $this->traineersModel->selectTraineeBYStatus("Approved");
+            // get available chapters
+            $modules = $this->cohortconditionModel->getAllReportsAssignedToTraining($trainingId);
+            foreach ($trainees as $key => $data) {
+                foreach ($modules as $key => $module) {
+                    foreach ($module['details'] as $index => $chapter) {
+                        // checking if user has chapter
+                        $traineeHasChapter = $this->cohortconditionModel->traineeHasChapterHandler([
+                            "user_id" => $data['userId'],
+                            "cohortId" => $data['cohortId'],
+                        ], $chapter['cop_report_details_id']);
+                        if (count($traineeHasChapter) == 0) {
+                            // get trainee information
+                            $userDetails = $this->cohortconditionModel->getTraineeInfo($data['userId']);
+                            if (count($userDetails) > 0) {
+                                $userDetails = $userDetails[0];
+                                // get age from dob
+                                $age = null;
+                                if (isset($userDetails["dob"])) {
+                                    $dob = DateTime::createFromFormat("Y-m-d", $userDetails["dob"]);
+                                    $age = $currentYear - $dob->format("Y");
+                                }
+                                // get school location
+                                $schoolLocation = $this->cohortconditionModel->getTraineeSchoolLactionInfo($data['school_code']);
+                                // insert trainee to general report
+                                $traineeInfo = array(
+                                    "traineeId" => $data["traineesId"],
+                                    "userId" => $data["userId"],
+                                    "traineeName" => $data["traineeName"],
+                                    "traineePhone" => $data["traineePhone"],
+                                    "staff_code" => $userDetails["staff_code"],
+                                    "cohortId" => $data["cohortId"],
+                                    "moduleId" => $module['cop_report_id'],
+                                    "moduleName" => $module['cop_report_title'],
+                                    "chapterId" => $chapter["cop_report_details_id"],
+                                    "chapterName" => $chapter["cop_report_details_title"],
+                                    "age" => $age,
+                                    "gender" => $userDetails["sex"],
+                                    "disability" => $userDetails["disability"],
+                                    "district_code" => $schoolLocation["district_code"],
+                                    "district_name" => $schoolLocation["district_name"],
+                                    "sector_code" => $schoolLocation["sector_code"],
+                                    "sector_name" => $schoolLocation["sector_name"],
+                                    "school_code" => $schoolLocation["school_code"],
+                                    "school_name" => $schoolLocation["school_name"],
+                                    "trainingId" => $data["trainingId"],
+                                );
+                                $this->cohortconditionModel->insertTraineeToGeneralReport($traineeInfo);
+                            } else {
+                                array_push($userNotFound, $data);
+                            }
+
+                        }
+                    }
+                }
+            }
+            $response['status_code_header'] = 'HTTP/1.1 200 OK';
+            $response['body'] = json_encode([
+                "message" => "Report updated successfuly",
+                "count_user_not_found" => count($userNotFound),
+                "user_not_found" => $userNotFound,
+            ]);
+            return $response;
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
+        }
+    }
+
+    private function countTraineeOnReport()
+    {
+        $logged_user_id = AuthValidation::authorized()->id;
+        // getting input data
+        $data = (array) json_decode(file_get_contents('php://input'), true);
+
+        try {
+            $this->number = $data["number"];
+            $this->sign = $data["sign"];
+            $greaterThanHandler = function ($value) {
+                if ($this->sign == "<") {
+                    return $this->number < $value["count"];
+                } elseif ($this->sign == ">") {
+                    return $this->number > $value["count"];
+                } else {
+                    return $this->number == $value["count"];
+                }
+            };
+            $trainees = $this->reportModel->selectCountGeneralReportByTraining($data["training_id"]);
+            $trainees = array_filter($trainees, $greaterThanHandler);
+            $response['status_code_header'] = 'HTTP/1.1 200 OK';
+            $response['body'] = json_encode([
+                "Count" => count($trainees),
+                "trainees" => $trainees,
+            ]);
             return $response;
         } catch (\Throwable $th) {
             return Errors::databaseError($th->getMessage());

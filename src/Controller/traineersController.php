@@ -3,6 +3,7 @@ namespace Src\Controller;
 
 use setasign\Fpdi\Tcpdf\Fpdi;
 use Src\Models\CohortsModel;
+use Src\Models\DirectorSignatureModel;
 use Src\Models\ReportModel;
 use Src\Models\TraineersModel;
 use Src\Models\UserRoleModel;
@@ -16,10 +17,12 @@ class TraineersController
     private $traineersModel;
     private $request_method;
     private $userRoleModel;
+    private $directorSignatureModel;
     private $reportModel;
     private $cohortsModel;
     private $params;
     private $homeDir;
+    private $widthColumn;
 
     public function __construct($db, $request_method, $params)
     {
@@ -30,7 +33,9 @@ class TraineersController
         $this->userRoleModel = new UserRoleModel($db);
         $this->cohortsModel = new CohortsModel($db);
         $this->reportModel = new ReportModel($db);
+        $this->directorSignatureModel = new DirectorSignatureModel($db);
         $this->homeDir = dirname(__DIR__, 2);
+        $this->widthColumn = 70;
     }
 
     function processRequest()
@@ -41,6 +46,8 @@ class TraineersController
                     $response = $this->generateTraineesCertificate($this->params['user_id']);
                 } else if (sizeof($this->params) > 0 && $this->params['action'] == "traineecertificate") {
                     $response = $this->generateTraineesCertificateForOne($this->params['user_id'], $this->params['cohort_id']);
+                } else if (sizeof($this->params) > 0 && $this->params['action'] == "selected") {
+                    $response = $this->generateCertificateForSelectedTrainee($this->params['user_id'], $this->params['cohort_id']);
                 } else if (sizeof($this->params) > 0 && $this->params['action'] == "status") {
                     $response = $this->getTraineeByStatus($this->params['user_id']);
                 } else {
@@ -125,7 +132,10 @@ class TraineersController
             if (sizeof($cohortsExists) == 0) {
                 return Errors::badRequestError("Cohort not found!, please try again?");
             }
+            // get director signature
+            $signatures = $this->directorSignatureModel->selectDirectorSignatureBYTraining($cohortsExists[0]['trainingId']);
 
+            // find logged in user current role
             $current_user_role = $this->userRoleModel->findCurrentUserRole($logged_user_id);
             if (sizeof($current_user_role) == 0) {
                 return Errors::badRequestError("No current role found!, please try again?");
@@ -141,19 +151,19 @@ class TraineersController
                     $result = $this->traineersModel->getGenratedReportTraineesBySchool($cohortId, $user_role_details['school_code']);
                     // calculate trainee's avarage
                     $results = $this->calculateCombinedAverage($result);
-                    return sizeof($result) > 0 ? $this->createPDFSample2($results) : Errors::badRequestError("Report not found!, please try again?");
+                    return sizeof($result) > 0 ? $this->createPDFSample2($results, $signatures) : Errors::badRequestError("Report not found!, please try again?");
                 case '1':
                     $result = $this->traineersModel->getGenratedReportTraineesByUser($user_role_details['user_id'], $cohortId);
                     // calculate trainee's avarage
                     $results = $this->calculateCombinedAverage($result);
-                    return sizeof($result) > 0 ? $this->createPDFSample2($results) : Errors::badRequestError("Report not found!, please try again?");
+                    return sizeof($result) > 0 ? $this->createPDFSample2($results, $signatures) : Errors::badRequestError("Report not found!, please try again?");
                 default:
                     $result = $this->traineersModel->getGenratedReportTrainees($cohortId);
                     // calculate trainee's avarage
                     $results = $this->calculateCombinedAverage($result);
                     $filterTrainees = array_filter($results, array($this, 'filterHighScorers'));
                     if (sizeof($filterTrainees) > 0) {
-                        return $this->createPDFSample2($filterTrainees);
+                        return $this->createPDFSample2($filterTrainees, $signatures);
                     } else {
                         return Errors::badRequestError("No trainees with high scores found!, please try again?");
                     }
@@ -316,11 +326,115 @@ class TraineersController
             // calculate trainee's avarage
             $results = $this->calculateCombinedAverage($result);
 
+            // get director signature
+            $signatures = $this->directorSignatureModel->selectDirectorSignatureBYTraining($cohortsExists[0]['trainingId']);
+
             if (sizeof($result) > 0) {
-                return $this->createPDFSample2($results);
+                return $this->createPDFSample2($results, $signatures);
             }
 
             return Errors::badRequestError("Report not found!, please try again?");
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
+        }
+    }
+
+    private function generateCertificateForSelectedTrainee($cohortId, $deisplay = false)
+    {
+        try {
+            $names = [
+                "Nyirahabihirwe Pacifique",
+                "Dusabeyezu Jean De Dieu",
+                "Beatha Uwamahoro",
+                "Nyirakabuga Scholastique",
+                "Niyitegeka Marceline",
+                "Mukagatsinzi Mediatrice",
+                "Kanyamibwa Alphonse",
+                "Mukeshimana Jacqueline",
+                "Ingabire Cecile",
+                "Niyibizi Alphonsine",
+                "Uwamahoro Delphine",
+                "Bazubagira Marie Chantal",
+                "Mukamana Eugenie",
+                "Mukubwire Emerance",
+                "Niyomukiza Valens",
+                "Nizeyimana Deogratias",
+                "Mutuyeyezu Jacqueline",
+                "Mukamusafiri Venerande",
+                "Uwamahoro Assoumpta",
+                "Nibakure Chantal",
+                "Uwamahoro Jeanette",
+                "Mujawamariya Annoncee",
+                "Musoni Thadee",
+                "Muhaweniyera Edelbourgue",
+                "Ayobangira Immaculee",
+                "Uwajeneza Francine",
+                "Uwizeyimana Marie Chantal",
+                "Mukamusoni Clarisse",
+                "Nyirabakiga Laurence",
+                "Uwineza Olive",
+                "Beza Nakure Vestine",
+                "Mukaneza Donathile",
+                "Mukamusoni Elisabeth",
+                "Niyongabire Marie",
+                "Twizerimana Dada",
+                "Olive Uwimbabazi",
+                "Leonilla Mukasebanani",
+                "Ishimwe Liliane",
+                "Mushimiyimana Georgine",
+                "Nyiransabimana Julienne",
+                "Nikuze Therese",
+                "Mukamana Providence",
+                "Akimana Alice",
+                "Mukansanga Consolee",
+                "Ahishakiye Berte",
+                "Nyiraneza Jaqueline",
+                "Mukamana Marie Goretti",
+                "Nabitanga Nankema",
+                "KANYANGE ALINE",
+                "Jacqueline Uwimana",
+                "Annonciata Mujawingoma",
+                "Ufitinema Marie Gratie",
+                "Mukamana Marie Gorette",
+                "Ntawe Marie Goreth",
+                "Mujawimana Emma Marie",
+            ];
+            $trainees = array();
+            $notFound = array();
+            // checking if cohort exists
+            $cohortsExists = $this->cohortsModel->getOneCohort($cohortId);
+            if (sizeof($cohortsExists) == 0) {
+                return Errors::badRequestError("Cohort not found!, please try again?");
+            }
+
+            foreach ($names as $key => $value) {
+                $details = $this->traineersModel->getGenratedReportTraineesByName($value, $cohortId);
+                if (count($details) > 0) {
+                    foreach ($details as $index => $element) {
+                        array_push($trainees, $element);
+                    }
+                } else {
+                    array_push($notFound, $value);
+                }
+            }
+            // calculate trainee's avarage
+            $results = $this->calculateCombinedAverage($trainees);
+
+            if ($deisplay == "true") {
+                // get director signature
+                $signatures = $this->directorSignatureModel->selectDirectorSignatureBYTraining($cohortsExists[0]['trainingId']);
+
+                if (sizeof($details) > 0) {
+                    return $this->createPDFSample2($results, $signatures);
+                }
+                return Errors::badRequestError("Report not found!, please try again?");
+            } else {
+                $response['status_code_header'] = 'HTTP/1.1 200 OK';
+                $response['body'] = json_encode([
+                    "not_found" => $notFound,
+                ]);
+                return $response;
+            }
         } catch (\Throwable $th) {
             return Errors::databaseError($th->getMessage());
         }
@@ -404,7 +518,7 @@ class TraineersController
         }
     }
 
-    public function createPDFSample2($trainees)
+    public function createPDFSample2($trainees, $signatures)
     {
         // create new PDF document
         $pdf = new Fpdi('L', 'mm', 'A4', true, 'UTF-8', false);
@@ -441,7 +555,7 @@ class TraineersController
 
             // adding header paragraph
             $pdf->SetFont('Times', '', 12);
-            $textHeader = "FHI 360, through the USAID Tunoze Gusoma project, implemented in Rwanda \njointly with Rwanda Basic Education Board, awards to:";
+            $textHeader = "FHI 360, through the USAID Tunoze Gusoma project, implemented in Rwanda jointly\n with Rwanda Basic Education Board, awards to:";
             $pdf->MultiCell(0, 13, $textHeader, 0, 'C', false, 1, 10, 60);
 
             // adding Recipient Name
@@ -457,7 +571,7 @@ class TraineersController
 
             // Message
             $pdf->SetFont('Times', 'I', 10);
-            $message = "for successfully completing a Blended Learning Continuous Professional \nDevelopment Course for Rwandan In- Service Primary Teachers titled:";
+            $message = "for successfully completing a Blended Learning Continuous Professional Development \nCourse for Rwandan In- Service Primary Teachers titled:";
             $pdf->MultiCell(0, 10, $message, 0, 'C', false, 1, 10, 120);
 
             // title
@@ -473,27 +587,53 @@ class TraineersController
 
             // Director names
             $pdf->SetFont('Times', 'B', 12);
-            $pdf->SetXY(20, 160);
+            $pdf->SetXY(20, 172);
             // Define data for the table
-            $data = array(
-                array('Dr. Nelson Mbarushimana', 'Dr. Aliou Tall', 'Dr. Vincent Mutembeya Mugisha'),
-                array('Director General', 'USAID/Rwanda', 'Chief of Party, USAID Tunoze Gusoma'),
-                array('Rwanda Basic Education Board', 'Education Office Director', 'Country Representative, FHI 360 in Rwanda'),
-            );
+            // Get the number of directors
+            $directorCount = count($signatures);
+
+            $data = array();
+            // Loop through each director's information key
+            $infoKeys = array('director_signature_url', 'director_name', 'director_role', 'director_institution');
+            // Add director names to the first row
+            $data[0] = array();
+            for ($i = 0; $i < $directorCount; $i++) {
+                $data[0][] = $signatures[$i]['director_signature_url'];
+            }
+            // Add remaining information for each director in separate rows
+            for ($j = 1; $j < count($infoKeys); $j++) {
+                $data[$j] = array();
+                for ($i = 0; $i < $directorCount; $i++) {
+                    $data[$j][] = $signatures[$i][$infoKeys[$j]];
+                }
+            }
 
             // Set width for each column
-            $columnWidths = array(80, 60, 70);
+            $this->widthColumn = 210 / $directorCount;
+            $widthColumnHandler = function ($values) {
+                return $this->widthColumn;
+            };
+            $columnWidths = array_map($widthColumnHandler, $signatures);
 
             // Loop through the data and add rows and columns
-            $absolute_y = 170;
+            $absolute_y = 180;
+            $countRows = 0;
             foreach ($data as $row) {
                 foreach ($row as $key => $value) {
                     // Add cell with content
-                    $pdf->Cell($columnWidths[$key], 5, $value, 0, 0, 'L');
+                    if (strpos($value, "public/uploads/") !== false) {
+                        $absolute_X = ($this->widthColumn * $key) + 20;
+                        $pdf->Image($this->homeDir . "/" . $value, $absolute_X, 155, 50, 15);
+                    } else {
+                        $pdf->Cell($columnWidths[$key], 5, $value, 0, 0, 'L');
+                    }
                 }
-                $pdf->SetFont('Times', '', 10);
-                $pdf->SetXY(20, $absolute_y);
-                $absolute_y += 5;
+                $countRows++;
+                if ($countRows > 1) {
+                    $pdf->SetFont('Times', '', 10);
+                    $pdf->SetXY(20, $absolute_y);
+                    $absolute_y += 5;
+                }
                 // Move to the next line
             }
 
