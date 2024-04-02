@@ -468,4 +468,45 @@ class ReportModel
             throw new Error($th->getMessage());
         }
     }
+
+    public function selectGeneralReportById($generalReportID)
+    {
+        try {
+            $statement = "SELECT * FROM `general_report` WHERE `generalReportId` = :generalReportId LIMIT 1";
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
+                ":generalReportId" => $generalReportID,
+            ));
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $result;
+        } catch (\Throwable $th) {
+            throw new Error($th->getMessage());
+        }
+    }
+
+    public function updateTeacherChapterMarks($data, $generalReportID)
+    {
+        try {
+            $statement = "UPDATE `general_report` SET `courseNavigation` = :courseNavigation, `endOfChapter` = :endOfChapter, `selfAssesment` = :selfAssesment, `endOfModule` = :endOfModule, `endOfCourse` = :endOfCourse, `copMarks` = :copMarks, `reflectionNotes` = :reflectionNotes, `classroomApplication` = :classroomApplication, `selfStudy` = :selfStudy, `coaching` = :coaching WHERE generalReportId = :generalReportId";
+
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
+                ":courseNavigation" => $data['courseNavigation'],
+                ":endOfChapter" => $data['endOfChapter'],
+                ":selfAssesment" => $data['selfAssesment'],
+                ":endOfModule" => $data['endOfModule'],
+                ":endOfCourse" => $data['endOfCourse'],
+                ":copMarks" => $data['copMarks'],
+                ":reflectionNotes" => $data['reflectionNotes'],
+                ":classroomApplication" => $data['classroomApplication'],
+                ":selfStudy" => $data['selfStudy'],
+                ":coaching" => $data['coaching'],
+                ":generalReportId" => $generalReportID,
+
+            ));
+            return $statement->rowCount();
+        } catch (\Throwable $e) {
+            throw new Error($e->getMessage());
+        }
+    }
 }

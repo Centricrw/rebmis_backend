@@ -8,6 +8,7 @@ use Src\Models\TraineersModel;
 use Src\Models\UserRoleModel;
 use Src\System\AuthValidation;
 use Src\System\Errors;
+use Src\Validations\BasicValidation;
 
 class reportController
 {
@@ -68,6 +69,13 @@ class reportController
                     $response = $this->countTraineeOnReport();
                 } else {
                     $response = Errors::notFoundError('Report route not found');
+                }
+                break;
+            case 'PATCH':
+                if (sizeof($this->params) > 0 && $this->params['action'] == "updatechaptermarks") {
+                    $response = $this->updateTeacherChapterMarks($this->params['id']);
+                } else {
+                    $response = Errors::notFoundError("Report route not found!");
                 }
                 break;
             default:
@@ -281,6 +289,56 @@ class reportController
         } catch (\Throwable $th) {
             return Errors::databaseError($th->getMessage());
         }
+    }
+
+    private function updateTeacherChapterMarks($generalReportID)
+    {
+        // getting input data
+        $data = (array) json_decode(file_get_contents('php://input'), true);
+
+        // authantication
+        $logged_user_id = AuthValidation::authorized()->id;
+
+        // validate input
+        $validateUserInputData = BasicValidation::validateTeacherChapterMarks($data, ["courseNavigation", "endOfChapter", "selfAssesment", "endOfModule", "endOfCourse", "copMarks", "reflectionNotes", "classroomApplication", "selfStudy", "coaching"]);
+        if (!$validateUserInputData['validated']) {
+            return Errors::unprocessableEntityResponse($validateUserInputData['message']);
+        }
+
+        try {
+            // checking if general report id exists
+            $generalIdExists = $this->reportModel->selectGeneralReportById($generalReportID);
+            if (count($generalIdExists) == 0) {
+                return Errors::badRequestError("General report not found!, please try again?");
+            }
+
+            // checking if is the correct user
+            if (!isset($data['staff_code']) || $generalIdExists[0]['staff_code'] != $data['staff_code']) {
+                return Errors::badRequestError("staff_code does not match with the existing one!, please try again?");
+            }
+            if (!isset($data['cohortId']) || $generalIdExists[0]['cohortId'] != $data['cohortId']) {
+                return Errors::badRequestError("cohortId does not match with the existing one!, please try again?");
+            }
+            if (!isset($data['moduleId']) || $generalIdExists[0]['moduleId'] != $data['moduleId']) {
+                return Errors::badRequestError("moduleId does not match with the existing one!, please try again?");
+            }
+            if (!isset($data['chapterId']) || $generalIdExists[0]['chapterId'] != $data['chapterId']) {
+                return Errors::badRequestError("chapterId does not match with the existing one!, please try again?");
+            }
+
+            // update into table
+            $update = $this->reportModel->updateTeacherChapterMarks($data, $generalReportID);
+
+            $response['status_code_header'] = 'HTTP/1.1 200 OK';
+            $response['body'] = json_encode([
+                "message" => "Report updated successfuly",
+            ]);
+            return $response;
+
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
+        }
+
     }
 
     private function countTraineeOnReport()
