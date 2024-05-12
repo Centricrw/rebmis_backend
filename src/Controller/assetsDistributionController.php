@@ -499,7 +499,7 @@ class AssetsDistributionController
             $schoolAssetsCount = count($assetsOnSchool);
             // setting engraving code
             // REB-SchoolCode-assetType-001
-            $engravingCode = "REB-" . $data['school_code'] . "-" . substr($subCategoryExists[0]['name'], -2) . "-" . $this->formatNumber($schoolAssetsCount);
+            $engravingCode = "REB-" . $data['school_code'] . "-" . strtoupper(substr($subCategoryExists[0]['name'], -2)) . "-" . $this->formatNumber($schoolAssetsCount);
 
             $i = 0;
             while ($i < 1) {
