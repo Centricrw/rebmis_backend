@@ -45,6 +45,8 @@ class AssetCategoriesController
             case "POST":
                 if (isset($this->params['id']) && $this->params['id'] == "schoolassets") {
                     $response = $this->getSchoolAssetsSummary();
+                } else if (isset($this->params['id']) && $this->params['id'] == "get_unassigned_assets") {
+                    $response = $this->getNotAssignedAssetsFromStock();
                 } else {
                     $response = $this->createNewAssets();
                 }
@@ -272,6 +274,38 @@ class AssetCategoriesController
             $resultsDetails = array_map($schoolSummary, $data['schools']);
             $response['status_code_header'] = 'HTTP/1.1 201 Created';
             $response['body'] = json_encode($resultsDetails);
+            return $response;
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
+        }
+    }
+
+    /**
+     * get available pc from
+     * @param OBJECT $data
+     * @return OBJECT $results
+     */
+
+    public function getNotAssignedAssetsFromStock()
+    {
+        // getting input data
+        $data = (array) json_decode(file_get_contents('php://input'), true);
+        // assets_sub_categories_id
+        // brand_id
+        // geting authorized user id
+        $logged_user_id = AuthValidation::authorized()->id;
+        try {
+            $results = $this->assetsModel->selectNotAssignedStockAssets($data['assets_sub_categories_id'], $data['brand_id']);
+
+            foreach ($results as &$item) {
+                // Check if 'specification' is a JSON string
+                if (isset($item['specification']) && is_string($item['specification'])) {
+                    // Decode the JSON string and assign it back to the 'specification' key
+                    $item['specification'] = json_decode($item['specification'], true);
+                }
+            }
+            $response['status_code_header'] = 'HTTP/1.1 201 Created';
+            $response['body'] = json_encode($results);
             return $response;
         } catch (\Throwable $th) {
             return Errors::databaseError($th->getMessage());

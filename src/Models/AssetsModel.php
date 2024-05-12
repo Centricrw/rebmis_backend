@@ -427,4 +427,27 @@ class AssetsModel
             throw new Error($e->getMessage());
         }
     }
+
+    /**
+     * get ONE assets category
+     * @param NUMBER $assets_categories_id
+     * @return OBJECT $results
+     */
+    public function selectNotAssignedStockAssets($assets_sub_categories_id, $brand_id)
+    {
+        $statement = "SELECT ASSET.*, LEVELS.school_level_name, AC.assets_categories_name, ASUB.name FROM `assets` ASSET
+        INNER JOIN `assets_categories` AC ON AC.assets_categories_id = ASSET.assets_categories_id
+        INNER JOIN `Brands` BA ON BA.id = ASSET.brand_id
+        LEFT JOIN `assets_sub_categories` ASUB ON ASUB.id = ASSET.assets_sub_categories_id
+        LEFT JOIN `school_levels` LEVELS ON ASSET.level_code = LEVELS.school_level_id
+        WHERE ASSET.assets_sub_categories_id = ? AND ASSET.brand_id = ? AND ASSET.asset_state != ?";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array($assets_sub_categories_id, $brand_id, 'assigned'));
+            $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $results;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
 }

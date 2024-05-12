@@ -61,6 +61,8 @@ class AssetsDistributionController
                     $response = $this->generateEngravingCode();
                 } else if (isset($this->params['id']) && $this->params['id'] == "school_assign_asset") {
                     $response = $this->assignEngravingCodeToAssetsAndSchool();
+                } else if (isset($this->params['id']) && $this->params['id'] == "remaining_assets") {
+                    $response = $this->countRemainAssetsInBatchDetails();
                 } else {
                     $response = $this->createNewDistributionBatch();
                 }
@@ -376,9 +378,9 @@ class AssetsDistributionController
             $data['id'] = $generatedBatchDetailsID;
             $data['batch_id'] = $batchId;
             $insertBatchDetails = $this->assetsDistributionModel->insertNewBatchDetails($data);
-            if ($insertBatchDetails) {
-                $this->assetsModel->bookAssetStateByCategory($data, $logged_user_id);
-            }
+            // if ($insertBatchDetails) {
+            //     $this->assetsModel->bookAssetStateByCategory($data, $logged_user_id);
+            // }
 
             $response['status_code_header'] = 'HTTP/1.1 201 Created';
             $response['body'] = json_encode($data);
@@ -568,6 +570,46 @@ class AssetsDistributionController
             $response['body'] = json_encode([
                 "message" => "Assets assigned successfully!",
             ]);
+            return $response;
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
+        }
+    }
+
+    /**
+     * count remaining assets in batch details
+     * @param NUMBER $category_id
+     * @return OBJECT $results
+     */
+    public function countRemainAssetsInBatchDetails()
+    {
+        // getting input data
+        $data = (array) json_decode(file_get_contents('php://input'), true);
+
+        // assets_categories_id
+        // assets_sub_categories_id
+        // brand_id
+
+        // geting authorized user id
+        $logged_user_id = AuthValidation::authorized()->id;
+        try {
+            $results = [];
+            $batchDetails = $this->assetsDistributionModel->selectBatchDefinitionCategoryAndSubCategoryBrands($data);
+            if (count($batchDetails) > 0) {
+                foreach ($batchDetails as &$item) {
+                    $countAssetsDistributed = $this->assetsDistributionModel->selectCountAssignedAssets($data);
+                    array_push($results, [
+                        'batch_details_id' => $item['id'],
+                        'batch_id' => $item['batch_id'],
+                        'assets_number_limit' => $item['assets_number_limit'],
+                        'assigned_assets' => $countAssetsDistributed[0]['total'],
+                        'remaining_assets' => count($countAssetsDistributed) > 0 ? $item['assets_number_limit'] - $countAssetsDistributed[0]['total'] : 0,
+                    ]);
+                }
+            }
+
+            $response['status_code_header'] = 'HTTP/1.1 200 OK';
+            $response['body'] = json_encode($results);
             return $response;
         } catch (\Throwable $th) {
             return Errors::databaseError($th->getMessage());
