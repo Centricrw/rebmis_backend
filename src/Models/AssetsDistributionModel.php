@@ -438,4 +438,25 @@ class AssetsDistributionModel
             throw new Error($e->getMessage());
         }
     }
+
+    /**
+     * select batch details by batch_id and category_id
+     * @param STRING $batch_id
+     * @param STRING $category_id
+     * @return OBJECT $results
+     */
+    public function selectBatchDetailsByBatchID($batch_id)
+    {
+        $statement = "SELECT * FROM `batch_details` WHERE `batch_id` = :batch_id";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
+                ':batch_id' => $batch_id,
+            ));
+            $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $results;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
 }

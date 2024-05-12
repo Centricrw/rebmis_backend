@@ -387,7 +387,7 @@ class AssetsModel
      */
     public function assignAssetsToSchool($data, $logged_user_id)
     {
-        $statement = "UPDATE `assets` SET `assets_tag`=:assets_tag, `level_code`=:level_code, `school_code`=:school_code, `asset_state`=:asset_state,`updated_by`=:updated_by WHERE `assets_id`=:assets_id";
+        $statement = "UPDATE `assets` SET `assets_tag`=:assets_tag, `level_code`=:level_code, `school_code`=:school_code, `asset_state`=:asset_state, `batch_details_id`=:batch_details_id,`updated_by`=:updated_by WHERE `assets_id`=:assets_id";
         try {
             // Remove whiteSpaces from both sides of a string
             $assets_name = trim($data['name']);
@@ -396,6 +396,7 @@ class AssetsModel
                 ':assets_tag' => $data['assets_tag'],
                 ':level_code' => $data['level_code'],
                 ':school_code' => $data['school_code'],
+                ':batch_details_id' => $data['batch_details_id'],
                 ':updated_by' => $logged_user_id,
                 ":asset_state" => "assigned",
                 ':assets_id' => $data['assets_id'],

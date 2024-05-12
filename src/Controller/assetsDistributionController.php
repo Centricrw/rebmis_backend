@@ -547,10 +547,17 @@ class AssetsDistributionController
         // assets_tag
         // level_code
         // school_code
+        // batch_details_id
 
         // geting authorized user id
         $logged_user_id = AuthValidation::authorized()->id;
         try {
+            // checking batch details exists
+            $batchDetailsExists = $this->assetsDistributionModel->selectBatchDefinitionBYId($data['batch_details_id']);
+            if (sizeof($batchDetailsExists) == 0) {
+                return Errors::notFoundError("Batch Definition Id not found!, please try again?");
+            }
+
             // checking if assets exists
             $assetExists = $this->assetsModel->selectAssetById($data['assets_id']);
             if (sizeof($assetExists) == 0) {
@@ -589,28 +596,22 @@ class AssetsDistributionController
      */
     public function countRemainAssetsInBatchDetails()
     {
-        // getting input data
-        $data = (array) json_decode(file_get_contents('php://input'), true);
-
-        // assets_categories_id
-        // assets_sub_categories_id
-        // brand_id
-
         // geting authorized user id
         $logged_user_id = AuthValidation::authorized()->id;
         try {
             $results = [];
-            $batchDetails = $this->assetsDistributionModel->selectBatchDefinitionCategoryAndSubCategoryBrands($data);
-            if (count($batchDetails) > 0) {
-                foreach ($batchDetails as &$item) {
-                    $countAssetsDistributed = $this->assetsDistributionModel->selectCountAssignedAssets($data);
-                    array_push($results, [
-                        'batch_details_id' => $item['id'],
-                        'batch_id' => $item['batch_id'],
-                        'assets_number_limit' => $item['assets_number_limit'],
-                        'assigned_assets' => $countAssetsDistributed[0]['total'],
-                        'remaining_assets' => count($countAssetsDistributed) > 0 ? $item['assets_number_limit'] - $countAssetsDistributed[0]['total'] : 0,
-                    ]);
+            $batches = $this->assetsDistributionModel->selectAllDistributionBatch();
+            if (count($batches) > 0) {
+                foreach ($batches as &$item) {
+                    $batchDetails = $this->assetsDistributionModel->selectBatchDetailsByBatchID($item['batch_id']);
+
+                    // array_push($results, [
+                    //     'batch_details_id' => $item['id'],
+                    //     'batch_id' => $item['batch_id'],
+                    //     'assets_number_limit' => $item['assets_number_limit'],
+                    //     'assigned_assets' => $countAssetsDistributed[0]['total'],
+                    //     'remaining_assets' => count($countAssetsDistributed) > 0 ? $item['assets_number_limit'] - $countAssetsDistributed[0]['total'] : 0,
+                    // ]);
                 }
             }
 
