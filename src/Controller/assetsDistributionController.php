@@ -440,6 +440,14 @@ class AssetsDistributionController
 
             $results = $this->assetsModel->selectAssetsSchoolCategoryById($data['category_id'], $data['school_code']);
 
+            foreach ($results as &$item) {
+                // Check if 'specification' is a JSON string
+                if (isset($item['specification']) && is_string($item['specification'])) {
+                    // Decode the JSON string and assign it back to the 'specification' key
+                    $item['specification'] = json_decode($item['specification'], true);
+                }
+            }
+
             $response['status_code_header'] = 'HTTP/1.1 200 OK';
             $response['body'] = json_encode($results);
             return $response;
@@ -499,12 +507,14 @@ class AssetsDistributionController
             $schoolAssetsCount = count($assetsOnSchool);
             // setting engraving code
             // REB-SchoolCode-assetType-001
-            $engravingCode = "REB-" . $data['school_code'] . "-" . strtoupper(substr($subCategoryExists[0]['name'], -2)) . "-" . $this->formatNumber($schoolAssetsCount);
+            $getTwoLetters = substr($subCategoryExists[0]['name'], 0, 2);
+            $engravingCode = "REB-" . $data['school_code'] . "-" . strtoupper($getTwoLetters) . "-" . $this->formatNumber($schoolAssetsCount);
 
             $i = 0;
             while ($i < 1) {
                 $schoolAssetsCount++;
-                $engravingCode = "REB-" . $data['school_code'] . "-" . substr($subCategoryExists[0]['name'], -2) . "-" . $this->formatNumber($schoolAssetsCount);
+                $getTwoLetters = substr($subCategoryExists[0]['name'], 0, 2);
+                $engravingCode = "REB-" . $data['school_code'] . "-" . strtoupper($getTwoLetters) . "-" . $this->formatNumber($schoolAssetsCount);
                 $engravingCodeExists = $this->assetsModel->selectAssetsByEngravingCodeLimit($engravingCode);
                 if (count($engravingCodeExists) === 0) {
                     $i++;

@@ -387,7 +387,7 @@ class AssetsModel
      */
     public function assignAssetsToSchool($data, $logged_user_id)
     {
-        $statement = "UPDATE `assets` SET `assets_tag`=:assets_tag, `level_code`=:level_code, `school_code`=:school_code,`updated_by`=:updated_by WHERE `assets_id`=:assets_id";
+        $statement = "UPDATE `assets` SET `assets_tag`=:assets_tag, `level_code`=:level_code, `school_code`=:school_code, `asset_state`=:asset_state,`updated_by`=:updated_by WHERE `assets_id`=:assets_id";
         try {
             // Remove whiteSpaces from both sides of a string
             $assets_name = trim($data['name']);
@@ -397,6 +397,7 @@ class AssetsModel
                 ':level_code' => $data['level_code'],
                 ':school_code' => $data['school_code'],
                 ':updated_by' => $logged_user_id,
+                ":asset_state" => "assigned",
                 ':assets_id' => $data['assets_id'],
             ));
             return $statement->rowCount();
@@ -412,7 +413,9 @@ class AssetsModel
      */
     public function selectAssetsSchoolCategoryById($assets_categories_id, $school_code)
     {
-        $statement = "SELECT ASSET.*, LEVELS.school_level_name FROM `assets` ASSET
+        $statement = "SELECT ASSET.*, LEVELS.school_level_name, AC.assets_categories_name, ASUB.name FROM `assets` ASSET
+        INNER JOIN `assets_categories` AC ON AC.assets_categories_id = ASSET.assets_categories_id
+        LEFT JOIN `assets_sub_categories` ASUB ON ASUB.id = ASSET.assets_sub_categories_id
         LEFT JOIN `school_levels` LEVELS ON ASSET.level_code = LEVELS.school_level_id
         WHERE ASSET.assets_categories_id = ? AND ASSET.school_code = ? ";
         try {
