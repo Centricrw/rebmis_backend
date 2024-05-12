@@ -563,6 +563,12 @@ class AssetsDistributionController
                 return Errors::notFoundError("School Id not found!, please try again?");
             }
 
+            // checking if already assigned
+            $engravingCodeExists = $this->assetsModel->selectAssetsByEngravingCodeLimit($data['assets_tag']);
+            if (count($engravingCodeExists) > 0) {
+                return Errors::notFoundError("This Engraving code already assigned!, please try again?");
+            }
+
             // assign assets to school
             $this->assetsModel->assignAssetsToSchool($data, $logged_user_id);
 
