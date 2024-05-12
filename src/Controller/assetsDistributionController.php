@@ -55,6 +55,12 @@ class AssetsDistributionController
                     $response = $this->checkingBatchDistributionLimit();
                 } else if (isset($this->params['id']) && $this->params['id'] == "assets") {
                     $response = $this->getAssetsSummary();
+                } else if (isset($this->params['id']) && $this->params['id'] == "school_current_assets") {
+                    $response = $this->getSchoolCurrentAssetsByCategory();
+                } else if (isset($this->params['id']) && $this->params['id'] == "generate_engraving_code") {
+                    $response = $this->generateEngravingCode();
+                } else if (isset($this->params['id']) && $this->params['id'] == "school_assign_asset") {
+                    $response = $this->assignEngravingCodeToAssetsAndSchool();
                 } else {
                     $response = $this->createNewDistributionBatch();
                 }
@@ -419,18 +425,21 @@ class AssetsDistributionController
      * @return OBJECT $results
      */
 
-    public function getSchoolCurrentAssetsByCategory($category_id)
+    public function getSchoolCurrentAssetsByCategory()
     {
+        // getting input data
+        $data = (array) json_decode(file_get_contents('php://input'), true);
         // geting authorized user id
         $logged_user_id = AuthValidation::authorized()->id;
         try {
             // checking if category exists
-            $bacthExists = $this->assetCategoriesModel->selectAssetsCategoryById($category_id);
+            $bacthExists = $this->assetCategoriesModel->selectAssetsCategoryById($data['category_id']);
             if (sizeof($bacthExists) == 0) {
                 return Errors::notFoundError("Assets category Id not found!, please try again?");
             }
 
-            $results = $this->assetsModel->selectAssetsByCategory($category_id);
+            $results = $this->assetsModel->selectAssetsSchoolCategoryById($data['category_id'], $data['school_code']);
+
             $response['status_code_header'] = 'HTTP/1.1 200 OK';
             $response['body'] = json_encode($results);
             return $response;

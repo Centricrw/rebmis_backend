@@ -404,4 +404,24 @@ class AssetsModel
             throw new Error($e->getMessage());
         }
     }
+
+    /**
+     * get ONE assets category
+     * @param NUMBER $assets_categories_id
+     * @return OBJECT $results
+     */
+    public function selectAssetsSchoolCategoryById($assets_categories_id, $school_code)
+    {
+        $statement = "SELECT ASSET.*, LEVELS.school_level_name FROM `assets_categories` ASSET
+        LEFT JOIN `school_levels` LEVELS ON ASSET.level_code = LEVELS.school_level_id
+        WHERE ASSET.assets_categories_id = ? AND ASSET.school_code = ? ";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array($assets_categories_id, $school_code));
+            $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $results;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
 }
