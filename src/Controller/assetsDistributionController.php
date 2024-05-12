@@ -492,10 +492,14 @@ class AssetsDistributionController
             // REB-SchoolCode-assetType-001
             $engravingCode = "REB-" . $data['school_code'] . "-" . substr($subCategoryExists[0]['name'], -2) . "-" . $this->formatNumber($schoolAssetsCount);
 
-            $i = 1;
-            while ($i < 6) {
-                echo $i;
-                $i++;
+            $i = 0;
+            while ($i < 1) {
+                $schoolAssetsCount++;
+                $engravingCode = "REB-" . $data['school_code'] . "-" . substr($subCategoryExists[0]['name'], -2) . "-" . $this->formatNumber($schoolAssetsCount);
+                $engravingCodeExists = $this->assetsModel->selectAssetsByEngravingCodeLimit($engravingCode);
+                if (count($engravingCodeExists) === 0) {
+                    $i++;
+                }
             }
 
             $response['status_code_header'] = 'HTTP/1.1 200 OK';
