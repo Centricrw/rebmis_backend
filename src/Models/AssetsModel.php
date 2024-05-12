@@ -21,7 +21,7 @@ class AssetsModel
     {
         $statement = "INSERT INTO `assets`(`assets_id`, `name`, `serial_number`, `brand_id`, `assets_categories_id`, `assets_sub_categories_id`, `specification`, `created_by`) VALUES (:assets_id, :name, :serial_number, :brand_id, :assets_categories_id, :assets_sub_categories_id, :specification, :created_by)";
         try {
-            // Remove whitespaces from both sides of a string
+            // Remove whiteSpaces from both sides of a string
             $assets_name = trim($data['name']);
             $statement = $this->db->prepare($statement);
             $statement->execute(array(
@@ -206,7 +206,7 @@ class AssetsModel
     {
         $statement = "UPDATE `assets` SET `name`=:name, `serial_number`=:serial_number, `brand_id`=:brand_id, `assets_categories_id`=:assets_categories_id, `assets_sub_categories_id`=:assets_sub_categories_id, `specification`=:specification, `status`=:status,`updated_by`=:updated_by WHERE `assets_id`=:assets_id";
         try {
-            // Remove whitespaces from both sides of a string
+            // Remove whiteSpaces from both sides of a string
             $assets_name = trim($data['name']);
             $statement = $this->db->prepare($statement);
             $statement->execute(array(
@@ -318,7 +318,7 @@ class AssetsModel
     }
 
     /**
-     * get levl by level code
+     * get level by level code
      * @param STRING $levelCode
      * @return ARRAY
      */
@@ -328,6 +328,50 @@ class AssetsModel
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array(":level_code" => $levelCode));
+            $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $results;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    /**
+     * select Count assets category on school
+     * @param NUMBER $schoolCode
+     * @param NUMBER $categoriesId
+     * @param STRING $subCategoriesId
+     * @return OBJECT $results
+     */
+    public function selectCountCategoryOnSchool($schoolCode, $categoriesId, $subCategoriesId)
+    {
+        $statement = "SELECT * FROM `assets` WHERE `school_code` = :school_code AND `assets_categories_id` = :assets_categories_id AND `assets_sub_categories_id` = :assets_sub_categories_id ";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
+                ":school_code" => $schoolCode,
+                ":assets_categories_id" => $categoriesId,
+                ":assets_sub_categories_id" => $subCategoriesId,
+            ));
+            $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $results;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    /**
+     * check if engraving code exists
+     * @param STRING $engravingCode
+     * @return OBJECT $results
+     */
+    public function selectAssetsByEngravingCodeLimit($engravingCode)
+    {
+        $statement = "SELECT * FROM `assets` WHERE `assets_tag` = :assets_tag LIMIT 1";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
+                ":assets_tag" => $engravingCode,
+            ));
             $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
             return $results;
         } catch (\PDOException $e) {

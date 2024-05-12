@@ -120,7 +120,7 @@ $route->router("/batchdistribution", "src/Controller/assetsDistributionControlle
 $route->router("/batchdistribution/{id}", "src/Controller/assetsDistributionController.php");
 $route->router("/batchdistribution/{action}/{id}", "src/Controller/assetsDistributionController.php");
 
-// ICTFOCAL TEACHERS
+// ICT-FOCAL TEACHERS
 $route->router("/ictfocalteachers/{action}", "src/Controller/ictfocaltechersController.php");
 
 // BULKENROLL TEACHERS

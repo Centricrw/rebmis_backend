@@ -341,7 +341,7 @@ class AssetsDistributionModel
     {
         $statement = "INSERT INTO `assets_distriution_school`(`assets_school_distribution_id`, `batch_id`, `level_code`, `school_code`, `batch_details_id`,`assets_number_limit`, `created_by`) VALUES (:id, :batch_id, :level_code, :school_code, :batch_details_id, :assets_number_limit, :created_by)";
         try {
-            // Remove whitespaces from both sides of a string
+            // Remove white spaces from both sides of a string
             $statement = $this->db->prepare($statement);
             $statement->execute(array(
                 ':id' => $data['assets_school_distribution_id'],
