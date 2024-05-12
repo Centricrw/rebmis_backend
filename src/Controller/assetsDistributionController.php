@@ -55,6 +55,12 @@ class AssetsDistributionController
                     $response = $this->checkingBatchDistributionLimit();
                 } else if (isset($this->params['id']) && $this->params['id'] == "assets") {
                     $response = $this->getAssetsSummary();
+                } else if (isset($this->params['id']) && $this->params['id'] == "school_current_assets") {
+                    $response = $this->getSchoolCurrentAssetsByCategory();
+                } else if (isset($this->params['id']) && $this->params['id'] == "generate_engraving_code") {
+                    $response = $this->generateEngravingCode();
+                } else if (isset($this->params['id']) && $this->params['id'] == "school_assign_asset") {
+                    $response = $this->assignEngravingCodeToAssetsAndSchool();
                 } else {
                     $response = $this->createNewDistributionBatch();
                 }
@@ -419,18 +425,29 @@ class AssetsDistributionController
      * @return OBJECT $results
      */
 
-    public function getSchoolCurrentAssetsByCategory($category_id)
+    public function getSchoolCurrentAssetsByCategory()
     {
+        // getting input data
+        $data = (array) json_decode(file_get_contents('php://input'), true);
         // geting authorized user id
         $logged_user_id = AuthValidation::authorized()->id;
         try {
             // checking if category exists
-            $bacthExists = $this->assetCategoriesModel->selectAssetsCategoryById($category_id);
+            $bacthExists = $this->assetCategoriesModel->selectAssetsCategoryById($data['category_id']);
             if (sizeof($bacthExists) == 0) {
                 return Errors::notFoundError("Assets category Id not found!, please try again?");
             }
 
-            $results = $this->assetsModel->selectAssetsByCategory($category_id);
+            $results = $this->assetsModel->selectAssetsSchoolCategoryById($data['category_id'], $data['school_code']);
+
+            foreach ($results as &$item) {
+                // Check if 'specification' is a JSON string
+                if (isset($item['specification']) && is_string($item['specification'])) {
+                    // Decode the JSON string and assign it back to the 'specification' key
+                    $item['specification'] = json_decode($item['specification'], true);
+                }
+            }
+
             $response['status_code_header'] = 'HTTP/1.1 200 OK';
             $response['body'] = json_encode($results);
             return $response;
@@ -490,12 +507,14 @@ class AssetsDistributionController
             $schoolAssetsCount = count($assetsOnSchool);
             // setting engraving code
             // REB-SchoolCode-assetType-001
-            $engravingCode = "REB-" . $data['school_code'] . "-" . substr($subCategoryExists[0]['name'], -2) . "-" . $this->formatNumber($schoolAssetsCount);
+            $getTwoLetters = substr($subCategoryExists[0]['name'], 0, 2);
+            $engravingCode = "REB-" . $data['school_code'] . "-" . strtoupper($getTwoLetters) . "-" . $this->formatNumber($schoolAssetsCount);
 
             $i = 0;
             while ($i < 1) {
                 $schoolAssetsCount++;
-                $engravingCode = "REB-" . $data['school_code'] . "-" . substr($subCategoryExists[0]['name'], -2) . "-" . $this->formatNumber($schoolAssetsCount);
+                $getTwoLetters = substr($subCategoryExists[0]['name'], 0, 2);
+                $engravingCode = "REB-" . $data['school_code'] . "-" . strtoupper($getTwoLetters) . "-" . $this->formatNumber($schoolAssetsCount);
                 $engravingCodeExists = $this->assetsModel->selectAssetsByEngravingCodeLimit($engravingCode);
                 if (count($engravingCodeExists) === 0) {
                     $i++;
@@ -522,22 +541,18 @@ class AssetsDistributionController
         // getting input data
         $data = (array) json_decode(file_get_contents('php://input'), true);
 
+        // assets_id
+        // assets_tag
+        // level_code
         // school_code
-        // category_id
 
         // geting authorized user id
         $logged_user_id = AuthValidation::authorized()->id;
         try {
-            // checking if category exists
-            $categoryExists = $this->assetCategoriesModel->selectAssetsCategoryById($data['assets_categories_id']);
-            if (sizeof($categoryExists) == 0) {
-                return Errors::notFoundError("Assets category Id not found!, please try again?");
-            }
-
-            // checking if sub category exists
-            $subCategoryExists = $this->assetSubCategoriesModel->selectAssetsSubCategoryById($data['assets_sub_categories_id']);
-            if (sizeof($subCategoryExists) == 0) {
-                return Errors::notFoundError("Assets sub category Id not found!, please try again?");
+            // checking if assets exists
+            $assetExists = $this->assetsModel->selectAssetById($data['assets_id']);
+            if (sizeof($assetExists) == 0) {
+                return Errors::notFoundError("Asset Id not found!, please try again?");
             }
 
             // checking if school exists
@@ -546,26 +561,12 @@ class AssetsDistributionController
                 return Errors::notFoundError("School Id not found!, please try again?");
             }
 
-            $assetsOnSchool = $this->assetsModel->selectCountCategoryOnSchool($data['school_code'], $data['assets_categories_id'], $data['assets_sub_categories_id']);
-            // count assets
-            $schoolAssetsCount = count($assetsOnSchool);
-            // setting engraving code
-            // REB-SchoolCode-assetType-001
-            $engravingCode = "REB-" . $data['school_code'] . "-" . substr($subCategoryExists[0]['name'], -2) . "-" . $this->formatNumber($schoolAssetsCount);
-
-            $i = 0;
-            while ($i < 1) {
-                $schoolAssetsCount++;
-                $engravingCode = "REB-" . $data['school_code'] . "-" . substr($subCategoryExists[0]['name'], -2) . "-" . $this->formatNumber($schoolAssetsCount);
-                $engravingCodeExists = $this->assetsModel->selectAssetsByEngravingCodeLimit($engravingCode);
-                if (count($engravingCodeExists) === 0) {
-                    $i++;
-                }
-            }
+            // assign assets to school
+            $this->assetsModel->assignAssetsToSchool($data, $logged_user_id);
 
             $response['status_code_header'] = 'HTTP/1.1 200 OK';
             $response['body'] = json_encode([
-                "engraving_code" => $engravingCode,
+                "message" => "Assets assigned successfully!",
             ]);
             return $response;
         } catch (\Throwable $th) {
