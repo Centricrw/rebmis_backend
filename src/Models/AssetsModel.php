@@ -378,4 +378,30 @@ class AssetsModel
             throw new Error($e->getMessage());
         }
     }
+
+    /**
+     * assign assets to school
+     * @param OBJECT $data
+     * @param NUMBER $id
+     * @return NUMBER $results
+     */
+    public function assignAssetsToSchool($data, $logged_user_id)
+    {
+        $statement = "UPDATE `assets` SET `assets_tag`=:assets_tag, `level_code`=:level_code, `school_code`=:school_code,`updated_by`=:updated_by WHERE `assets_id`=:assets_id";
+        try {
+            // Remove whiteSpaces from both sides of a string
+            $assets_name = trim($data['name']);
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
+                ':assets_tag' => $data['assets_tag'],
+                ':level_code' => $data['level_code'],
+                ':school_code' => $data['school_code'],
+                ':updated_by' => $logged_user_id,
+                ':assets_id' => $data['assets_id'],
+            ));
+            return $statement->rowCount();
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
 }
