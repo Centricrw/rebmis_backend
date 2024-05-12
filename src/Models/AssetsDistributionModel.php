@@ -393,4 +393,49 @@ class AssetsDistributionModel
             throw new Error($e->getMessage());
         }
     }
+
+    /**
+     * selecting batch definition
+     * @param STRING $id
+     * @return OBJECT $results
+     */
+    public function selectBatchDefinitionCategoryAndSubCategoryBrands($data)
+    {
+        $statement = "SELECT * FROM `batch_details` WHERE `brand_id`=:brand_id AND `assets_sub_categories_id`=:assets_sub_categories_id AND `assets_categories_id`=:assets_categories_id";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
+                ":assets_categories_id" => $data['assets_categories_id'],
+                ":assets_sub_categories_id" => $data['assets_sub_categories_id'],
+                ":brand_id" => $data['brand_id'],
+            ));
+            $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $results;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    /**
+     * selecting stock details
+     * @param STRING $ids
+     * @return ARRAY $results
+     */
+    public function selectCountAssignedAssets($data)
+    {
+        $statement = "SELECT COUNT(*) as total FROM `assets` WHERE assets_categories_id = :assets_categories_id AND assets_sub_categories_id = :assets_sub_categories_id AND brand_id = :brand_id AND `asset_state` =:asset_state ";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
+                ":assets_categories_id" => $data['assets_categories_id'],
+                ":assets_sub_categories_id" => $data['assets_sub_categories_id'],
+                ":brand_id" => $data['brand_id'],
+                ":asset_state" => 'assigned',
+            ));
+            $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $results;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
 }
