@@ -412,7 +412,7 @@ class AssetsModel
      */
     public function selectAssetsSchoolCategoryById($assets_categories_id, $school_code)
     {
-        $statement = "SELECT ASSET.*, LEVELS.school_level_name FROM `assets_categories` ASSET
+        $statement = "SELECT ASSET.*, LEVELS.school_level_name FROM `assets` ASSET
         LEFT JOIN `school_levels` LEVELS ON ASSET.level_code = LEVELS.school_level_id
         WHERE ASSET.assets_categories_id = ? AND ASSET.school_code = ? ";
         try {
