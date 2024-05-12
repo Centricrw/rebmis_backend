@@ -6,6 +6,7 @@ use Src\Models\AssetsDistributionModel;
 use Src\Models\AssetsModel;
 use Src\Models\AssetSubCategoriesModel;
 use Src\Models\BrandsModel;
+use Src\Models\SchoolsModel;
 use Src\System\AuthValidation;
 use Src\System\Errors;
 use Src\System\UuidGenerator;
@@ -18,6 +19,7 @@ class AssetsDistributionController
     private $brandsModel;
     private $assetsDistributionModel;
     private $assetsModel;
+    private $schoolsModel;
     private $request_method;
     private $params;
 
@@ -31,6 +33,7 @@ class AssetsDistributionController
         $this->brandsModel = new BrandsModel($db);
         $this->assetsDistributionModel = new AssetsDistributionModel($db);
         $this->assetsModel = new AssetsModel($db);
+        $this->schoolsModel = new SchoolsModel($db);
     }
 
     function processRequest()
@@ -88,10 +91,10 @@ class AssetsDistributionController
         if (!$validateInputData['validated']) {
             return Errors::unprocessableEntityResponse($validateInputData['message']);
         }
-        // geting authorized user id
+        // getting authorized user id
         $logged_user_id = AuthValidation::authorized()->id;
         try {
-            // Generate assests Batch Category Id
+            // Generate assets Batch Category Id
             $generatedBatchCategoryId = UuidGenerator::gUuid();
             $data['id'] = $generatedBatchCategoryId;
             $insertBatch = $this->assetsDistributionModel->insertNewDistributionBatch($data, $logged_user_id);
@@ -126,7 +129,7 @@ class AssetsDistributionController
     {
         // getting input data
         $data = (array) json_decode(file_get_contents('php://input'), true);
-        // geting authorized user id
+        // getting authorized user id
         $logged_user_id = AuthValidation::authorized()->id;
         try {
             // function to add assets number limit
@@ -185,11 +188,11 @@ class AssetsDistributionController
         if (!$validateInputData['validated']) {
             return Errors::unprocessableEntityResponse($validateInputData['message']);
         }
-        // geting authorized user id
+        // getting authorized user id
         $logged_user_id = AuthValidation::authorized()->id;
         try {
             foreach ($data['school_distribution'] as $key => $value) {
-                // Generate assests Batch Category Id
+                // Generate assets Batch Category Id
                 $generatedSchoolDistributionId = UuidGenerator::gUuid();
                 $value['assets_school_distribution_id'] = $generatedSchoolDistributionId;
                 $this->assetsDistributionModel->insertNewSchoolDistribution($value, $logged_user_id);
@@ -297,7 +300,7 @@ class AssetsDistributionController
         if (!$validateInputData['validated']) {
             return Errors::unprocessableEntityResponse($validateInputData['message']);
         }
-        // geting authorized user id
+        // getting authorized user id
         $logged_user_id = AuthValidation::authorized()->id;
 
         try {
@@ -403,6 +406,101 @@ class AssetsDistributionController
             $response['status_code_header'] = 'HTTP/1.1 201 Created';
             $response['body'] = json_encode([
                 "message" => "Batch category updated successfully!",
+            ]);
+            return $response;
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
+        }
+    }
+
+    /**
+     * ⁠GET SCHOOL CURRENT ASSETS LIST BY CATEGORY
+     * @param NUMBER $category_id
+     * @return OBJECT $results
+     */
+
+    public function getSchoolCurrentAssetsByCategory($category_id)
+    {
+        // geting authorized user id
+        $logged_user_id = AuthValidation::authorized()->id;
+        try {
+            // checking if category exists
+            $bacthExists = $this->assetCategoriesModel->selectAssetsCategoryById($category_id);
+            if (sizeof($bacthExists) == 0) {
+                return Errors::notFoundError("Assets category Id not found!, please try again?");
+            }
+
+            $results = $this->assetsModel->selectAssetsByCategory($category_id);
+            $response['status_code_header'] = 'HTTP/1.1 200 OK';
+            $response['body'] = json_encode($results);
+            return $response;
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
+        }
+    }
+
+    function formatNumber(int $number): string
+    {
+        if ($number < 10) {
+            return "00" . $number;
+        } elseif ($number < 100) {
+            return "0" . $number;
+        } else {
+            return strval($number); // Convert number to string if it's 100 or more
+        }
+    }
+
+    /**
+     * GENERATE ENGRAVING CODE
+     * @param NUMBER $category_id
+     * @return OBJECT $results
+     */
+
+    public function generateEngravingCode($category_id)
+    {
+        // getting input data
+        $data = (array) json_decode(file_get_contents('php://input'), true);
+
+        // school_code
+        // category_id
+
+        // geting authorized user id
+        $logged_user_id = AuthValidation::authorized()->id;
+        try {
+            // checking if category exists
+            $categoryExists = $this->assetCategoriesModel->selectAssetsCategoryById($data['assets_categories_id']);
+            if (sizeof($categoryExists) == 0) {
+                return Errors::notFoundError("Assets category Id not found!, please try again?");
+            }
+
+            // checking if sub category exists
+            $subCategoryExists = $this->assetSubCategoriesModel->selectAssetsSubCategoryById($data['assets_sub_categories_id']);
+            if (sizeof($subCategoryExists) == 0) {
+                return Errors::notFoundError("Assets sub category Id not found!, please try again?");
+            }
+
+            // checking if school exists
+            $schoolExists = $this->schoolsModel->findByCode($data['school_code']);
+            if (sizeof($schoolExists) == 0) {
+                return Errors::notFoundError("School Id not found!, please try again?");
+            }
+
+            $assetsOnSchool = $this->assetsModel->selectCountCategoryOnSchool($data['school_code'], $data['assets_categories_id'], $data['assets_sub_categories_id']);
+            // count assets
+            $schoolAssetsCount = count($assetsOnSchool);
+            // setting engraving code
+            // REB-SchoolCode-assetType-001
+            $engravingCode = "REB-" . $data['school_code'] . "-" . substr($subCategoryExists[0]['name'], -2) . "-" . $this->formatNumber($schoolAssetsCount);
+
+            $i = 1;
+            while ($i < 6) {
+                echo $i;
+                $i++;
+            }
+
+            $response['status_code_header'] = 'HTTP/1.1 200 OK';
+            $response['body'] = json_encode([
+                "engraving_code" => $engravingCode,
             ]);
             return $response;
         } catch (\Throwable $th) {
@@ -573,7 +671,7 @@ class AssetsDistributionController
                 if (isset($value['school_code'])) {
                     $schoolExists = $this->assetsDistributionModel->selectSchoolBySchoolCode($value['school_code']);
                     if (sizeof($schoolExists) == 0) {
-                        return ["validated" => false, "message" => "School code not found!, please try again?"];
+                        return ["validated" => false, "message" => "School code '" . $value['school_code'] . "' not found!, please try again?"];
                     }
                 }
 
