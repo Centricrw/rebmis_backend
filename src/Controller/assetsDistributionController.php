@@ -456,7 +456,7 @@ class AssetsDistributionController
      * @return OBJECT $results
      */
 
-    public function generateEngravingCode($category_id)
+    public function generateEngravingCode()
     {
         // getting input data
         $data = (array) json_decode(file_get_contents('php://input'), true);
@@ -492,10 +492,75 @@ class AssetsDistributionController
             // REB-SchoolCode-assetType-001
             $engravingCode = "REB-" . $data['school_code'] . "-" . substr($subCategoryExists[0]['name'], -2) . "-" . $this->formatNumber($schoolAssetsCount);
 
-            $i = 1;
-            while ($i < 6) {
-                echo $i;
-                $i++;
+            $i = 0;
+            while ($i < 1) {
+                $schoolAssetsCount++;
+                $engravingCode = "REB-" . $data['school_code'] . "-" . substr($subCategoryExists[0]['name'], -2) . "-" . $this->formatNumber($schoolAssetsCount);
+                $engravingCodeExists = $this->assetsModel->selectAssetsByEngravingCodeLimit($engravingCode);
+                if (count($engravingCodeExists) === 0) {
+                    $i++;
+                }
+            }
+
+            $response['status_code_header'] = 'HTTP/1.1 200 OK';
+            $response['body'] = json_encode([
+                "engraving_code" => $engravingCode,
+            ]);
+            return $response;
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
+        }
+    }
+
+    /**
+     * ASSIGN ENGRAVING CODE TO ASSET
+     * @param NUMBER $category_id
+     * @return OBJECT $results
+     */
+    public function assignEngravingCodeToAssetsAndSchool()
+    {
+        // getting input data
+        $data = (array) json_decode(file_get_contents('php://input'), true);
+
+        // school_code
+        // category_id
+
+        // geting authorized user id
+        $logged_user_id = AuthValidation::authorized()->id;
+        try {
+            // checking if category exists
+            $categoryExists = $this->assetCategoriesModel->selectAssetsCategoryById($data['assets_categories_id']);
+            if (sizeof($categoryExists) == 0) {
+                return Errors::notFoundError("Assets category Id not found!, please try again?");
+            }
+
+            // checking if sub category exists
+            $subCategoryExists = $this->assetSubCategoriesModel->selectAssetsSubCategoryById($data['assets_sub_categories_id']);
+            if (sizeof($subCategoryExists) == 0) {
+                return Errors::notFoundError("Assets sub category Id not found!, please try again?");
+            }
+
+            // checking if school exists
+            $schoolExists = $this->schoolsModel->findByCode($data['school_code']);
+            if (sizeof($schoolExists) == 0) {
+                return Errors::notFoundError("School Id not found!, please try again?");
+            }
+
+            $assetsOnSchool = $this->assetsModel->selectCountCategoryOnSchool($data['school_code'], $data['assets_categories_id'], $data['assets_sub_categories_id']);
+            // count assets
+            $schoolAssetsCount = count($assetsOnSchool);
+            // setting engraving code
+            // REB-SchoolCode-assetType-001
+            $engravingCode = "REB-" . $data['school_code'] . "-" . substr($subCategoryExists[0]['name'], -2) . "-" . $this->formatNumber($schoolAssetsCount);
+
+            $i = 0;
+            while ($i < 1) {
+                $schoolAssetsCount++;
+                $engravingCode = "REB-" . $data['school_code'] . "-" . substr($subCategoryExists[0]['name'], -2) . "-" . $this->formatNumber($schoolAssetsCount);
+                $engravingCodeExists = $this->assetsModel->selectAssetsByEngravingCodeLimit($engravingCode);
+                if (count($engravingCodeExists) === 0) {
+                    $i++;
+                }
             }
 
             $response['status_code_header'] = 'HTTP/1.1 200 OK';
@@ -563,13 +628,13 @@ class AssetsDistributionController
         if (empty($input['assets_number_limit'])) {
             return ["validated" => false, "message" => "assets_number_limit is required!, please try again"];
         }
-        // checking if the set limit is eqaul to the stock
-        if ($action == "new") {
-            $assetsCategory = $this->assetsModel->selectAssetsByCategoryBrandSubCategory($input);
-            if ((int) $input['assets_number_limit'] > sizeof($assetsCategory)) {
-                return ["validated" => false, "message" => "Assets number limit exceed which is in stock on category id '" . $input['assets_categories_id'] . "', please try again?"];
-            }
-        }
+        // checking if the set limit is equal to the stock
+        // if ($action == "new") {
+        //     $assetsCategory = $this->assetsModel->selectAssetsByCategoryBrandSubCategory($input);
+        //     if ((int) $input['assets_number_limit'] > sizeof($assetsCategory)) {
+        //         return ["validated" => false, "message" => "Assets number limit exceed which is in stock on category id '" . $input['assets_categories_id'] . "', please try again?"];
+        //     }
+        // }
 
         return ["validated" => true, "message" => "OK"];
     }
@@ -624,11 +689,11 @@ class AssetsDistributionController
                 if (empty($value['assets_number_limit'])) {
                     return ["validated" => false, "message" => "assets_number_limit is required!, please try again"];
                 }
-                // checking if the set limit is eqaul to the stock
-                $assetsCategory = $this->assetsModel->selectAssetsByCategoryBrandSubCategory($value);
-                if ((int) $value['assets_number_limit'] > sizeof($assetsCategory)) {
-                    return ["validated" => false, "message" => "Assets number limit exceed which is in stock on category id '" . $value['assets_categories_id'] . "', please try again?"];
-                }
+                // checking if the set limit is equal to the stock
+                // $assetsCategory = $this->assetsModel->selectAssetsByCategoryBrandSubCategory($value);
+                // if ((int) $value['assets_number_limit'] > sizeof($assetsCategory)) {
+                //     return ["validated" => false, "message" => "Assets number limit exceed which is in stock on category id '" . $value['assets_categories_id'] . "', please try again?"];
+                // }
             }
         }
         return ["validated" => true, "message" => "OK"];
