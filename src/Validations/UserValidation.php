@@ -29,7 +29,7 @@ class UserValidation
         if (empty($input['last_name'])) {
             return ["validated" => false, "message" => "Last name not provided!"];
         }
-        if (!isset($input['addToTraining']) || empty($input['addToTraining'])) {
+        if (!isset($input['addToTraining'])) {
             return ["validated" => false, "message" => "addToTraining not provided!"];
         }
         if (empty($input['full_name'])) {
@@ -45,7 +45,7 @@ class UserValidation
             return ["validated" => false, "message" => "Invalid Email or not provided!, please try again?"];
         }
         if (empty($input['phone_numbers']) || !preg_match('/^0[7][0-9]{8}$/', $input['phone_numbers'])) {
-            return ["validated" => false, "message" => "Inavalid phone number or not provided!, please try again?"];
+            return ["validated" => false, "message" => "Invalid phone number or not provided!, please try again?"];
         }
         return ["validated" => true, "message" => "OK"];
     }

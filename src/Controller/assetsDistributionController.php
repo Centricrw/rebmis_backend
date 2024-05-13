@@ -42,6 +42,8 @@ class AssetsDistributionController
             case 'GET':
                 if (isset($this->params['action']) && $this->params['action'] == "school") {
                     $response = $this->getSchoolDistributionOnBatchDetails($this->params['id']);
+                } else if (isset($this->params['id']) && $this->params['id'] == "remaining_assets") {
+                    $response = $this->countRemainAssetsInBatchDetails();
                 } else {
                     $response = $this->getAllDistributionBatch();
                 }
@@ -61,8 +63,6 @@ class AssetsDistributionController
                     $response = $this->generateEngravingCode();
                 } else if (isset($this->params['id']) && $this->params['id'] == "school_assign_asset") {
                     $response = $this->assignEngravingCodeToAssetsAndSchool();
-                } else if (isset($this->params['id']) && $this->params['id'] == "remaining_assets") {
-                    $response = $this->countRemainAssetsInBatchDetails();
                 } else {
                     $response = $this->createNewDistributionBatch();
                 }

@@ -405,7 +405,7 @@ class AuthController
     {
 
         $data = (array) json_decode(file_get_contents('php://input'), true);
-        // geting authorized user id
+        // getting authorized user id
         $created_by_user_id = AuthValidation::authorized()->id;
         $validateUserInputData = UserValidation::ValidateNewInsertedUser($data);
         if (!$validateUserInputData['validated']) {
@@ -429,7 +429,7 @@ class AuthController
 
             if ($validated == true) {
 
-                // checkking if staff_code exists
+                // checking if staff_code exists
                 if (isset($data["staff_code"]) && !empty($data['staff_code'])) {
                     $results = $this->usersModel->findUserByStaffcode($data["staff_code"]);
                     if (count($results) > 0) {
