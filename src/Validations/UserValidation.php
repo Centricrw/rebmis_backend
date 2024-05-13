@@ -29,9 +29,9 @@ class UserValidation
         if (empty($input['last_name'])) {
             return ["validated" => false, "message" => "Last name not provided!"];
         }
-        if (!isset($input['addToTraining'])) {
-            return ["validated" => false, "message" => "addToTraining not provided!"];
-        }
+        // if (!isset($input['addToTraining'])) {
+        //     return ["validated" => false, "message" => "addToTraining not provided!"];
+        // }
         if (empty($input['full_name'])) {
             return ["validated" => false, "message" => "Full name not provided!"];
         }
@@ -90,10 +90,6 @@ class UserValidation
 
         if (empty($input['resident_district_id'])) {
             return ["validated" => false, "message" => "Resident district id not provided!"];
-        }
-
-        if (!isset($input['addToTraining']) || empty($input['addToTraining'])) {
-            return ["validated" => false, "message" => "addToTraining not provided!"];
         }
 
         return ["validated" => true, "message" => "OK"];
