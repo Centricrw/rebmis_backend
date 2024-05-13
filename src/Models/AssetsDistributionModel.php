@@ -421,16 +421,13 @@ class AssetsDistributionModel
      * @param STRING $ids
      * @return ARRAY $results
      */
-    public function selectCountAssignedAssets($data)
+    public function selectCountAssignedAssets($batchDetailsId)
     {
-        $statement = "SELECT COUNT(*) as total FROM `assets` WHERE assets_categories_id = :assets_categories_id AND assets_sub_categories_id = :assets_sub_categories_id AND brand_id = :brand_id AND `asset_state` =:asset_state ";
+        $statement = "SELECT COUNT(*) as total FROM `assets` WHERE `batch_details_id` = :batch_details_id";
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array(
-                ":assets_categories_id" => $data['assets_categories_id'],
-                ":assets_sub_categories_id" => $data['assets_sub_categories_id'],
-                ":brand_id" => $data['brand_id'],
-                ":asset_state" => 'assigned',
+                ":batch_details_id" => $batchDetailsId,
             ));
             $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
             return $results;

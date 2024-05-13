@@ -603,20 +603,25 @@ class AssetsDistributionController
             $batches = $this->assetsDistributionModel->selectAllDistributionBatch();
             if (count($batches) > 0) {
                 foreach ($batches as &$item) {
-                    $batchDetails = $this->assetsDistributionModel->selectBatchDetailsByBatchID($item['batch_id']);
+                    $total_limit = 0;
+                    $total_distributed = 0;
+                    if (count($item['batch_details']) > 0) {
+                        foreach ($item['batch_details'] as &$details) {
+                            $total_limit += intval($details['assets_number_limit']);
+                            // get distributed assets to this batch
+                            $countAssetsDistributedOnBatch = $this->assetsDistributionModel->selectCountAssignedAssets($details['id']);
+                            $total_distributed += $countAssetsDistributedOnBatch[0]['total'];
+                        }
+                    }
 
-                    // array_push($results, [
-                    //     'batch_details_id' => $item['id'],
-                    //     'batch_id' => $item['batch_id'],
-                    //     'assets_number_limit' => $item['assets_number_limit'],
-                    //     'assigned_assets' => $countAssetsDistributed[0]['total'],
-                    //     'remaining_assets' => count($countAssetsDistributed) > 0 ? $item['assets_number_limit'] - $countAssetsDistributed[0]['total'] : 0,
-                    // ]);
+                    $item['total_limit'] = $total_limit;
+                    $item['total_distributed'] = $total_distributed;
+                    $item['remaining'] = $total_limit - $total_distributed;
                 }
             }
 
             $response['status_code_header'] = 'HTTP/1.1 200 OK';
-            $response['body'] = json_encode($results);
+            $response['body'] = json_encode($batches);
             return $response;
         } catch (\Throwable $th) {
             return Errors::databaseError($th->getMessage());
