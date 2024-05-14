@@ -245,9 +245,9 @@ class AssetsDistributionController
         try {
             $results = $this->assetsDistributionModel->selectAllSchoolDistributionDetails($batchDefinitionId);
             if (count($results) > 0) {
-                foreach ($results as &$item) {
-                    $countDistributedOnSchool = $this->assetsDistributionModel->selectCountAssetsDistributedOnSchool($item['school_code'], $item['batch_details_id']);
-                    $results['total_distributed'] = $countDistributedOnSchool[0]['total'];
+                foreach ($results as $key => $value) {
+                    $countDistributedOnSchool = $this->assetsDistributionModel->selectCountAssetsDistributedOnSchool($value['school_code'], $value['batch_details_id']);
+                    $results[$key]['total_distributed'] = $countDistributedOnSchool[0]['total'];
                 }
             }
             $response['status_code_header'] = 'HTTP/1.1 200 OK';
