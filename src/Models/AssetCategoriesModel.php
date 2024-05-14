@@ -21,7 +21,7 @@ class AssetCategoriesModel
     {
         $statement = "INSERT INTO `assets_categories`(`assets_categories_name`, `attributes`, `created_by`) VALUES (:assets_categories_name, :attributes,:created_by)";
         try {
-            // Remove whitespaces from both sides of a string
+            // Remove whiteSpaces from both sides of a string
             $assets_categories_name = trim($data['assets_categories_name']);
             $serialized_array = serialize($data['attributes']);
             $statement = $this->db->prepare($statement);

@@ -221,7 +221,7 @@ class AssetsDistributionController
      */
     public function getAllDistributionBatch()
     {
-        // geting authorized user id
+        // getting authorized user id
         $logged_user_id = AuthValidation::authorized()->id;
         try {
             $results = $this->assetsDistributionModel->selectAllDistributionBatch();
@@ -240,10 +240,16 @@ class AssetsDistributionController
      */
     public function getSchoolDistributionOnBatchDetails($batchDefinitionId)
     {
-        // geting authorized user id
+        // getting authorized user id
         $logged_user_id = AuthValidation::authorized()->id;
         try {
             $results = $this->assetsDistributionModel->selectAllSchoolDistributionDetails($batchDefinitionId);
+            if (count($results) > 0) {
+                foreach ($results as &$item) {
+                    $countDistributedOnSchool = $this->assetsDistributionModel->selectCountAssetsDistributedOnSchool($item['school_code'], $item['batch_details_id']);
+                    $results['total_distributed'] = $countDistributedOnSchool[0]['total'];
+                }
+            }
             $response['status_code_header'] = 'HTTP/1.1 200 OK';
             $response['body'] = json_encode($results);
             return $response;

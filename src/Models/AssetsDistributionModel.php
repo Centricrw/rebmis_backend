@@ -224,6 +224,27 @@ class AssetsDistributionModel
     }
 
     /**
+     * count assets distributed on school
+     * @param STRING $batchDefinitionId
+     * @return OBJECT $results
+     */
+    public function selectCountAssetsDistributedOnSchool($schoolCode, $batchDefinitionId)
+    {
+        $statement = "SELECT COUNT(*) as total FROM `assets` WHERE `school_code` = :school_code AND `batch_details_id`=:batch_details_id";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
+                ":school_code" => $schoolCode,
+                ":batch_details_id" => $batchDefinitionId,
+            ));
+            $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $results;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    /**
      * update distribution assets batch
      * @param OBJECT $data
      * @param NUMBER $id
