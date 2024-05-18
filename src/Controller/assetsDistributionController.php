@@ -582,6 +582,12 @@ class AssetsDistributionController
                 return Errors::notFoundError("This Engraving code already assigned!, please try again?");
             }
 
+            // checking if serial number already exists
+            $assetIsAssigned = $this->assetsModel->selectIfAssignedToSchoolBySerial($data);
+            if (count($assetIsAssigned) > 0) {
+                return Errors::badRequestError("This Assets serial number already assigned, please rty again?");
+            }
+
             // assign assets to school
             $this->assetsModel->assignAssetsToSchool($data, $logged_user_id);
 

@@ -53,11 +53,11 @@ class AssetCategoriesController
     {
         // getting input data
         $data = (array) json_decode(file_get_contents('php://input'), true);
-        // geting authorized user id
+        // getting authorized user id
         $logged_user_id = AuthValidation::authorized()->id;
         try {
             // checking if training center name exists
-            // Remove whitespaces from both sides of a string
+            // Remove white spaces from both sides of a string
             $assets_categories_name = trim($data['assets_categories_name']);
             $assetsCategoriesNameExists = $this->assetCategoriesModel->selectAssetsCategoryByName(strtolower($assets_categories_name));
             if (sizeof($assetsCategoriesNameExists) > 0) {
@@ -82,7 +82,7 @@ class AssetCategoriesController
      */
     public function getAllAssetsCategories()
     {
-        // geting authorized user id
+        // getting authorized user id
         $logged_user_id = AuthValidation::authorized()->id;
         try {
             $results = $this->assetCategoriesModel->selectAllAssetsCategory();

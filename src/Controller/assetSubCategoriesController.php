@@ -98,7 +98,7 @@ class AssetSubCategoriesController
      */
     public function getAllAssetsSubCategories()
     {
-        // geting authorized user id
+        // getting authorized user id
         $logged_user_id = AuthValidation::authorized()->id;
         try {
             $results = $this->assetSubCategoriesModel->selectAllAssetsSubCategory();
