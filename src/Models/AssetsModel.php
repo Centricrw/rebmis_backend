@@ -227,6 +227,42 @@ class AssetsModel
     }
 
     /**
+     * checking if computer already assigned
+     * @param OBJECT $data
+     * @param STRING $updated_by
+     * @return OBJECT
+     */
+    public function selectIfAssignedToSchoolBySerial($data)
+    {
+        if (isset($data['serial_number'])) {
+            $statement = "SELECT * FROM `assets` WHERE `serial_number` = :serial_number AND `asset_state` = :asset_state";
+            try {
+                $statement = $this->db->prepare($statement);
+                $statement->execute(array(
+                    ':asset_state' => "assigned",
+                    ':serial_number' => $data['serial_number'],
+                ));
+                $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
+                return $results;
+            } catch (\PDOException $e) {
+                throw new Error($e->getMessage());
+            }
+        }
+        $statement = "SELECT * FROM `assets` WHERE `assets_id` = :assets_id AND `asset_state` = :asset_state";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
+                ':asset_state' => "assigned",
+                ':assets_id' => $data['assets_id'],
+            ));
+            $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $results;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    /**
      * Insert new asset to school
      * @param OBJECT $data
      * @param STRING $updated_by

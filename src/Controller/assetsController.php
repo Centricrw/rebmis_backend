@@ -78,7 +78,7 @@ class AssetCategoriesController
     {
         // getting input data
         $data = (array) json_decode(file_get_contents('php://input'), true);
-        // geting authorized user id
+        // getting authorized user id
         $logged_user_id = AuthValidation::authorized()->id;
         if (is_array($data['assets']) != 1) {
             return Errors::badRequestError("Invalid Assets, please try again?");
@@ -88,7 +88,7 @@ class AssetCategoriesController
                 // checking if serial number exists
                 $serialExists = $this->assetsModel->selectAssetsBySerialNumber($value['serial_number']);
                 if (sizeof($serialExists) > 0) {
-                    return Errors::badRequestError("On index $key assets Serail Number already exists, please try again?");
+                    return Errors::badRequestError("On index $key assets Serial Number already exists, please try again?");
                 }
                 // checking if category exists
                 $categoryExists = $this->assetCategoriesModel->selectAssetsCategoryById($value['assets_categories_id']);
@@ -107,7 +107,7 @@ class AssetCategoriesController
                 if (sizeof($brandExists) == 0) {
                     return Errors::badRequestError("On index $key assets Brand id not found, please try again?");
                 }
-                // Generate assests sub category id
+                // Generate assets sub category id
                 $generated_assets_id = UuidGenerator::gUuid();
                 $value['id'] = $generated_assets_id;
                 $this->assetsModel->insertNewAsset($value, $logged_user_id);
@@ -129,7 +129,7 @@ class AssetCategoriesController
      */
     public function getAllAssets()
     {
-        // geting authorized user id
+        // getting authorized user id
         $logged_user_id = AuthValidation::authorized()->id;
         try {
             $results = $this->assetsModel->selectAllAssets();
@@ -153,7 +153,7 @@ class AssetCategoriesController
      */
     public function getSchoolAssetBySchoolCode($schoolCode)
     {
-        // geting authorized user id
+        // getting authorized user id
         $logged_user_id = AuthValidation::authorized()->id;
         try {
             $results = $this->assetsModel->getSchoolAssetsBySchoolCode($schoolCode);
@@ -177,7 +177,7 @@ class AssetCategoriesController
      */
     public function getAssetBySerialNUmber($serialNumber)
     {
-        // geting authorized user id
+        // getting authorized user id
         $logged_user_id = AuthValidation::authorized()->id;
         try {
             $results = $this->assetsModel->selectAssetsBySerialNumber($serialNumber);
@@ -204,7 +204,7 @@ class AssetCategoriesController
     {
         // getting input data
         $data = (array) json_decode(file_get_contents('php://input'), true);
-        // geting authorized user id
+        // getting authorized user id
         $logged_user_id = AuthValidation::authorized()->id;
         try {
             // checking if assets exists
@@ -327,11 +327,14 @@ class AssetCategoriesController
         if (!$validateInputData['validated']) {
             return Errors::unprocessableEntityResponse($validateInputData['message']);
         }
-        // geting authorized user id
+        // getting authorized user id
         $logged_user_id = AuthValidation::authorized()->id;
         try {
-            //! checking if asset already been assigned
-            // Generate assests Batch Category Id
+            $assetIsAssigned = $this->assetsModel->selectIfAssignedToSchoolBySerial($data);
+            if (count($assetIsAssigned) > 0) {
+                return Errors::badRequestError("This Assets serial number already assigned, please rty again?");
+            }
+            // Generate assets Batch Category Id
             $generatedSchoolAssetsId = UuidGenerator::gUuid();
             $data['school_assets_id'] = $generatedSchoolAssetsId;
             $this->assetsModel->insertNewAssetsToSchool($data, $logged_user_id);
