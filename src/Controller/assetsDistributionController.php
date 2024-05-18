@@ -319,22 +319,22 @@ class AssetsDistributionController
 
         try {
             // checking if batch definition exists
-            $bacthDefinitionExists = $this->assetsDistributionModel->selectBatchDefinitionBYId($batchDefinitionId);
-            if (sizeof($bacthDefinitionExists) == 0) {
+            $batchDefinitionExists = $this->assetsDistributionModel->selectBatchDefinitionBYId($batchDefinitionId);
+            if (sizeof($batchDefinitionExists) == 0) {
                 return Errors::notFoundError("Batch definition Id not found!, please try again?");
             }
 
             // checking if assets in that category exists
-            if ($data['assets_number_limit'] != $bacthDefinitionExists[0]['assets_number_limit']) {
-                $currentLimit = $bacthDefinitionExists[0]['assets_number_limit'];
+            if ($data['assets_number_limit'] != $batchDefinitionExists[0]['assets_number_limit']) {
+                $currentLimit = $batchDefinitionExists[0]['assets_number_limit'];
                 $newLimit = $data['assets_number_limit'];
                 $currentIsGreater = $newLimit > $currentLimit ? 0 : 1;
-                $deffernce = $newLimit > $currentLimit ? (int) $newLimit - (int) $currentLimit : (int) $currentLimit - (int) $newLimit;
+                $deference = $newLimit > $currentLimit ? (int) $newLimit - (int) $currentLimit : (int) $currentLimit - (int) $newLimit;
                 if (!$currentIsGreater) {
-                    // checking if the set limit is eqaul to the stock
+                    // checking if the set limit is equal to the stock
                     $assetsCategory = $this->assetsModel->selectAssetsByCategory($data['assets_categories_id']);
-                    $data['assets_number_limit'] = $deffernce;
-                    if ((int) $deffernce > sizeof($assetsCategory)) {
+                    $data['assets_number_limit'] = $deference;
+                    if ((int) $deference > sizeof($assetsCategory)) {
                         return Errors::badRequestError("Assets number limit exceed which is in stock, please try again?");
                     } else {
                         $this->assetsModel->bookAssetStateByCategory($data, $logged_user_id);
@@ -347,7 +347,7 @@ class AssetsDistributionController
             $this->assetsDistributionModel->updateBatchDetails($data, $batchDefinitionId);
             $response['status_code_header'] = 'HTTP/1.1 201 Created';
             $response['body'] = json_encode([
-                "message" => "New Batch definition updted successfully!",
+                "message" => "New Batch definition updated successfully!",
             ]);
             return $response;
 
@@ -371,7 +371,7 @@ class AssetsDistributionController
         if (!$validateInputData['validated']) {
             return Errors::unprocessableEntityResponse($validateInputData['message']);
         }
-        // geting authorized user id
+        // getting authorized user id
         $logged_user_id = AuthValidation::authorized()->id;
         try {
             // checking if batch id
@@ -548,12 +548,6 @@ class AssetsDistributionController
     {
         // getting input data
         $data = (array) json_decode(file_get_contents('php://input'), true);
-
-        // assets_id
-        // assets_tag
-        // level_code
-        // school_code
-        // batch_details_id
 
         // geting authorized user id
         $logged_user_id = AuthValidation::authorized()->id;
@@ -818,7 +812,7 @@ class AssetsDistributionController
                     }
                 }
 
-                //! checking if does not excced the limit
+                //! checking if does not exceed the limit
                 // checking if batch category exists
                 $batchCategoryExists = $this->assetsDistributionModel->selectDistributionSchool($value);
                 if (sizeof($batchCategoryExists) > 0) {
