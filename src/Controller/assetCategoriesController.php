@@ -109,7 +109,7 @@ class AssetCategoriesController
     {
         // getting input data
         $data = (array) json_decode(file_get_contents('php://input'), true);
-        // geting authorized user id
+        // getting authorized user id
         $logged_user_id = AuthValidation::authorized()->id;
         try {
             // checking if assets category exists
@@ -118,7 +118,7 @@ class AssetCategoriesController
                 return Errors::notFoundError("Assets category Id not found!, please try again?");
             }
             // checking if training center name exists
-            // Remove whitespaces from both sides of a string
+            // Remove white spaces from both sides of a string
             $assets_categories_name = trim($data['assets_categories_name']);
             if (strtolower($assets_categories_name) !== $categoryExists[0]['assets_categories_name']) {
                 $assetsCategoriesNameExists = $this->assetCategoriesModel->selectAssetsCategoryByName(strtolower($assets_categories_name));
