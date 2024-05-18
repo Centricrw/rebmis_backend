@@ -40,6 +40,63 @@ class AssetsModel
         }
     }
 
+    function usersHandler($value)
+    {
+        // 'STUDENTS', 'TEACHERS', 'STAFFS', 'SCHOOL'
+        $user = strtolower(trim($value));
+        if (strpos($user, "student") !== false) {
+            return 'STUDENTS';
+        }
+        if (strpos($user, "teacher") !== false) {
+            return 'TEACHERS';
+        }
+        if (strpos($user, "head") !== false) {
+            return 'STAFFS';
+        }
+        return 'SCHOOL';
+    }
+
+    /**
+     * insert new migrated assets
+     * @param OBJECT $data
+     * @return VOID
+     */
+    public function insertMigratedAsset($data, $created_by)
+    {
+        $currentDate = date('Y-m-d');
+        $statement = "INSERT INTO `assets`(`assets_id`, `name`, `serial_number`, `assets_tag`, `level_code`, `school_code`, `batch_details_id`, `brand_id`, `assets_categories_id`, `assets_sub_categories_id`, `specification`, `supplier_id`, `price`, `delivery_date`, `warrant_period`, `condition`, `distribution_date`, `users`, `created_by`, `asset_state`) VALUES (:assets_id,:name,:serial_number,:assets_tag,:level_code,:school_code,:batch_details_id,:brand_id,:assets_categories_id,:assets_sub_categories_id,:specification,:supplier_id,:price,:delivery_date,:warrant_period,:condition,:distribution_date,:users,:created_by,:asset_state)";
+        try {
+            // Remove whiteSpaces from both sides of a string
+            $assets_name = trim($data['name']);
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
+                ':assets_id' => $data['id'],
+                ':name' => strtolower($assets_name),
+                ':serial_number' => $data['serial_number'],
+                ':assets_tag' => $data['assets_tag'],
+                ':level_code' => $data['level_code'],
+                ':school_code' => $data['school_code'],
+                ':batch_details_id' => isset($data['batch_details_id']) ? $data['batch_details_id'] : null,
+                ':brand_id' => $data['brand_id'],
+                ':assets_categories_id' => $data['assets_categories_id'],
+                ':assets_sub_categories_id' => isset($data['assets_sub_categories_id']) ? $data['assets_sub_categories_id'] : null,
+                ':specification' => json_encode($data['specification']),
+                ':supplier_id' => isset($data['supplier_id']) ? $data['supplier_id'] : null,
+                ':price' => isset($data['price']) ? (int) $data['price'] : null,
+                ':delivery_date' => isset($data['delivery_date']) && $data['delivery_date'] !== "" ? $data['delivery_date'] : $currentDate,
+                ':warrant_period' => isset($data['warrant_period']) ? (int) $data['warrant_period'] : null,
+                ':condition' => isset($data['condition']) ? $data['condition'] : null,
+                ':distribution_date' => isset($data['distribution_date']) && $data['distribution_date'] !== "" ? $data['distribution_date'] : $currentDate,
+                ':users' => isset($data['users']) ? $this->usersHandler($data['users']) : "SCHOOL",
+                ':created_by' => $created_by,
+                ':asset_state' => "assigned",
+            ));
+            return $statement->rowCount();
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
     /**
      * get asset by serial number
      * @param STRING $serialNumber

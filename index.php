@@ -170,6 +170,13 @@ $route->router("/signature", "src/Controller/directorSignatureController.php");
 $route->router("/signature/{action}", "src/Controller/directorSignatureController.php");
 $route->router("/signature/{action}/{id}", "src/Controller/directorSignatureController.php");
 
+// ASSETS SUPPLIER OR DONOR
+$route->router("/supplier_donor", "src/Controller/supplierDonorController.php");
+$route->router("/supplier_donor/{id}", "src/Controller/supplierDonorController.php");
+
+// MIGRATION
+$route->router("/migration", "src/Controller/migrationController.php");
+
 //write it at the last
 //arg is 404 file location
 $route->notFound("404.php");

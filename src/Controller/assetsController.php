@@ -88,7 +88,7 @@ class AssetCategoriesController
                 // checking if serial number exists
                 $serialExists = $this->assetsModel->selectAssetsBySerialNumber($value['serial_number']);
                 if (sizeof($serialExists) > 0) {
-                    return Errors::badRequestError("On index $key assets Serial Number already exists, please try again?");
+                    return Errors::badRequestError("This assets Serial Number: '" . $value['serial_number'] . "' already exists, please try again?");
                 }
                 // checking if category exists
                 $categoryExists = $this->assetCategoriesModel->selectAssetsCategoryById($value['assets_categories_id']);
