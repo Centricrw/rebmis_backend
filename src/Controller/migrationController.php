@@ -58,7 +58,6 @@ class migrationController
         if (is_array($data['assets']) != 1) {
             return Errors::badRequestError("Invalid Assets, please try again?");
         }
-        $values = [];
         try {
             foreach ($data['assets'] as $key => $value) {
                 // checking if serial number exists
@@ -88,7 +87,6 @@ class migrationController
                 if (sizeof($brandExists) == 0) {
                     return Errors::badRequestError("On index $key assets Brand id not found, please try again?");
                 }
-                array_push($values, $value);
             }
 
             foreach ($data['assets'] as $key => $value) {
