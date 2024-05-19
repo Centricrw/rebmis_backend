@@ -61,6 +61,8 @@ class AssetsDistributionController
                     $response = $this->getSchoolCurrentAssetsByCategory();
                 } else if (isset($this->params['id']) && $this->params['id'] == "generate_engraving_code") {
                     $response = $this->generateEngravingCode();
+                } else if (isset($this->params['id']) && $this->params['id'] == "reb_generate_engraving_code") {
+                    $response = $this->generateRebEngravingCode();
                 } else if (isset($this->params['id']) && $this->params['id'] == "school_assign_asset") {
                     $response = $this->assignEngravingCodeToAssetsAndSchool();
                 } else {
@@ -476,6 +478,62 @@ class AssetsDistributionController
     }
 
     /**
+     * GENERATE REB ENGRAVING CODE
+     *
+     * @return OBJECT $results
+     */
+
+    public function generateRebEngravingCode()
+    {
+        // getting input data
+        $data = (array) json_decode(file_get_contents('php://input'), true);
+        // category_id
+
+        // getting authorized user id
+        $logged_user_id = AuthValidation::authorized()->id;
+        try {
+            // checking if category exists
+            $categoryExists = $this->assetCategoriesModel->selectAssetsCategoryById($data['assets_categories_id']);
+            if (sizeof($categoryExists) == 0) {
+                return Errors::notFoundError("Assets category Id not found!, please try again?");
+            }
+
+            // checking if sub category exists
+            $subCategoryExists = $this->assetSubCategoriesModel->selectAssetsSubCategoryById($data['assets_sub_categories_id']);
+            if (sizeof($subCategoryExists) == 0) {
+                return Errors::notFoundError("Assets sub category Id not found!, please try again?");
+            }
+
+            $assetsTotal = $this->assetsModel->selectCountCategoryOnREB($data['assets_categories_id'], $data['assets_sub_categories_id']);
+            // count assets
+            $assetsCount = count($assetsTotal) > 0 ? $assetsTotal[0]['total'] : 0;
+            // setting engraving code
+            // REB-assetType-001
+            $getTwoLetters = substr($subCategoryExists[0]['name'], 0, 2);
+            $engravingCode = "REB-" . strtoupper($getTwoLetters) . "-" . $this->formatNumber($assetsCount);
+
+            $i = 0;
+            while ($i < 1) {
+                $assetsCount++;
+                $getTwoLetters = substr($subCategoryExists[0]['name'], 0, 2);
+                $engravingCode = "REB-" . strtoupper($getTwoLetters) . "-" . $this->formatNumber($assetsCount);
+                $engravingCodeExists = $this->assetsModel->selectAssetsByEngravingCodeLimit($engravingCode);
+                if (count($engravingCodeExists) === 0) {
+                    $i++;
+                }
+            }
+
+            $response['status_code_header'] = 'HTTP/1.1 200 OK';
+            $response['body'] = json_encode([
+                "reb_engraving_code" => $engravingCode,
+            ]);
+            return $response;
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
+        }
+    }
+
+    /**
      * GENERATE ENGRAVING CODE
      * @param NUMBER $category_id
      * @return OBJECT $results
@@ -489,7 +547,7 @@ class AssetsDistributionController
         // school_code
         // category_id
 
-        // geting authorized user id
+        // getting authorized user id
         $logged_user_id = AuthValidation::authorized()->id;
         try {
             // checking if category exists
