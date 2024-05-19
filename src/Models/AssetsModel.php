@@ -45,13 +45,20 @@ class AssetsModel
         // 'STUDENTS', 'TEACHERS', 'STAFFS', 'SCHOOL'
         $user = strtolower(trim($value));
         if (strpos($user, "student") !== false) {
-            return 'STUDENTS';
+            return 'STUDENT';
         }
         if (strpos($user, "teacher") !== false) {
-            return 'TEACHERS';
+            return 'TEACHER';
         }
         if (strpos($user, "head") !== false) {
-            return 'STAFFS';
+            return 'STAFF';
+        }
+        if (strpos($user, "staff") !== false) {
+            return 'STAFF';
+        }
+
+        if (strpos($user, "head") !== false) {
+            return 'HEAD TEACHER';
         }
         return 'SCHOOL';
     }
@@ -442,6 +449,29 @@ class AssetsModel
             $statement = $this->db->prepare($statement);
             $statement->execute(array(
                 ":school_code" => $schoolCode,
+                ":assets_categories_id" => $categoriesId,
+                ":assets_sub_categories_id" => $subCategoriesId,
+            ));
+            $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $results;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    /**
+     * select Count assets category on school
+     *
+     * @param NUMBER $categoriesId
+     * @param STRING $subCategoriesId
+     * @return OBJECT $results
+     */
+    public function selectCountCategoryOnREB($categoriesId, $subCategoriesId)
+    {
+        $statement = "SELECT COUNT(*) as `total` FROM `assets` WHERE `assets_categories_id` = :assets_categories_id AND `assets_sub_categories_id` = :assets_sub_categories_id ";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
                 ":assets_categories_id" => $categoriesId,
                 ":assets_sub_categories_id" => $subCategoriesId,
             ));
