@@ -107,7 +107,10 @@ class AssetCategoriesController
                 if (sizeof($brandExists) == 0) {
                     return Errors::badRequestError("On index $key assets Brand id not found, please try again?");
                 }
-                // Generate assets sub category id
+            }
+
+            foreach ($data['assets'] as $key => $value) {
+                // Generate assets asset id
                 $generated_assets_id = UuidGenerator::gUuid();
                 $value['id'] = $generated_assets_id;
                 $this->assetsModel->insertNewAsset($value, $logged_user_id);
