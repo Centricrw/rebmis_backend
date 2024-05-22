@@ -543,10 +543,10 @@ class AssetsModel
      */
     public function selectAssetsSchoolCategoryById($assets_categories_id, $school_code)
     {
-        $statement = "SELECT ASSET.*, LEVELS.school_level_name, AC.assets_categories_name, ASUB.name FROM `assets` ASSET
+        $statement = "SELECT ASSET.*, LEVELS.level_name as school_level_name, AC.assets_categories_name, ASUB.name FROM `assets` ASSET
         INNER JOIN `assets_categories` AC ON AC.assets_categories_id = ASSET.assets_categories_id
         LEFT JOIN `assets_sub_categories` ASUB ON ASUB.id = ASSET.assets_sub_categories_id
-        LEFT JOIN `school_levels` LEVELS ON ASSET.level_code = LEVELS.school_level_id
+        LEFT JOIN `levels` LEVELS ON ASSET.level_code = LEVELS.level_code
         WHERE ASSET.assets_categories_id = ? AND ASSET.school_code = ? ";
         try {
             $statement = $this->db->prepare($statement);
@@ -565,11 +565,11 @@ class AssetsModel
      */
     public function selectNotAssignedStockAssets($assets_sub_categories_id, $brand_id)
     {
-        $statement = "SELECT ASSET.*, LEVELS.school_level_name, AC.assets_categories_name, ASUB.name FROM `assets` ASSET
+        $statement = "SELECT ASSET.*, LEVELS.level_name as school_level_name, AC.assets_categories_name, ASUB.name FROM `assets` ASSET
         INNER JOIN `assets_categories` AC ON AC.assets_categories_id = ASSET.assets_categories_id
         INNER JOIN `Brands` BA ON BA.id = ASSET.brand_id
         LEFT JOIN `assets_sub_categories` ASUB ON ASUB.id = ASSET.assets_sub_categories_id
-        LEFT JOIN `school_levels` LEVELS ON ASSET.level_code = LEVELS.school_level_id
+        LEFT JOIN `levels` LEVELS ON ASSET.level_code = LEVELS.level_code
         WHERE ASSET.assets_sub_categories_id = ? AND ASSET.brand_id = ? AND ASSET.asset_state != ?";
         try {
             $statement = $this->db->prepare($statement);
@@ -588,12 +588,12 @@ class AssetsModel
      */
     public function selectAssetsUploadedByUser($logged_user_id)
     {
-        $statement = "SELECT ASSET.*, S.school_name, LEVELS.school_level_name, AC.assets_categories_name, ASUB.name FROM `assets` ASSET
+        $statement = "SELECT ASSET.*, S.school_name, LEVELS.level_name as school_level_name, AC.assets_categories_name, ASUB.name FROM `assets` ASSET
         INNER JOIN `assets_categories` AC ON AC.assets_categories_id = ASSET.assets_categories_id
         INNER JOIN `Brands` BA ON BA.id = ASSET.brand_id
         INNER JOIN `schools` S ON S.school_code = ASSET.school_code
         LEFT JOIN `assets_sub_categories` ASUB ON ASUB.id = ASSET.assets_sub_categories_id
-        LEFT JOIN `school_levels` LEVELS ON ASSET.level_code = LEVELS.school_level_id
+        LEFT JOIN `levels` LEVELS ON ASSET.level_code = LEVELS.level_code
         WHERE ASSET.created_by = :created_by";
         try {
             $statement = $this->db->prepare($statement);
