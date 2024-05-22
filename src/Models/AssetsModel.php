@@ -19,7 +19,8 @@ class AssetsModel
      */
     public function insertNewAsset($data, $created_by)
     {
-        $statement = "INSERT INTO `assets`(`assets_id`, `name`, `serial_number`, `brand_id`, `assets_categories_id`, `assets_sub_categories_id`, `specification`, `created_by`) VALUES (:assets_id, :name, :serial_number, :brand_id, :assets_categories_id, :assets_sub_categories_id, :specification, :created_by)";
+        $currentDate = date('Y-m-d');
+        $statement = "INSERT INTO `assets`(`assets_id`, `name`, `serial_number`, `brand_id`, `assets_categories_id`, `assets_sub_categories_id`, `delivery_date`, `specification`, `created_by`) VALUES (:assets_id, :name, :serial_number, :brand_id, :assets_categories_id, :assets_sub_categories_id, :delivery_date, :specification, :created_by)";
         try {
             // Remove whiteSpaces from both sides of a string
             $assets_name = trim($data['name']);
@@ -29,6 +30,7 @@ class AssetsModel
                 ':name' => strtolower($assets_name),
                 ':serial_number' => $data['serial_number'],
                 ':brand_id' => $data['brand_id'],
+                ':delivery_date' => $currentDate,
                 ':assets_categories_id' => $data['assets_categories_id'],
                 ':assets_sub_categories_id' => isset($data['assets_sub_categories_id']) ? $data['assets_sub_categories_id'] : null,
                 ':specification' => json_encode($data['specification']),
@@ -511,7 +513,7 @@ class AssetsModel
     public function assignAssetsToSchool($data, $logged_user_id)
     {
         $currentDate = date('Y-m-d');
-        $statement = "UPDATE `assets` SET `assets_tag`=:assets_tag, `level_code`=:level_code, `school_code`=:school_code, `asset_state`=:asset_state, `batch_details_id`=:batch_details_id, `distribution_date`=:distribution_date, `updated_by`=:updated_by WHERE `assets_id`=:assets_id";
+        $statement = "UPDATE `assets` SET `assets_tag`=:assets_tag, `level_code`=:level_code, `school_code`=:school_code, `asset_state`=:asset_state, `users`=:users, `condition`=:condition, `batch_details_id`=:batch_details_id, `distribution_date`=:distribution_date, `updated_by`=:updated_by WHERE `assets_id`=:assets_id";
         try {
             // Remove whiteSpaces from both sides of a string
             $assets_name = trim($data['name']);
@@ -521,6 +523,8 @@ class AssetsModel
                 ':level_code' => $data['level_code'],
                 ':school_code' => $data['school_code'],
                 ':batch_details_id' => $data['batch_details_id'],
+                ':users' => $data['users'] ? $data['users'] : null,
+                ':condition' => $data['condition'] ? $data['condition'] : "GOOD",
                 ':distribution_date' => $currentDate,
                 ':updated_by' => $logged_user_id,
                 ":asset_state" => "assigned",
@@ -570,6 +574,30 @@ class AssetsModel
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array($assets_sub_categories_id, $brand_id, 'assigned'));
+            $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $results;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    /**
+     * get assets by user
+     * @param STRING $logged_user_id
+     * @return OBJECT $results
+     */
+    public function selectAssetsUploadedByUser($logged_user_id)
+    {
+        $statement = "SELECT ASSET.*, S.school_name, LEVELS.school_level_name, AC.assets_categories_name, ASUB.name FROM `assets` ASSET
+        INNER JOIN `assets_categories` AC ON AC.assets_categories_id = ASSET.assets_categories_id
+        INNER JOIN `Brands` BA ON BA.id = ASSET.brand_id
+        INNER JOIN `schools` S ON S.school_code = ASSET.school_code
+        LEFT JOIN `assets_sub_categories` ASUB ON ASUB.id = ASSET.assets_sub_categories_id
+        LEFT JOIN `school_levels` LEVELS ON ASSET.level_code = LEVELS.school_level_id
+        WHERE ASSET.created_by = :created_by";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(":created_by" => $logged_user_id));
             $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
             return $results;
         } catch (\PDOException $e) {
