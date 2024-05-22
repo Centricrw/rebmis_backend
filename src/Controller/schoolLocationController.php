@@ -50,7 +50,7 @@ class schoolLocationController
         try {
             // getting input data
             $data = (array) json_decode(file_get_contents('php://input'), true);
-            // geting authorized user id
+            // getting authorized user id
             $user_id = AuthValidation::authorized()->id;
 
             // getting school location by passing location

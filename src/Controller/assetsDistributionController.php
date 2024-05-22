@@ -607,7 +607,7 @@ class AssetsDistributionController
         // getting input data
         $data = (array) json_decode(file_get_contents('php://input'), true);
 
-        // geting authorized user id
+        // getting authorized user id
         $logged_user_id = AuthValidation::authorized()->id;
         try {
             // checking batch details exists
