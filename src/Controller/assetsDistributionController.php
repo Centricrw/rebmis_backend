@@ -443,8 +443,8 @@ class AssetsDistributionController
         $logged_user_id = AuthValidation::authorized()->id;
         try {
             // checking if category exists
-            $bacthExists = $this->assetCategoriesModel->selectAssetsCategoryById($data['category_id']);
-            if (sizeof($bacthExists) == 0) {
+            $categoryExists = $this->assetCategoriesModel->selectAssetsCategoryById($data['category_id']);
+            if (sizeof($categoryExists) == 0) {
                 return Errors::notFoundError("Assets category Id not found!, please try again?");
             }
 
