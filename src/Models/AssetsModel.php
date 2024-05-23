@@ -73,7 +73,7 @@ class AssetsModel
     public function insertMigratedAsset($data, $created_by)
     {
         $currentDate = date('Y-m-d');
-        $statement = "INSERT INTO `assets`(`assets_id`, `name`, `serial_number`, `assets_tag`, `level_code`, `school_code`, `batch_details_id`, `brand_id`, `assets_categories_id`, `assets_sub_categories_id`, `specification`, `supplier_id`, `price`, `delivery_date`, `warrant_period`, `condition`, `distribution_date`, `users`, `created_by`, `asset_state`) VALUES (:assets_id,:name,:serial_number,:assets_tag,:level_code,:school_code,:batch_details_id,:brand_id,:assets_categories_id,:assets_sub_categories_id,:specification,:supplier_id,:price,:delivery_date,:warrant_period,:condition,:distribution_date,:users,:created_by,:asset_state)";
+        $statement = "INSERT INTO `assets`(`assets_id`, `name`, `serial_number`, `assets_tag`, `level_code`, `school_code`, `batch_details_id`, `brand_id`, `assets_categories_id`, `assets_sub_categories_id`, `specification`, `supplier_id`, `supplier_name`, `price`, `delivery_date`, `warrant_period`, `condition`, `distribution_date`, `users`, `created_by`, `asset_state`) VALUES (:assets_id,:name,:serial_number,:assets_tag,:level_code,:school_code,:batch_details_id,:brand_id,:assets_categories_id,:assets_sub_categories_id,:specification,:supplier_id, :supplier_name,:price,:delivery_date,:warrant_period,:condition,:distribution_date,:users,:created_by,:asset_state)";
         try {
             // Remove whiteSpaces from both sides of a string
             $assets_name = trim($data['name']);
@@ -91,6 +91,7 @@ class AssetsModel
                 ':assets_sub_categories_id' => isset($data['assets_sub_categories_id']) ? $data['assets_sub_categories_id'] : null,
                 ':specification' => json_encode($data['specification']),
                 ':supplier_id' => isset($data['supplier_id']) ? $data['supplier_id'] : null,
+                ':supplier_name' => isset($data['supplier_name']) ? $data['supplier_name'] : null,
                 ':price' => isset($data['price']) ? (int) $data['price'] : null,
                 ':delivery_date' => isset($data['delivery_date']) && $data['delivery_date'] !== "" ? $data['delivery_date'] : $currentDate,
                 ':warrant_period' => isset($data['warrant_period']) ? (int) $data['warrant_period'] : null,
