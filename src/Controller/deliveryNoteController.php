@@ -202,7 +202,7 @@ class DeliveryNoteController
         $page_height = $pdf->GetPageHeight();
         $auto_page_break = $pdf->getAutoPageBreak();
 
-        if (($current_y + 50 > $page_height) && $auto_page_break) {
+        if (($current_y + 60 > $page_height) && $auto_page_break) {
             $pdf->AddPage();
             $pdf->useTemplate($tplIdx, 0, 0); // Apply template again
             // Reset Y position after adding a new page
