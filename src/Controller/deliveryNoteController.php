@@ -202,14 +202,14 @@ class DeliveryNoteController
         $page_height = $pdf->GetPageHeight();
         $auto_page_break = $pdf->getAutoPageBreak();
 
-        if (($current_y + 50 > $page_height) && $auto_page_break) {
+        if (($current_y + 60 > $page_height) && $auto_page_break) {
             $pdf->AddPage();
             $pdf->useTemplate($tplIdx, 0, 0); // Apply template again
             // Reset Y position after adding a new page
             $pdf->SetY(50); // Adjust Y position as needed for new page con
             // adding footer paragraph
             $pdf->SetFont('Times', '', 12);
-            $textHeader = "NOTE: $note";
+            $textHeader = "NOTE: " . $note;
             $pdf->MultiCell(165, 13, $textHeader, 0, 'L', false, 1, 10, 50);
 
             $pdf->SetXY(10, 50 + 20);
@@ -222,7 +222,7 @@ class DeliveryNoteController
         } else {
             // adding footer paragraph
             $pdf->SetFont('Times', '', 12);
-            $textHeader = "NOTE: $note";
+            $textHeader = "NOTE: " . $note;
             $pdf->MultiCell(165, 13, $textHeader, 0, 'L', false, 1, 10, $current_y + 5);
 
             $pdf->SetXY(10, $current_y + 20);
