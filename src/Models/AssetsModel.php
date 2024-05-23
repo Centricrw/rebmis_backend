@@ -544,7 +544,7 @@ class AssetsModel
      */
     public function selectAssetsSchoolCategoryById($assets_categories_id, $school_code)
     {
-        $statement = "SELECT ASSET.*, LEVELS.level_name as school_level_name, AC.assets_categories_name, ASUB.name FROM `assets` ASSET
+        $statement = "SELECT ASSET.*, LEVELS.level_name as school_level_name, AC.assets_categories_name, ASUB.name as assets_sub_categories_name FROM `assets` ASSET
         INNER JOIN `assets_categories` AC ON AC.assets_categories_id = ASSET.assets_categories_id
         LEFT JOIN `assets_sub_categories` ASUB ON ASUB.id = ASSET.assets_sub_categories_id
         LEFT JOIN `levels` LEVELS ON ASSET.level_code = LEVELS.level_code
@@ -566,7 +566,7 @@ class AssetsModel
      */
     public function selectNotAssignedStockAssets($assets_sub_categories_id, $brand_id)
     {
-        $statement = "SELECT ASSET.*, LEVELS.level_name as school_level_name, AC.assets_categories_name, ASUB.name FROM `assets` ASSET
+        $statement = "SELECT ASSET.*, LEVELS.level_name as school_level_name, AC.assets_categories_name, ASUB.name as assets_sub_categories_name FROM `assets` ASSET
         INNER JOIN `assets_categories` AC ON AC.assets_categories_id = ASSET.assets_categories_id
         INNER JOIN `Brands` BA ON BA.id = ASSET.brand_id
         LEFT JOIN `assets_sub_categories` ASUB ON ASUB.id = ASSET.assets_sub_categories_id
@@ -589,7 +589,7 @@ class AssetsModel
      */
     public function selectAssetsUploadedByUser($logged_user_id)
     {
-        $statement = "SELECT ASSET.*, S.school_name, LEVELS.level_name as school_level_name, AC.assets_categories_name, ASUB.name FROM `assets` ASSET
+        $statement = "SELECT ASSET.*, S.school_name, LEVELS.level_name as school_level_name, AC.assets_categories_name, ASUB.name as assets_sub_categories_name FROM `assets` ASSET
         INNER JOIN `assets_categories` AC ON AC.assets_categories_id = ASSET.assets_categories_id
         INNER JOIN `Brands` BA ON BA.id = ASSET.brand_id
         INNER JOIN `schools` S ON S.school_code = ASSET.school_code
@@ -599,6 +599,32 @@ class AssetsModel
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array(":created_by" => $logged_user_id));
+            $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $results;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    /**
+     * get assets by user
+     * @param STRING $logged_user_id
+     * @return OBJECT $results
+     */
+    public function selectAssetsForBatchOnShool($school_code, $batch_details_id)
+    {
+        $statement = "SELECT ASSET.*, S.school_name, LEVELS.level_name as school_level_name, AC.assets_categories_name, ASUB.name as assets_sub_categories_name FROM `assets` ASSET
+        INNER JOIN `assets_categories` AC ON AC.assets_categories_id = ASSET.assets_categories_id
+        INNER JOIN `Brands` BA ON BA.id = ASSET.brand_id
+        INNER JOIN `schools` S ON S.school_code = ASSET.school_code
+        LEFT JOIN `assets_sub_categories` ASUB ON ASUB.id = ASSET.assets_sub_categories_id
+        LEFT JOIN `levels` LEVELS ON ASSET.level_code = LEVELS.level_code
+        WHERE ASSET.batch_details_id = :batch_details_id AND ASSET.school_code= :school_code";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
+                ":batch_details_id" => $batch_details_id,
+                ":school_code" => $school_code));
             $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
             return $results;
         } catch (\PDOException $e) {

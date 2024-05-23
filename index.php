@@ -177,6 +177,9 @@ $route->router("/supplier_donor/{id}", "src/Controller/supplierDonorController.p
 // MIGRATION
 $route->router("/migration", "src/Controller/migrationController.php");
 
+// DELIVERY NOTE
+$route->router("/download_delivery_note", "src/Controller/deliveryNoteController.php");
+
 //write it at the last
 //arg is 404 file location
 $route->notFound("404.php");
