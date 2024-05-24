@@ -65,6 +65,20 @@ class AssetsModel
         return 'SCHOOL';
     }
 
+    function levelCodeHandler($level)
+    {
+        if ($level === "PRE PRIMARY" || $level === "PRE_PRIMARY") {
+            return "3";
+        }
+        if ($level === "PRIMARY") {
+            return "1";
+        }
+        if ($level === "SECONDARY") {
+            return "2";
+        }
+        return "2";
+    }
+
     /**
      * insert new migrated assets
      * @param OBJECT $data
@@ -83,7 +97,7 @@ class AssetsModel
                 ':name' => strtolower($assets_name),
                 ':serial_number' => $data['serial_number'],
                 ':assets_tag' => $data['assets_tag'],
-                ':level_code' => $data['level_code'],
+                ':level_code' => $this->levelCodeHandler($data['level_code']),
                 ':school_code' => $data['school_code'],
                 ':batch_details_id' => isset($data['batch_details_id']) ? $data['batch_details_id'] : null,
                 ':brand_id' => $data['brand_id'],
