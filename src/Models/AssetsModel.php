@@ -645,4 +645,37 @@ class AssetsModel
             throw new Error($e->getMessage());
         }
     }
+
+    /**
+     * get assets by user
+     * @param STRING $logged_user_id
+     * @return OBJECT $results
+     */
+    public function selectAssetsReceivedOnRebBYDate($date, $surlier_id)
+    {
+        // Set the start and end timestamps for filtering (modify as needed)
+        $startDateTimeStamp = strtotime($date); // Convert to Unix timestamp
+        $start_date = date("Y-m-d H:i:s", $startDateTimeStamp);
+        $endDateTimeStamp = strtotime($date . " 23:59:59"); // Include the whole day
+        $end_date = date("Y-m-d H:i:s", $endDateTimeStamp);
+
+        // echo $start_date . " - " . $end_date;
+
+        $statement = "SELECT ASSET.*, AC.assets_categories_name, ASUB.name as assets_sub_categories_name FROM `assets` ASSET
+        INNER JOIN `assets_categories` AC ON AC.assets_categories_id = ASSET.assets_categories_id
+        INNER JOIN `Brands` BA ON BA.id = ASSET.brand_id
+        LEFT JOIN `assets_sub_categories` ASUB ON ASUB.id = ASSET.assets_sub_categories_id
+        WHERE ASSET.create_at BETWEEN :startDate AND :endDate";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
+                ":startDate" => $start_date,
+                ":endDate" => $end_date,
+            ));
+            $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $results;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
 }
