@@ -20,7 +20,7 @@ class AssetsModel
     public function insertNewAsset($data, $created_by)
     {
         $currentDate = date('Y-m-d');
-        $statement = "INSERT INTO `assets`(`assets_id`, `name`, `serial_number`, `brand_id`, `assets_categories_id`, `assets_sub_categories_id`, `delivery_date`, `specification`, `created_by`) VALUES (:assets_id, :name, :serial_number, :brand_id, :assets_categories_id, :assets_sub_categories_id, :delivery_date, :specification, :created_by)";
+        $statement = "INSERT INTO `assets`(`assets_id`, `name`, `serial_number`, `brand_id`, `assets_categories_id`, `assets_sub_categories_id`, `supplier_id`, `supplier_name`, `delivery_date`, `specification`, `created_by`) VALUES (:assets_id, :name, :serial_number, :brand_id, :assets_categories_id, :assets_sub_categories_id, :supplier_id, :supplier_name, :delivery_date, :specification, :created_by)";
         try {
             // Remove whiteSpaces from both sides of a string
             $assets_name = trim($data['name']);
@@ -33,6 +33,8 @@ class AssetsModel
                 ':delivery_date' => $currentDate,
                 ':assets_categories_id' => $data['assets_categories_id'],
                 ':assets_sub_categories_id' => isset($data['assets_sub_categories_id']) ? $data['assets_sub_categories_id'] : null,
+                ':supplier_id' => isset($data['supplier_id']) ? $data['supplier_id'] : null,
+                ':supplier_name' => isset($data['supplier_name']) ? $data['supplier_name'] : null,
                 ':specification' => json_encode($data['specification']),
                 ':created_by' => $created_by,
             ));
