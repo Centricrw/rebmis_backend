@@ -57,6 +57,10 @@ class SupplierDonorController
         // getting authorized user id
         $logged_user_id = AuthValidation::authorized()->id;
         try {
+            // checking if type exist
+            if (!isset($data['type']) || ($data['type'] !== "SUPPLIER" && $data['type'] !== "DONOR")) {
+                return Errors::badRequestError("Type is required and must be SUPPLIER or DONOR, please try again?");
+            }
             // checking if name exists
             // Remove white spaces from both sides of a string
             $supplier_name = trim($data['name']);
