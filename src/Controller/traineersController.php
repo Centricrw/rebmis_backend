@@ -89,6 +89,7 @@ class TraineersController
 
     function TraineePerformanceLevelHandler($avarage)
     {
+        echo $avarage;
         switch (true) {
             case ($avarage >= 70 && $avarage <= 100):
                 return "Distinction";
