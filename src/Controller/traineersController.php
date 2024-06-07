@@ -89,7 +89,6 @@ class TraineersController
 
     function TraineePerformanceLevelHandler($avarage)
     {
-        echo $avarage;
         switch (true) {
             case ($avarage >= 70 && $avarage <= 100):
                 return "Distinction";
@@ -308,6 +307,14 @@ class TraineersController
 
                 // Calculate final average by dividing sum by number of chapters
                 $userAvg["average"] = $courseNavigationAverageSum + $endOfChapterAverageSum + $selfAssesmentAverageSum + $endOfModuleAverageSum + $endOfCourseAverageSum + $teacherPracticeAvarageSum;
+
+                echo "courseNavigationAverageSum: " . $courseNavigationAverageSum;
+                echo "endOfChapterAverageSum: " . $endOfChapterAverageSum;
+                echo "selfAssesmentAverageSum: " . $selfAssesmentAverageSum;
+                echo "endOfModuleAverageSum: " . $endOfModuleAverageSum;
+                echo "endOfCourseAverageSum: " . $endOfCourseAverageSum;
+                echo "teacherPracticeAvarageSum: " . $teacherPracticeAvarageSum;
+                echo "average: " . $userAvg["average"];
             }
 
             return $combinedAverages;
