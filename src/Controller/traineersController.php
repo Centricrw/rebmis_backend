@@ -151,12 +151,14 @@ class TraineersController
                     $result = $this->traineersModel->getGenratedReportTraineesBySchool($cohortId, $user_role_details['school_code']);
                     // calculate trainee's avarage
                     $results = $this->calculateCombinedAverage($result);
-                    return sizeof($result) > 0 ? $this->createPDFSample2($results, $signatures) : Errors::badRequestError("Report not found!, please try again?");
+                    $filterTraineesLevel2 = array_filter($results, array($this, 'filterHighScorers'));
+                    return sizeof($filterTraineesLevel2) > 0 ? $this->createPDFSample2($filterTraineesLevel2, $signatures) : Errors::badRequestError("Report not found!, please try again?");
                 case '1':
                     $result = $this->traineersModel->getGenratedReportTraineesByUser($user_role_details['user_id'], $cohortId);
                     // calculate trainee's avarage
                     $results = $this->calculateCombinedAverage($result);
-                    return sizeof($result) > 0 ? $this->createPDFSample2($results, $signatures) : Errors::badRequestError("Report not found!, please try again?");
+                    $filterTraineesLevel1 = array_filter($results, array($this, 'filterHighScorers'));
+                    return sizeof($filterTraineesLevel1) > 0 ? $this->createPDFSample2($filterTraineesLevel1, $signatures) : Errors::badRequestError("Report not found!, please try again?");
                 default:
                     $result = $this->traineersModel->getGenratedReportTrainees($cohortId);
                     // calculate trainee's avarage
@@ -329,8 +331,9 @@ class TraineersController
             // get director signature
             $signatures = $this->directorSignatureModel->selectDirectorSignatureBYTraining($cohortsExists[0]['trainingId']);
 
-            if (sizeof($result) > 0) {
-                return $this->createPDFSample2($results, $signatures);
+            $filterTrainees = array_filter($results, array($this, 'filterHighScorers'));
+            if (sizeof($filterTrainees) > 0) {
+                return $this->createPDFSample2($filterTrainees, $signatures);
             }
 
             return Errors::badRequestError("Report not found!, please try again?");
@@ -423,9 +426,9 @@ class TraineersController
             if ($deisplay == "true") {
                 // get director signature
                 $signatures = $this->directorSignatureModel->selectDirectorSignatureBYTraining($cohortsExists[0]['trainingId']);
-
-                if (sizeof($details) > 0) {
-                    return $this->createPDFSample2($results, $signatures);
+                $filterTrainees = array_filter($results, array($this, 'filterHighScorers'));
+                if (sizeof($details) > 0 && count($filterTrainees) > 0) {
+                    return $this->createPDFSample2($filterTrainees, $signatures);
                 }
                 return Errors::badRequestError("Report not found!, please try again?");
             } else {
