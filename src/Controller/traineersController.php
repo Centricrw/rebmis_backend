@@ -291,6 +291,8 @@ class TraineersController
                     $coachingAverageSum += (int) $marks['coaching'];
                 }
 
+                echo "endOfModuleSum: " . $endOfModuleAverageSum;
+
                 $courseNavigationAverageSum = (($courseNavigationAverageSum / $numChapters) * 20) / 100;
                 $endOfChapterAverageSum = (($endOfChapterAverageSum / $numChapters) * 10) / 100;
                 $selfAssesmentAverageSum = (($selfAssesmentAverageSum / $numChapters) * 10) / 100;
