@@ -249,16 +249,16 @@ class TraineersController
 
                 // Store marks for the current chapter
                 $combinedAverages[$userId]["chapter_marks"][$row["chapterId"]] = [
-                    "copMarks" => $row["copMarks"],
-                    "courseNavigation" => $row["courseNavigation"],
-                    "endOfChapter" => $row["endOfChapter"],
-                    "selfAssesment" => $row["selfAssesment"],
-                    "reflectionNotes" => $row["reflectionNotes"],
-                    "classroomApplication" => $row["classroomApplication"],
-                    "endOfModule" => $row["endOfModule"],
-                    "endOfCourse" => $row["endOfCourse"],
-                    "selfStudy" => $row["selfStudy"],
-                    "coaching" => $row["coaching"],
+                    "copMarks" => (int) $row["copMarks"],
+                    "courseNavigation" => (int) $row["courseNavigation"],
+                    "endOfChapter" => (int) $row["endOfChapter"],
+                    "selfAssesment" => (int) $row["selfAssesment"],
+                    "reflectionNotes" => (int) $row["reflectionNotes"],
+                    "classroomApplication" => (int) $row["classroomApplication"],
+                    "endOfModule" => (int) $row["endOfModule"],
+                    "endOfCourse" => (int) $row["endOfCourse"],
+                    "selfStudy" => (int) $row["selfStudy"],
+                    "coaching" => (int) $row["coaching"],
                 ];
             }
 
@@ -279,16 +279,16 @@ class TraineersController
                 $coachingAverageSum = 0;
                 // Loop through each chapter and add its average to the sum
                 foreach ($userAvg["chapter_marks"] as $chapter => $marks) {
-                    $copMarksAverageSum += $marks['copMarks'];
-                    $courseNavigationAverageSum += $marks['courseNavigation'];
-                    $endOfChapterAverageSum += $marks['endOfChapter'];
-                    $selfAssesmentAverageSum += $marks['selfAssesment'];
-                    $reflectionNotesAverageSum += $marks['reflectionNotes'];
-                    $classroomApplicationAverageSum += $marks['classroomApplication'];
-                    $endOfModuleAverageSum += $marks['endOfModule'];
-                    $endOfCourseAverageSum += $marks['endOfCourse'];
-                    $selfStudyAverageSum += $marks['selfStudy'];
-                    $coachingAverageSum += $marks['coaching'];
+                    $copMarksAverageSum += (int) $marks['copMarks'];
+                    $courseNavigationAverageSum += (int) $marks['courseNavigation'];
+                    $endOfChapterAverageSum += (int) $marks['endOfChapter'];
+                    $selfAssesmentAverageSum += (int) $marks['selfAssesment'];
+                    $reflectionNotesAverageSum += (int) $marks['reflectionNotes'];
+                    $classroomApplicationAverageSum += (int) $marks['classroomApplication'];
+                    $endOfModuleAverageSum += (int) $marks['endOfModule'];
+                    $endOfCourseAverageSum += (int) $marks['endOfCourse'];
+                    $selfStudyAverageSum += (int) $marks['selfStudy'];
+                    $coachingAverageSum += (int) $marks['coaching'];
                 }
 
                 $courseNavigationAverageSum = (($courseNavigationAverageSum / $numChapters) * 20) / 100;
