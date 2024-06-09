@@ -1,8 +1,10 @@
 {
   "cSpell.words": [
+    "Assesment",
     "assetscategory",
     "assetssubcategory",
     "authcontroller",
+    "Avarage",
     "batchdistribution",
     "bulkenroll",
     "changepassword",
@@ -11,11 +13,16 @@
     "districtscontroller",
     "distriution",
     "elearning",
+    "fgcolor",
+    "genaral",
     "generalreport",
+    "Genrated",
     "getdistricts",
     "getperschool",
     "getprovince",
     "getsectors",
+    "Gusoma",
+    "hpadding",
     "ictfocalteachers",
     "ictfocaltechers",
     "moduleprogress",
@@ -23,6 +30,7 @@
     "namesector",
     "positionscontroller",
     "provincename",
+    "QRCODE",
     "qualificationscontroller",
     "schoolassets",
     "schoollocation",
@@ -30,11 +38,15 @@
     "studyhierarchy",
     "systemfunction",
     "Tcpdf",
+    "traineecertificate",
     "traineers",
     "trainingcenter",
     "trainingtype",
+    "Tunoze",
     "updateinfo",
+    "USAID",
     "userrolecontroller",
-    "userscontroller"
+    "userscontroller",
+    "vpadding"
   ]
 }

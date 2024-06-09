@@ -183,7 +183,7 @@ class TraineersController
      *   - `traineeId`: (string) The unique identifier of the trainee in training.
      *   - `userId`: (string) The unique identifier of the user.
      *   - `traineeName`: (string) The name of the trainee.
-     *   - `traineePhone`: (string) The phone number of thrainee.
+     *   - `traineePhone`: (string) The phone number of trainee.
      *   - `staff_code`: (string) The unique identifier of the teacher or staff.
      *   - `cohortId`: (string) The unique identifier of cohorts.
      *   - `moduleId`: (string) The unique identifier of module.
@@ -291,8 +291,6 @@ class TraineersController
                     $coachingAverageSum += (int) $marks['coaching'];
                 }
 
-                echo "endOfModuleSum: " . $endOfModuleAverageSum;
-
                 $courseNavigationAverageSum = (($courseNavigationAverageSum / $numChapters) * 20) / 100;
                 $endOfChapterAverageSum = (($endOfChapterAverageSum / $numChapters) * 10) / 100;
                 $selfAssesmentAverageSum = (($selfAssesmentAverageSum / $numChapters) * 10) / 100;
@@ -310,13 +308,6 @@ class TraineersController
                 // Calculate final average by dividing sum by number of chapters
                 $userAvg["average"] = $courseNavigationAverageSum + $endOfChapterAverageSum + $selfAssesmentAverageSum + $endOfModuleAverageSum + $endOfCourseAverageSum + $teacherPracticeAvarageSum;
 
-                echo "courseNavigationAverageSum: " . $courseNavigationAverageSum;
-                echo "endOfChapterAverageSum: " . $endOfChapterAverageSum;
-                echo "selfAssesmentAverageSum: " . $selfAssesmentAverageSum;
-                echo "endOfModuleAverageSum: " . $endOfModuleAverageSum;
-                echo "endOfCourseAverageSum: " . $endOfCourseAverageSum;
-                echo "teacherPracticeAvarageSum: " . $teacherPracticeAvarageSum;
-                echo "average: " . $userAvg["average"];
             }
 
             return $combinedAverages;
@@ -352,66 +343,10 @@ class TraineersController
         }
     }
 
-    private function generateCertificateForSelectedTrainee($cohortId, $deisplay = false)
+    private function generateCertificateForSelectedTrainee($cohortId, $display = false)
     {
         try {
-            $names = [
-                "Nyirahabihirwe Pacifique",
-                "Dusabeyezu Jean De Dieu",
-                "Beatha Uwamahoro",
-                "Nyirakabuga Scholastique",
-                "Niyitegeka Marceline",
-                "Mukagatsinzi Mediatrice",
-                "Kanyamibwa Alphonse",
-                "Mukeshimana Jacqueline",
-                "Ingabire Cecile",
-                "Niyibizi Alphonsine",
-                "Uwamahoro Delphine",
-                "Bazubagira Marie Chantal",
-                "Mukamana Eugenie",
-                "Mukubwire Emerance",
-                "Niyomukiza Valens",
-                "Nizeyimana Deogratias",
-                "Mutuyeyezu Jacqueline",
-                "Mukamusafiri Venerande",
-                "Uwamahoro Assoumpta",
-                "Nibakure Chantal",
-                "Uwamahoro Jeanette",
-                "Mujawamariya Annoncee",
-                "Musoni Thadee",
-                "Muhaweniyera Edelbourgue",
-                "Ayobangira Immaculee",
-                "Uwajeneza Francine",
-                "Uwizeyimana Marie Chantal",
-                "Mukamusoni Clarisse",
-                "Nyirabakiga Laurence",
-                "Uwineza Olive",
-                "Beza Nakure Vestine",
-                "Mukaneza Donathile",
-                "Mukamusoni Elisabeth",
-                "Niyongabire Marie",
-                "Twizerimana Dada",
-                "Olive Uwimbabazi",
-                "Leonilla Mukasebanani",
-                "Ishimwe Liliane",
-                "Mushimiyimana Georgine",
-                "Nyiransabimana Julienne",
-                "Nikuze Therese",
-                "Mukamana Providence",
-                "Akimana Alice",
-                "Mukansanga Consolee",
-                "Ahishakiye Berte",
-                "Nyiraneza Jaqueline",
-                "Mukamana Marie Goretti",
-                "Nabitanga Nankema",
-                "KANYANGE ALINE",
-                "Jacqueline Uwimana",
-                "Annonciata Mujawingoma",
-                "Ufitinema Marie Gratie",
-                "Mukamana Marie Gorette",
-                "Ntawe Marie Goreth",
-                "Mujawimana Emma Marie",
-            ];
+            $names = [];
             $trainees = array();
             $notFound = array();
             // checking if cohort exists
@@ -433,7 +368,7 @@ class TraineersController
             // calculate trainee's avarage
             $results = $this->calculateCombinedAverage($trainees);
 
-            if ($deisplay == "true") {
+            if ($display == "true") {
                 // get director signature
                 $signatures = $this->directorSignatureModel->selectDirectorSignatureBYTraining($cohortsExists[0]['trainingId']);
                 $filterTrainees = array_filter($results, array($this, 'filterHighScorers'));
@@ -480,7 +415,7 @@ class TraineersController
     function updateTraineeStatusHandler($trainee_id)
     {
         $data = (array) json_decode(file_get_contents('php://input'), true);
-        // geting authorized user id
+        // getting authorized user id
         $created_by_user_id = AuthValidation::authorized()->id;
         try {
             // validating input
@@ -502,19 +437,19 @@ class TraineersController
                 return Errors::unprocessableEntityResponse("New status has invalid status, must be one this Shortlisted, Approved, Invited, Rejected and Removed");
             }
 
-            // checking if user is availeble
+            // checking if user is available
             $traineeExists = $this->traineersModel->selectTraineeBYId($trainee_id);
             if (count($traineeExists) == 0) {
-                return Errors::badRequestError("Trainee not found, plaese try again later?");
+                return Errors::badRequestError("Trainee not found, please try again later?");
             }
 
-            // update tarainee status
+            // update trainee status
             $updateStatus = $this->traineersModel->updateTraineeStatus($data, $trainee_id);
-            $romovedExists = $data["new_status"] == "Removed" || $data["current_status"] == "Removed" ? true : false;
-            if (isset($updateStatus) && $romovedExists) {
+            $removedExists = $data["new_status"] == "Removed" || $data["current_status"] == "Removed" ? true : false;
+            if (isset($updateStatus) && $removedExists) {
                 // update general report status if trainee Removed
-                $traineeExistsInReaport = $this->reportModel->selectGeneralReportByTraineeId($trainee_id);
-                if (count($traineeExistsInReaport) > 0) {
+                $traineeExistsInReport = $this->reportModel->selectGeneralReportByTraineeId($trainee_id);
+                if (count($traineeExistsInReport) > 0) {
                     $status = $data["new_status"] == "Removed" ? "Removed" : "Active";
                     $updateReport = $this->reportModel->updateTraineeGeneralReportStatus($status, $trainee_id);
                 }
@@ -522,7 +457,7 @@ class TraineersController
 
             $response['status_code_header'] = 'HTTP/1.1 200 OK';
             $response['body'] = json_encode([
-                "message" => "Trainee " . $data["new_status"] . " successfuly",
+                "message" => "Trainee " . $data["new_status"] . " successfully",
                 "Updated_genaral_report" => isset($updateReport) ? true : false,
             ]);
             return $response;
@@ -576,11 +511,11 @@ class TraineersController
             $recipientName = $this->removeExtraSpacesAndNewlines($value['traineeName']);
             $pdf->MultiCell(0, 13, $recipientName, 0, 'C', false, 1, 10, 80);
 
-            // Complition
-            $complitionStatus = $this->TraineePerformanceLevelHandler($avarage);
-            $complitionMessage = $complitionStatus == "Satisfactory" ? "a Certificate of $complitionStatus \nCompletion" : "a Certificate of Completion with \n" . $complitionStatus;
+            // Completion
+            $completionStatus = $this->TraineePerformanceLevelHandler($avarage);
+            $completionMessage = $completionStatus == "Satisfactory" ? "a Certificate of $completionStatus \nCompletion" : "a Certificate of Completion with \n" . $completionStatus;
             $pdf->SetFont('Times', 'I', 25);
-            $pdf->MultiCell(0, 13, $complitionMessage, 0, 'C', false, 1, 10, 95);
+            $pdf->MultiCell(0, 13, $completionMessage, 0, 'C', false, 1, 10, 95);
 
             // Message
             $pdf->SetFont('Times', 'I', 10);
