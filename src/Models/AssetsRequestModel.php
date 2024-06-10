@@ -19,7 +19,7 @@ class AssetsRequestModel
     public function insertNewRequestAsset($data, $created_by)
     {
         $currentDate = date('Y-m-d');
-        $statement = "INSERT INTO `assets_request`(`assets_request_id`, `school_code`, `category_id`, `subcategory_id`, `assets_number`, `reason`, `checklist`, `created_by`) VALUES (:assets_request_id, :school_code, :category_id, :subcategory_id, :assets_number,:reason,:checklist,:created_by)";
+        $statement = "INSERT INTO `assets_request`(`assets_request_id`, `school_code`, `category_id`, `subcategory_id`, `assets_number`, `users`, `reason`, `checklist`, `created_by`) VALUES (:assets_request_id, :school_code, :category_id, :subcategory_id, :assets_number, :users,:reason,:checklist,:created_by)";
         try {
             // Remove whiteSpaces from both sides of a string
             $assets_name = trim($data['name']);
@@ -30,6 +30,7 @@ class AssetsRequestModel
                 ':category_id' => $data['category_id'],
                 ':subcategory_id' => $data['subcategory_id'],
                 ':assets_number' => $data['assets_number'],
+                ':users' => $data['users'],
                 ':reason' => $data['reason'],
                 ':checklist' => json_encode($data['checklist']),
                 ':created_by' => $created_by,

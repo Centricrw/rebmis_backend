@@ -66,11 +66,16 @@ class AssetsRequestController
         $data = (array) json_decode(file_get_contents('php://input'), true);
         // getting authorized user id
         $logged_user_id = AuthValidation::authorized()->id;
+        $definedUsers = ['SCHOOL', 'TEACHER', 'STUDENT', 'STAFF', 'HEAD_TEACHER'];
         try {
             // checking if school has pending request
             $schoolHasPendingRequest = $this->assetsRequestModel->checkSchoolHasPendingOrReturnedRequest($data);
             if (sizeof($schoolHasPendingRequest) > 0) {
                 return Errors::badRequestError("School already has pending request, please try again later?");
+            }
+            // checking if users exists
+            if (!in_array($data['users'], $definedUsers)) {
+                return Errors::badRequestError("Users not found must be SCHOOL, TEACHER, STUDENT, STAFF or HEAD_TEACHER, please try again later?");
             }
             // checking if assets category exists
             $assetsCategoryExists = $this->assetCategoriesModel->selectAssetsCategoryById($data['category_id']);
