@@ -56,7 +56,10 @@ class AssetCategoriesController
         // getting authorized user id
         $logged_user_id = AuthValidation::authorized()->id;
         try {
-            // checking if training center name exists
+            // checking if checklist is available
+            if (!isset($data['checklist'])) {
+                return Errors::badRequestError("checklist is required, please try again?");
+            }
             // Remove white spaces from both sides of a string
             $assets_categories_name = trim($data['assets_categories_name']);
             $assetsCategoriesNameExists = $this->assetCategoriesModel->selectAssetsCategoryByName(strtolower($assets_categories_name));
@@ -89,6 +92,7 @@ class AssetCategoriesController
             $newResults = [];
             foreach ($results as $key => $value) {
                 $value['attributes'] = unserialize($value['attributes']);
+                $value['checklist'] = json_decode($value['checklist']);
                 array_push($newResults, $value);
             }
             $response['status_code_header'] = 'HTTP/1.1 200 OK';

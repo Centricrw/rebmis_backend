@@ -139,4 +139,100 @@ class AssetsRequestModel
         }
     }
 
+    /**
+     * get School Request Asset By Id
+     * @param STRING $assets_request_id
+     * @return OBJECT
+     */
+    public function getSchoolRequestAssetById($assets_request_id)
+    {
+        $currentDate = date('Y-m-d');
+        $statement = "SELECT assets_request.*, schools.school_name, assets_categories.assets_categories_name, assets_sub_categories.name as assets_sub_categories_name FROM `assets_request`
+        INNER JOIN schools ON schools.school_code = assets_request.school_code
+        INNER JOIN assets_categories ON assets_categories.assets_categories_id = assets_request.category_id
+        INNER JOIN assets_sub_categories ON assets_sub_categories.id = assets_request.subcategory_id
+        WHERE assets_request.assets_request_id = :assets_request_id
+        ";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
+                ':assets_request_id' => $assets_request_id,
+            ));
+            return $statement->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    /**
+     * Create new asset
+     * @param OBJECT $data
+     * @return VOID
+     */
+    public function addSchoolToVisitingList($data, $created_by)
+    {
+        $currentDate = date('Y-m-d');
+        $statement = "INSERT INTO `assets_request_details`(`assets_request_details_id`, `assets_request_id`, `visit_time`, `created_by`) VALUES (:assets_request_details_id, :assets_request_id, :visit_time, :created_by)";
+        try {
+            // Remove whiteSpaces from both sides of a string
+            $assets_name = trim($data['name']);
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
+                ':assets_request_details_id' => $data['assets_request_details_id'],
+                ':assets_request_id' => $data['assets_request_id'],
+                ':visit_time' => $data['visit_time'],
+                ':created_by' => $created_by,
+            ));
+            return $statement->rowCount();
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    /**
+     * get School Request Asset By Id
+     * @param STRING $assets_request_id
+     * @return OBJECT
+     */
+    public function getSchoolVisitingList()
+    {
+        $currentDate = date('Y-m-d');
+        $statement = "SELECT assets_request.*, assets_request_details.*, schools.school_name, assets_categories.assets_categories_name, assets_sub_categories.name as assets_sub_categories_name FROM `assets_request`
+        INNER JOIN assets_request_details ON assets_request_details.assets_request_id = assets_request.assets_request_id
+        INNER JOIN schools ON schools.school_code = assets_request.school_code
+        INNER JOIN assets_categories ON assets_categories.assets_categories_id = assets_request.category_id
+        INNER JOIN assets_sub_categories ON assets_sub_categories.id = assets_request.subcategory_id
+        WHERE assets_request_details.school_is_visited = :school_is_visited
+        ";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
+                ':school_is_visited' => "PENDING",
+            ));
+            return $statement->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    /**
+     * get School Request Asset By Id
+     * @param STRING $assets_request_id
+     * @return OBJECT
+     */
+    public function checkingIfSchoolOnVisitingList($assets_request_id)
+    {
+        $currentDate = date('Y-m-d');
+        $statement = "SELECT * FROM `assets_request_details` WHERE `assets_request_id`=:assets_request_id AND `school_is_visited`=:school_is_visited ";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
+                ':assets_request_id' => $assets_request_id,
+                ':school_is_visited' => "PENDING",
+            ));
+            return $statement->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
 }
