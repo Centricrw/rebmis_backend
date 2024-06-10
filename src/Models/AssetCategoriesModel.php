@@ -19,7 +19,7 @@ class AssetCategoriesModel
      */
     public function insertNewAssetsCategory($data, $created_by)
     {
-        $statement = "INSERT INTO `assets_categories`(`assets_categories_name`, `attributes`, `created_by`) VALUES (:assets_categories_name, :attributes,:created_by)";
+        $statement = "INSERT INTO `assets_categories`(`assets_categories_name`, `attributes`, `checklist`, `created_by`) VALUES (:assets_categories_name, :attributes, :checklist,:created_by)";
         try {
             // Remove whiteSpaces from both sides of a string
             $assets_categories_name = trim($data['assets_categories_name']);
@@ -28,6 +28,7 @@ class AssetCategoriesModel
             $statement->execute(array(
                 ':assets_categories_name' => strtolower($assets_categories_name),
                 ':attributes' => $serialized_array,
+                ':checklist' => json_encode($data['checklist']),
                 ':created_by' => $created_by,
             ));
             return $statement->rowCount();
