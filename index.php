@@ -181,6 +181,10 @@ $route->router("/migration", "src/Controller/migrationController.php");
 $route->router("/download_delivery_note", "src/Controller/deliveryNoteController.php");
 $route->router("/download_delivery_note/{action}", "src/Controller/deliveryNoteController.php");
 
+// ASSETS SCHOOL REQUEST
+$route->router("/school_assets_request", "src/Controller/assetsRequestController.php");
+$route->router("/school_assets_request/{action}", "src/Controller/assetsRequestController.php");
+
 //write it at the last
 //arg is 404 file location
 $route->notFound("404.php");

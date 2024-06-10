@@ -12,12 +12,7 @@ class SchoolsModel
     }
     public function findAll()
     {
-        $statement = "
-          SELECT
-              *
-          FROM
-            schools
-      ";
+        $statement = "SELECT * FROM schools ";
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array(1));
@@ -27,13 +22,14 @@ class SchoolsModel
             exit($e->getMessage());
         }
     }
-    public function findByCode($schoolcode)
+
+    public function findByCode($schoolCode)
     {
         $statement = "SELECT * FROM schools WHERE school_code= ?";
 
         try {
             $statement = $this->db->prepare($statement);
-            $statement->execute(array($schoolcode));
+            $statement->execute(array($schoolCode));
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             return $result;
         } catch (\PDOException $e) {
