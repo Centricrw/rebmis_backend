@@ -42,10 +42,10 @@ class AssetsRequestModel
 
     /**
      * Create new asset
-     * @param OBJECT $data
-     * @return VOID
+     * @param
+     * @return OBJECT
      */
-    public function getAllRequestAsset($data)
+    public function getAllRequestAsset()
     {
         $currentDate = date('Y-m-d');
         $statement = "SELECT assets_request.*, schools.school_name, assets_categories.assets_categories_name, assets_sub_categories.name as assets_sub_categories_name FROM `assets_request`
@@ -54,8 +54,6 @@ class AssetsRequestModel
         INNER JOIN assets_sub_categories ON assets_sub_categories.id = assets_request.subcategory_id
         ";
         try {
-            // Remove whiteSpaces from both sides of a string
-            $assets_name = trim($data['name']);
             $statement = $this->db->prepare($statement);
             $statement->execute(array());
             return $statement->fetchAll(\PDO::FETCH_ASSOC);
