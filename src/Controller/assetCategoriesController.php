@@ -116,6 +116,10 @@ class AssetCategoriesController
         // getting authorized user id
         $logged_user_id = AuthValidation::authorized()->id;
         try {
+            // checking if checklist is available
+            if (!isset($data['checklist'])) {
+                return Errors::badRequestError("checklist is required, please try again?");
+            }
             // checking if assets category exists
             $categoryExists = $this->assetCategoriesModel->selectAssetsCategoryById($assets_categories_id);
             if (sizeof($categoryExists) == 0) {

@@ -98,15 +98,16 @@ class AssetCategoriesModel
      */
     public function updateAssetsCategory($data, $assets_categories_id, $logged_user_id)
     {
-        $statement = "UPDATE `assets_categories` SET `assets_categories_name`=:assets_categories_name, `attributes`=:attributes, `status`=:status,`updated_by`=:updated_by WHERE `assets_categories_id`=:assets_categories_id";
+        $statement = "UPDATE `assets_categories` SET `assets_categories_name`=:assets_categories_name, `attributes`=:attributes, `status`=:status, `checklist`=:checklist,`updated_by`=:updated_by WHERE `assets_categories_id`=:assets_categories_id";
         try {
-            // Remove whitespaces from both sides of a string
+            // Remove white spaces from both sides of a string
             $assets_categories_name = trim($data['assets_categories_name']);
             $serialized_array = serialize($data['attributes']);
             $statement = $this->db->prepare($statement);
             $statement->execute(array(
                 ':assets_categories_name' => strtolower($assets_categories_name),
                 ':attributes' => $serialized_array,
+                ':checklist' => json_encode($data['checklist']),
                 ':status' => $data['status'],
                 ':updated_by' => $logged_user_id,
                 ':assets_categories_id' => $assets_categories_id,
