@@ -12,8 +12,6 @@ use Src\System\AuthValidation;
 use Src\System\Errors;
 use Src\System\UuidGenerator;
 
-// 'PENDING','RETURNED','APPROVED','REJECTED'
-
 class AssetsRequestController
 {
     private $db;
@@ -43,6 +41,10 @@ class AssetsRequestController
             case 'GET':
                 if (isset($this->params['action']) && $this->params['action'] == "school_visiting_list") {
                     $response = $this->getSchoolVisitingList();
+                } elseif (isset($this->params['action']) && $this->params['action'] == "school_requested_visit") {
+                    $response = $this->getSchoolRequestedForAVisit();
+                } elseif (isset($this->params['action']) && $this->params['action'] == "visit_report") {
+                    $response = $this->getAllVisitedReport();
                 } else {
                     $response = $this->getAllRequestedAssets();
                 }
@@ -50,6 +52,10 @@ class AssetsRequestController
             case "POST":
                 if (isset($this->params['action']) && $this->params['action'] == "add_school_visit_list") {
                     $response = $this->addSchoolToVisitList();
+                } else if (isset($this->params['action']) && $this->params['action'] == "request_for_visit") {
+                    $response = $this->schoolRequestForAVisit();
+                } else if (isset($this->params['action']) && $this->params['action'] == "confirm_school_request") {
+                    $response = $this->confirmSchoolRequestAssets();
                 } else {
                     $response = $this->createNewRequestAssets();
                 }
@@ -184,8 +190,8 @@ class AssetsRequestController
             if (sizeof($schoolOnVisitingList) > 0) {
                 return Errors::badRequestError("School already on visiting list, please try again later?");
             }
-            $schoolHasPendingRequest = $this->assetsRequestModel->getSchoolRequestAssetById($data['assets_request_id']);
-            if (sizeof($schoolHasPendingRequest) === 0) {
+            $schoolRequestExists = $this->assetsRequestModel->getSchoolRequestAssetById($data['assets_request_id']);
+            if (sizeof($schoolRequestExists) === 0) {
                 return Errors::badRequestError("Assets school request not found, please try again later?");
             }
             if (!$this->isDate($data['visit_time'])) {
@@ -226,6 +232,154 @@ class AssetsRequestController
             $results = $this->assetsRequestModel->getSchoolVisitingList();
             foreach ($results as $key => $value) {
                 $results[$key]['checklist'] = json_decode($value['checklist']);
+            }
+            $response['status_code_header'] = 'HTTP/1.1 200 Ok';
+            $response['body'] = json_encode($results);
+            return $response;
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
+        }
+    }
+
+    /**
+     * add school to visit list
+     *
+     * @return OBJECT $results
+     */
+
+    public function schoolRequestForAVisit()
+    {
+        // getting input data
+        $data = (array) json_decode(file_get_contents('php://input'), true);
+        // getting authorized user id
+        $logged_user_id = AuthValidation::authorized()->id;
+        try {
+            //checking if school already on visiting list
+            $schoolOnVisitingList = $this->assetsRequestModel->checkingIfSchoolOnVisitingList($data['assets_request_id']);
+            if (sizeof($schoolOnVisitingList) > 0) {
+                return Errors::badRequestError("School already on visiting list, please try again later?");
+            }
+            $schoolRequestExists = $this->assetsRequestModel->getSchoolRequestAssetById($data['assets_request_id']);
+            if (sizeof($schoolRequestExists) === 0) {
+                return Errors::badRequestError("Assets school request not found, please try again later?");
+            }
+
+            $this->assetsRequestModel->requestForAVisit($data['assets_request_id'], "1");
+            $response['status_code_header'] = 'HTTP/1.1 201 Created';
+            $response['body'] = json_encode([
+                "message" => "Request submitted successfully!",
+                "results" => $data,
+            ]);
+            return $response;
+
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
+        }
+    }
+
+    public function getSchoolRequestedForAVisit()
+    {
+        // getting authorized user id
+        $logged_user_id = AuthValidation::authorized()->id;
+        try {
+            $user_role = $this->userRoleModel->findCurrentUserRole($logged_user_id);
+            if (sizeof($user_role) === 0) {
+                return Errors::badRequestError("Please login first, please try again later?");
+            }
+
+            $results = $this->assetsRequestModel->getSchoolRequestedForVisit();
+            foreach ($results as $key => $value) {
+                $results[$key]['checklist'] = json_decode($value['checklist']);
+            }
+            $response['status_code_header'] = 'HTTP/1.1 200 Ok';
+            $response['body'] = json_encode($results);
+            return $response;
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
+        }
+    }
+
+    /**
+     * add school to visit list
+     *
+     * @return OBJECT $results
+     */
+
+    public function confirmSchoolRequestAssets()
+    {
+        // getting input data
+        $data = (array) json_decode(file_get_contents('php://input'), true);
+        // getting authorized user id
+        $logged_user_id = AuthValidation::authorized()->id;
+        $definedStatus = array('PENDING', 'RETURNED', 'APPROVED', 'REJECTED');
+        try {
+            //checking if school already on visiting list
+            $schoolRequestExists = $this->assetsRequestModel->getSchoolRequestAssetById($data['assets_request_id']);
+            if (sizeof($schoolRequestExists) === 0) {
+                return Errors::badRequestError("Assets school request not found, please try again later?");
+            }
+
+            //checking if school already on visiting list
+            $schoolRequestDetailsExists = $this->assetsRequestModel->getSchoolVisitingListBYid($data['assets_request_details_id']);
+            if (sizeof($schoolRequestDetailsExists) === 0) {
+                return Errors::badRequestError("School request details not found, please try again later?");
+            }
+
+            // checking if action_done exists
+            if (!in_array($data['action_done'], $definedStatus)) {
+                return Errors::badRequestError("Users not found must be PENDING, RETURNED, APPROVED or REJECTED, please try again later?");
+            }
+
+            // update visiting report
+            $this->assetsRequestModel->confirmSchoolRequestAssets($data, $logged_user_id);
+            // update school request
+            $this->assetsRequestModel->confirmSchoolRequest($data['assets_request_id'], $data['action_done']);
+            $response['status_code_header'] = 'HTTP/1.1 201 Created';
+            $response['body'] = json_encode([
+                "message" => "Request confirmed successfully!",
+                "results" => $data,
+            ]);
+            return $response;
+
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
+        }
+    }
+
+    /**
+     * Create new Assets Category
+     * @param OBJECT $data
+     * @return OBJECT $results
+     */
+
+    public function getAllVisitedReport()
+    {
+        // getting authorized user id
+        $logged_user_id = AuthValidation::authorized()->id;
+        try {
+            $user_role = $this->userRoleModel->findCurrentUserRole($logged_user_id);
+            if (sizeof($user_role) === 0) {
+                return Errors::badRequestError("Please login first, please try again later?");
+            }
+
+            // if is headteacher logged in
+            if ($user_role[0]['role_id'] === "2") {
+                $results = $this->assetsRequestModel->getSchoolRequestAsset($user_role[0]['school_code']);
+                foreach ($results as $key => $value) {
+                    $results[$key]['checklist'] = json_decode($value['checklist']);
+                    $details = $this->assetsRequestModel->getSchoolVisitingReport($value['assets_request_id']);
+                    $results[$key]['assets_request_details'] = $details;
+                }
+                $response['status_code_header'] = 'HTTP/1.1 200 Ok';
+                $response['body'] = json_encode($results);
+                return $response;
+            }
+
+            $results = $this->assetsRequestModel->getAllRequestAsset();
+            foreach ($results as $key => $value) {
+                $results[$key]['checklist'] = json_decode($value['checklist']);
+                $details = $this->assetsRequestModel->getSchoolVisitingReport($value['assets_request_id']);
+                $results[$key]['assets_request_details'] = $details;
             }
             $response['status_code_header'] = 'HTTP/1.1 200 Ok';
             $response['body'] = json_encode($results);
