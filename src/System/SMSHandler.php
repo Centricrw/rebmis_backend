@@ -21,7 +21,7 @@ class SMSHandler
         try {
 
             if (!isset($this->sender) && !isset($this->username) && !isset($this->password)) {
-                throw new Error("SMS Auntacation failed!, please try again?");
+                throw new Error("SMS Authentication failed!, please try again?");
             }
 
             $data = array(

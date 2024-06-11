@@ -363,6 +363,20 @@ class UsersModel
         }
     }
 
+    public function findUserByUserId($user_id)
+    {
+        $statement = "SELECT * FROM users WHERE user_id = ? LIMIT 1";
+
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array($user_id));
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $result;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
     public function findUserByStaffcode($staff_code)
     {
         $statement = "SELECT * FROM users WHERE staff_code = ? LIMIT 1";
