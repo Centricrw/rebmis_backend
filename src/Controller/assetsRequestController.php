@@ -8,8 +8,10 @@ use Src\Models\AssetsRequestModel;
 use Src\Models\AssetSubCategoriesModel;
 use Src\Models\SchoolsModel;
 use Src\Models\UserRoleModel;
+use Src\Models\UsersModel;
 use Src\System\AuthValidation;
 use Src\System\Errors;
+use Src\System\SendEmailHandler;
 use Src\System\UuidGenerator;
 
 class AssetsRequestController
@@ -20,7 +22,9 @@ class AssetsRequestController
     private $assetsRequestModel;
     private $schoolsModel;
     private $userRoleModel;
+    private $usersModel;
     private $request_method;
+    private $sendEmailHandler;
     private $params;
 
     public function __construct($db, $request_method, $params)
@@ -33,6 +37,8 @@ class AssetsRequestController
         $this->assetsRequestModel = new AssetsRequestModel($db);
         $this->schoolsModel = new SchoolsModel($db);
         $this->userRoleModel = new UserRoleModel($db);
+        $this->usersModel = new UsersModel($db);
+        $this->sendEmailHandler = new SendEmailHandler($db);
     }
 
     function processRequest()
@@ -334,6 +340,9 @@ class AssetsRequestController
             $this->assetsRequestModel->confirmSchoolRequestAssets($data, $logged_user_id);
             // update school request
             $this->assetsRequestModel->confirmSchoolRequest($data['assets_request_id'], $data['action_done']);
+
+            // sending notification to head teacher
+            $this->sendEmailNotificationToHeadTeacher($schoolRequestExists[0]['created_by'], $data['action_done']);
             $response['status_code_header'] = 'HTTP/1.1 201 Created';
             $response['body'] = json_encode([
                 "message" => "Request confirmed successfully!",
@@ -386,6 +395,85 @@ class AssetsRequestController
             return $response;
         } catch (\Throwable $th) {
             return Errors::databaseError($th->getMessage());
+        }
+    }
+
+    function sendEmailNotificationToHeadTeacher($userId, $status)
+    {
+        $user_role = $this->userRoleModel->findCurrentUserRole($userId);
+        $user = $this->usersModel->findUserByUserId($userId);
+        if ($user_role[0]['role_id'] === "2" && count($user) > 0 && isset($user[0]['email'])) {
+            switch ($status) {
+                case 'APPROVED':
+                    $names = $user[0]['full_name'];
+                    $message = "
+	                    <!DOCTYPE html>
+	                    <html>
+	                    <head>
+	                    <title>Your request have been approved!</title>
+	                    </head>
+	                    <body>
+	                      <p>Dear $names,</p>
+	                      <p>I hope this email finds you well.</p>
+	                      <p>We are thrilled to inform you that your request for assets has been approved!</p>
+	                      <p>We recommend visiting REB MIS portal</p>
+	                      <p><strong>Additionally:</strong></p>
+	                      <p>If you have any questions about your request, please don't hesitate to contact us.</p>
+	                      <p>Thank you for your patience!</p>
+	                      <p>Sincerely,</p>
+	                      <p>REB MIS.</p>
+	                    </body>
+	                    </html>";
+                    $this->sendEmailHandler->sendSMSMessage($user[0]['email'], "REB MIS Approval of Your Request", $message);
+                    break;
+                case 'REJECTED':
+                    $names = $user[0]['full_name'];
+                    $message = "
+	                    <!DOCTYPE html>
+	                    <html>
+	                    <head>
+	                    <title>Your request have been rejected!</title>
+	                    </head>
+	                    <body>
+	                      <p>Dear $names,</p>
+	                      <p>I hope this email finds you well.</p>
+	                      <p>Thank you for submitting your request. We have carefully reviewed your application, and unfortunately, we regret to inform you that we are unable to approve your assets request at this time.</p>
+	                      <p>We recommend visiting REB MIS portal</p>
+	                      <p><strong>Additionally:</strong></p>
+	                      <p>If you have any questions about your request, please don't hesitate to contact us.</p>
+	                      <p>Thank you for your patience!</p>
+	                      <p>Sincerely,</p>
+	                      <p>REB MIS.</p>
+	                    </body>
+	                    </html>";
+                    $this->sendEmailHandler->sendSMSMessage($user[0]['email'], "REB MIS Rejection of Your Request", $message);
+                    break;
+                case 'RETURNED':
+                    $names = $user[0]['full_name'];
+                    $message = "
+	                    <!DOCTYPE html>
+	                    <html>
+	                    <head>
+	                    <title>Your request have been returned!</title>
+	                    </head>
+	                    <body>
+	                      <p>Dear $names,</p>
+	                      <p>I hope this email finds you well.</p>
+	                      <p>We are thrilled to inform you that your request for assets has been approved!</p>
+	                      <p>We recommend visiting REB MIS portal</p>
+	                      <p><strong>Additionally:</strong></p>
+	                      <p>If you have any questions about your request, please don't hesitate to contact us.</p>
+	                      <p>Thank you for your patience!</p>
+	                      <p>Sincerely,</p>
+	                      <p>REB MIS.</p>
+	                    </body>
+	                    </html>";
+                    $this->sendEmailHandler->sendSMSMessage($user[0]['email'], "REB MIS Returned Your Request", $message);
+                    break;
+                default:
+                    # code...
+                    break;
+            }
         }
     }
 
