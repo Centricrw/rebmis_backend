@@ -333,7 +333,7 @@ class AssetsRequestController
 
             // checking if action_done exists
             if (!in_array($data['action_done'], $definedStatus)) {
-                return Errors::badRequestError("Users not found must be PENDING, RETURNED, APPROVED or REJECTED, please try again later?");
+                return Errors::badRequestError("action_done not found must be PENDING, RETURNED, APPROVED or REJECTED, please try again later?");
             }
 
             // update visiting report
