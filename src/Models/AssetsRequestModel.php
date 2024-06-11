@@ -122,7 +122,7 @@ class AssetsRequestModel
     {
         $currentDate = date('Y-m-d');
         $statement = "SELECT * FROM `assets_request`
-        WHERE assets_request_status != :approved_request_status OR assets_request_status != :rejected_request_status AND school_code = :school_code AND category_id = :category_id AND subcategory_id = :subcategory_id
+        WHERE assets_request_status != :approved_request_status AND assets_request_status != :rejected_request_status AND school_code = :school_code AND category_id = :category_id AND subcategory_id = :subcategory_id
         ";
         try {
             $statement = $this->db->prepare($statement);
