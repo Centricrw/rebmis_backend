@@ -255,8 +255,8 @@ class DeliveryNoteController
             $pdf->SetFont('Times', 'B', 12);
             $pdf->Write(5, "Good received in good order by: ", '', false, '', true);
             $pdf->Write(5, "Signature and stamp", '', false, '', true);
-            $pdf->Write(5, "Handed over by: ", '', false, '', true);
-            $pdf->Write(5, "Signature", '', false, '', true);
+            $pdf->Write(10, "Handed over by: ", '', false, '', true);
+            $pdf->Write(10, "Signature", '', false, '', true);
 
         } else {
             // adding footer paragraph
@@ -268,8 +268,8 @@ class DeliveryNoteController
             $pdf->SetFont('Times', 'B', 12);
             $pdf->Write(5, "Good received in good order by: ", '', false, '', true);
             $pdf->Write(5, "Signature and stamp", '', false, '', true);
-            $pdf->Write(5, "Handed over by: ", '', false, '', true);
-            $pdf->Write(5, "Signature", '', false, '', true);
+            $pdf->Write(10, "Handed over by: ", '', false, '', true);
+            $pdf->Write(10, "Signature", '', false, '', true);
 
         }
 
@@ -356,7 +356,7 @@ class DeliveryNoteController
             array_push($data, [$key + 1, $value['assets_categories_name'] . ", " . $value['assets_sub_categories_name'], $value['assets_tag'], $value['serial_number'], $value['condition']]);
         }
 
-        $estimated_table_height = 50;
+        $estimated_table_height = 30;
 
         foreach ($data as $row) {
             // Check for page break and add new page if necessary
@@ -382,7 +382,7 @@ class DeliveryNoteController
         $page_height = $pdf->GetPageHeight();
         $auto_page_break = $pdf->getAutoPageBreak();
 
-        if (($current_y + 60 > $page_height) && $auto_page_break) {
+        if (($current_y + 80 > $page_height) && $auto_page_break) {
             $pdf->AddPage();
             $pdf->useTemplate($tplIdx, 0, 0); // Apply template again
             // Reset Y position after adding a new page
@@ -394,10 +394,10 @@ class DeliveryNoteController
 
             $pdf->SetXY(10, 50 + 20);
             $pdf->SetFont('Times', 'B', 12);
-            $pdf->Write(5, "Good received in good order by: ", '', false, '', true);
-            $pdf->Write(5, "Signature and stamp", '', false, '', true);
-            $pdf->Write(5, "Handed over by: ", '', false, '', true);
-            $pdf->Write(5, "Signature", '', false, '', true);
+            $pdf->Write(10, "Good received in good order by: ", '', false, '', true);
+            $pdf->Write(10, "Signature and stamp", '', false, '', true);
+            $pdf->Write(10, "Handed over by: ", '', false, '', true);
+            $pdf->Write(10, "Signature", '', false, '', true);
 
         } else {
             // adding footer paragraph
@@ -407,10 +407,10 @@ class DeliveryNoteController
 
             $pdf->SetXY(10, $current_y + 20);
             $pdf->SetFont('Times', 'B', 12);
-            $pdf->Write(5, "Good received in good order by: ", '', false, '', true);
-            $pdf->Write(5, "Signature and stamp", '', false, '', true);
-            $pdf->Write(5, "Handed over by: ", '', false, '', true);
-            $pdf->Write(5, "Signature", '', false, '', true);
+            $pdf->Write(10, "Good received in good order by: ", '', false, '', true);
+            $pdf->Write(10, "Signature and stamp", '', false, '', true);
+            $pdf->Write(10, "Handed over by: ", '', false, '', true);
+            $pdf->Write(10, "Signature", '', false, '', true);
 
         }
 
