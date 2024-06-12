@@ -62,6 +62,8 @@ class AssetsRequestController
                     $response = $this->schoolRequestForAVisit();
                 } else if (isset($this->params['action']) && $this->params['action'] == "confirm_school_request") {
                     $response = $this->confirmSchoolRequestAssets();
+                } else if (isset($this->params['action']) && $this->params['action'] == "reject_visit") {
+                    $response = $this->rejectSchoolRequestedVisitHandler();
                 } else {
                     $response = $this->createNewRequestAssets();
                 }
@@ -299,6 +301,30 @@ class AssetsRequestController
             }
             $response['status_code_header'] = 'HTTP/1.1 200 Ok';
             $response['body'] = json_encode($results);
+            return $response;
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
+        }
+    }
+
+    public function rejectSchoolRequestedVisitHandler()
+    {
+        // getting authorized user id
+        $logged_user_id = AuthValidation::authorized()->id;
+        // getting input data
+        $data = (array) json_decode(file_get_contents('php://input'), true);
+        try {
+            $schoolRequestExists = $this->assetsRequestModel->getSchoolRequestAssetById($data['assets_request_id']);
+            if (sizeof($schoolRequestExists) === 0) {
+                return Errors::badRequestError("Assets school request not found, please try again later?");
+            }
+
+            $this->assetsRequestModel->requestForAVisit($data['assets_request_id'], "0");
+            $response['status_code_header'] = 'HTTP/1.1 201 Created';
+            $response['body'] = json_encode([
+                "message" => "Request rejected successfully!",
+                "results" => $data,
+            ]);
             return $response;
         } catch (\Throwable $th) {
             return Errors::databaseError($th->getMessage());
