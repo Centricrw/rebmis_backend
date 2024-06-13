@@ -220,6 +220,33 @@ class AssetsRequestModel
      * @param STRING $assets_request_id
      * @return OBJECT
      */
+    public function getSchoolVisitingListBySchoolCode($school_code)
+    {
+        $currentDate = date('Y-m-d');
+        $statement = "SELECT assets_request.*, assets_request_details.*, schools.school_name, assets_categories.assets_categories_name, assets_sub_categories.name as assets_sub_categories_name FROM `assets_request`
+        INNER JOIN assets_request_details ON assets_request_details.assets_request_id = assets_request.assets_request_id
+        INNER JOIN schools ON schools.school_code = assets_request.school_code
+        INNER JOIN assets_categories ON assets_categories.assets_categories_id = assets_request.category_id
+        INNER JOIN assets_sub_categories ON assets_sub_categories.id = assets_request.subcategory_id
+        WHERE assets_request_details.school_is_visited = :school_is_visited AND assets_request.school_code = :school_code
+        ";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
+                ':school_is_visited' => "PENDING",
+                ':school_code' => $school_code,
+            ));
+            return $statement->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    /**
+     * get School Request Asset By Id
+     * @param STRING $assets_request_id
+     * @return OBJECT
+     */
     public function checkingIfSchoolOnVisitingList($assets_request_id)
     {
         $currentDate = date('Y-m-d');
