@@ -428,7 +428,8 @@ class AssetsRequestController
     {
         $user_role = $this->userRoleModel->findCurrentUserRole($userId);
         $user = $this->usersModel->findUserByUserId($userId);
-        if ($user_role[0]['role_id'] === "2" && count($user) > 0 && isset($user[0]['email']) && $user[0]['email'] !== "" && $user[0]['email'] !== null && !empty($user[0]['email'])) {
+        $headTeacherEmail = trim($user[0]['email']);
+        if ($user_role[0]['role_id'] === "2" && count($user) > 0 && isset($headTeacherEmail) && $headTeacherEmail !== "" && $headTeacherEmail !== null && !empty($headTeacherEmail)) {
             switch ($status) {
                 case 'APPROVED':
                     $names = $user[0]['full_name'];
@@ -450,7 +451,7 @@ class AssetsRequestController
 	                      <p>REB MIS.</p>
 	                    </body>
 	                    </html>";
-                    $this->sendEmailHandler->sendSMSMessage($user[0]['email'], "REB MIS Approval of Your Request", $message);
+                    $this->sendEmailHandler->sendSMSMessage($headTeacherEmail, "REB MIS Approval of Your Request", $message);
                     break;
                 case 'REJECTED':
                     $names = $user[0]['full_name'];
@@ -472,7 +473,7 @@ class AssetsRequestController
 	                      <p>REB MIS.</p>
 	                    </body>
 	                    </html>";
-                    $this->sendEmailHandler->sendSMSMessage($user[0]['email'], "REB MIS Rejection of Your Request", $message);
+                    $this->sendEmailHandler->sendSMSMessage($headTeacherEmail, "REB MIS Rejection of Your Request", $message);
                     break;
                 case 'RETURNED':
                     $names = $user[0]['full_name'];
@@ -494,7 +495,7 @@ class AssetsRequestController
 	                      <p>REB MIS.</p>
 	                    </body>
 	                    </html>";
-                    $this->sendEmailHandler->sendSMSMessage($user[0]['email'], "REB MIS Returned Your Request", $message);
+                    $this->sendEmailHandler->sendSMSMessage($headTeacherEmail, "REB MIS Returned Your Request", $message);
                     break;
                 default:
                     # code...
