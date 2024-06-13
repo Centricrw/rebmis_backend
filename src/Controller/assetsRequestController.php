@@ -237,6 +237,17 @@ class AssetsRequestController
                 return Errors::badRequestError("Please login first, please try again later?");
             }
 
+            // if is headteacher logged in
+            if ($user_role[0]['role_id'] === "2") {
+                $results = $this->assetsRequestModel->getSchoolVisitingListBySchoolCode($user_role[0]['school_code']);
+                foreach ($results as $key => $value) {
+                    $results[$key]['checklist'] = json_decode($value['checklist']);
+                }
+                $response['status_code_header'] = 'HTTP/1.1 200 Ok';
+                $response['body'] = json_encode($results);
+                return $response;
+            }
+
             $results = $this->assetsRequestModel->getSchoolVisitingList();
             foreach ($results as $key => $value) {
                 $results[$key]['checklist'] = json_decode($value['checklist']);
