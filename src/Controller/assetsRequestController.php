@@ -428,7 +428,7 @@ class AssetsRequestController
     {
         $user_role = $this->userRoleModel->findCurrentUserRole($userId);
         $user = $this->usersModel->findUserByUserId($userId);
-        if ($user_role[0]['role_id'] === "2" && count($user) > 0 && isset($user[0]['email'])) {
+        if ($user_role[0]['role_id'] === "2" && count($user) > 0 && isset($user[0]['email']) && $user[0]['email'] !== "" && $user[0]['email'] !== null && !empty($user[0]['email'])) {
             switch ($status) {
                 case 'APPROVED':
                     $names = $user[0]['full_name'];
