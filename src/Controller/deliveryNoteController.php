@@ -33,6 +33,12 @@ class DeliveryNoteController
     function processRequest()
     {
         switch ($this->request_method) {
+            case 'GET':
+                if ($this->params['action'] == "all_engraved_assets") {
+                    $response = $this->getAllEngravedAssets();
+                } else {
+                    $response = Errors::notFoundError("Route not found!");
+                }
             case 'POST':
                 if ($this->params['action'] == "received") {
                     $response = $this->generateReceivedNoteForReb();
@@ -139,6 +145,27 @@ class DeliveryNoteController
             // return $response;
 
             return Errors::badRequestError("Assets not found!, please try again?");
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
+        }
+    }
+
+    private function getAllEngravedAssets()
+    {
+        // getting authorized user id
+        $logged_user_id = AuthValidation::authorized()->id;
+        //
+        try {
+            $assets = $this->assetsModel->selectAllEngravedAssets();
+            if (count($assets) > 0) {
+                return $this->allEngravedAssets($assets);
+            }
+
+            // $response['status_code_header'] = 'HTTP/1.1 200 OK';
+            // $response['body'] = json_encode($results);
+            // return $response;
+
+            return Errors::badRequestError("This batch on school assets not found!, please try again?");
         } catch (\Throwable $th) {
             return Errors::databaseError($th->getMessage());
         }
@@ -420,6 +447,113 @@ class DeliveryNoteController
             $pdf->Write(10, "Handed over by: ", '', false, '', true);
             $pdf->Write(10, "Signature", '', false, '', true);
 
+        }
+
+        // Close and output PDF document
+        $pdf->Output('delivery_note_on_school.pdf', 'D');
+    }
+
+    public function allEngravedAssets($assetsOnSchool)
+    {
+        // create new PDF document
+        $date = date("d F Y");
+        $pdf = new Fpdi('P', 'mm', 'A4', true, 'UTF-8', false);
+
+        // set document information
+        $pdf->SetCreator(PDF_CREATOR);
+        $pdf->SetAuthor('REB');
+        $pdf->SetTitle('Delivery note on school');
+        $pdf->SetSubject('Delivery note');
+        $pdf->SetKeywords('REB, PDF, TCPDF');
+
+        // remove header and footer
+        $pdf->setPrintHeader(false);
+        $pdf->setPrintFooter(false);
+
+        // Set auto page break and bottom margin to zero
+        $pdf->setAutoPageBreak(true, 0);
+
+        // ---------------------------------------------------------
+        $pdf->startPageGroup();
+        // create new page
+        $pdf->AddPage();
+
+        // Set the template file
+        $template = $this->homeDir . '/public/delivery_note_template_A4.pdf';
+
+        // Add a page using the template
+        $pdf->setSourceFile($template);
+        $tplIdx = $pdf->importPage(1);
+        $pdf->useTemplate($tplIdx, 0, 0);
+
+        // adding Date
+        $pdf->SetFont('Times', 'B', 14);
+        $pdf->SetXY(10, 40);
+        $pdf->Ln();
+        $pdf->Cell(190, 5, "Kigali on: $date", 0, 1, 'R');
+        $pdf->Ln();
+
+        // // adding address
+        // $pdf->SetFont('Times', '', 14);
+        // $pdf->SetXY(10, 50);
+        // $pdf->Write(1, "PROVINCE: " . $address['province']['provincename'], '', false, '', true);
+        // $pdf->Write(1, "DISTRICT: " . $address['district']['namedistrict'], '', false, '', true);
+        // $pdf->Write(1, "SECTOR: " . $address['sector']['namesector'], '', false, '', true);
+        // $pdf->Write(1, "SCHOOL NAME: " . $address['school']['school_name'], '', false, '', true);
+        // $pdf->Ln();
+
+        // adding title
+        $title_text = "ENGRAVED ASSETS";
+        // Calculate title width and center position
+        $pdf->SetFont('Times', 'BU', 16);
+        $title_width = $pdf->GetStringWidth($title_text);
+        $page_width = $pdf->GetPageWidth();
+        $center_x = ($page_width - $title_width) / 2;
+
+        // Set position and write title
+        $pdf->SetXY($center_x, 50);
+        $pdf->Write(5, $title_text);
+
+        // adding assets on school table
+        // Column headings
+        $pdf->SetXY(10, 65);
+        $pdf->SetFont('Times', 'B', 12);
+        $pdf->Cell(10, 6, 'NO', 1, 0, 'C', 0);
+        $pdf->Cell(40, 6, 'ASSETS NAME', 1, 0, 'C', 0);
+        $pdf->Cell(40, 6, 'BRAND', 1, 0, 'C', 0);
+        $pdf->Cell(40, 6, 'ASSETS CODE', 1, 0, 'C', 0); // New line after header
+        $pdf->Cell(40, 6, 'S/N', 1, 0, 'C', 0); // New line after header
+        $pdf->SetFont('Times', 'B', 8);
+        $pdf->Cell(20, 6, 'CONDITION', 1, 1, 'C', 0); // New line after header
+
+        // Table data
+        $pdf->SetFont('Times', '', 10);
+        $data = array();
+        // setting data
+        foreach ($assetsOnSchool as $key => $value) {
+            array_push($data, [$key + 1, $value['name'], $value['brand_name'], $value['assets_tag'], $value['serial_number'], $value['condition']]);
+        }
+
+        $estimated_table_height = 30;
+
+        foreach ($data as $row) {
+            // Check for page break and add new page if necessary
+            if ($pdf->GetY() + $estimated_table_height > $pdf->GetPageHeight()) {
+                $pdf->AddPage();
+                $pdf->useTemplate($tplIdx, 0, 0); // Apply template again
+                // Reset Y position after adding a new page
+                $pdf->SetY(50); // Adjust Y position as needed for new page content
+            }
+            foreach ($row as $cell) {
+                if (is_numeric($cell)) {
+                    $pdf->Cell(10, 6, $cell, 1, 0, 'L');
+                } else if ($cell === "GOOD" || $cell === "OBSOLETE" || $cell === "BAD") {
+                    $pdf->Cell(20, 6, $cell, 1, 0, 'L');
+                } else {
+                    $pdf->Cell(40, 6, $cell, 1, 0, 'L');
+                }
+            }
+            $pdf->Ln(); // New line after each row
         }
 
         // Close and output PDF document
