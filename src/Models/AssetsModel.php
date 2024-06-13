@@ -653,6 +653,24 @@ class AssetsModel
      * @param STRING $logged_user_id
      * @return OBJECT $results
      */
+    public function selectAllEngravedAssets()
+    {
+        $statement = "SELECT assets.*, Brands.name as brand_name FROM `assets` LEFT JOIN Brands ON Brands.id = assets.brand_id WHERE assets.`assets_tag` LIKE '%REB-%' ORDER BY assets.create_at DESC";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array());
+            $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $results;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    /**
+     * get assets by user
+     * @param STRING $logged_user_id
+     * @return OBJECT $results
+     */
     public function selectAssetsReceivedOnRebBYDate($date, $surlier_id)
     {
         // Set the start and end timestamps for filtering (modify as needed)
