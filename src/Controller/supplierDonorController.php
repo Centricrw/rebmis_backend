@@ -1,7 +1,13 @@
 <?php
 namespace Src\Controller;
 
+use DateTime;
+use Src\Models\AssetCategoriesModel;
+use Src\Models\AssetsModel;
+use Src\Models\AssetSubCategoriesModel;
+use Src\Models\BrandsModel;
 use Src\Models\SupplierDonorModel;
+use Src\Models\UserRoleModel;
 use Src\System\AuthValidation;
 use Src\System\Errors;
 use Src\System\UuidGenerator;
@@ -10,7 +16,11 @@ class SupplierDonorController
 {
     private $db;
     private $supplierDonorModel;
-    private $trainingsModel;
+    private $userRoleModel;
+    private $assetCategoriesModel;
+    private $assetSubCategoriesModel;
+    private $brandsModel;
+    private $assetsModel;
     private $request_method;
     private $params;
 
@@ -20,6 +30,11 @@ class SupplierDonorController
         $this->request_method = $request_method;
         $this->params = $params;
         $this->supplierDonorModel = new SupplierDonorModel($db);
+        $this->userRoleModel = new UserRoleModel($db);
+        $this->assetCategoriesModel = new AssetCategoriesModel($db);
+        $this->assetSubCategoriesModel = new AssetSubCategoriesModel($db);
+        $this->brandsModel = new BrandsModel($db);
+        $this->assetsModel = new AssetsModel($db);
     }
 
     function processRequest()
@@ -29,7 +44,15 @@ class SupplierDonorController
                 $response = $this->getAllSupplier();
                 break;
             case "POST":
-                $response = $this->createNewSupplier();
+                if (isset($this->params['id']) && $this->params['id'] == "add_assets") {
+                    $response = $this->addNewSuppliedAssets();
+                } else if (isset($this->params['id']) && $this->params['id'] == "get_assets") {
+                    $response = $this->getAssetsUploadedByUser();
+                } else if (isset($this->params['id']) && $this->params['id'] == "get_supplier_assets") {
+                    $response = $this->getAssetsUploadedByInstitution();
+                } else {
+                    $response = $this->createNewSupplier();
+                }
                 break;
             case "PUT":
                 $response = $this->updateSupplierDonor($this->params['id']);
@@ -143,6 +166,191 @@ class SupplierDonorController
                 "data" => $data,
                 "message" => "Supplier or Donor updated successfully!",
             ]);
+            return $response;
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
+        }
+    }
+
+    //TODO: approve assets
+    //TODO: and then save it to assets
+
+    /**
+     * add new supplied assets
+     *
+     * @return OBJECT $results
+     */
+    public function addNewSuppliedAssets()
+    {
+        // getting authorized user id
+        $logged_user_id = AuthValidation::authorized()->id;
+        // getting input data
+        $data = (array) json_decode(file_get_contents('php://input'), true);
+        if (is_array($data['assets']) != 1) {
+            return Errors::badRequestError("Invalid Assets, please try again?");
+        }
+        try {
+            $user_role = $this->userRoleModel->findCurrentUserRole($logged_user_id);
+            if (sizeof($user_role) === 0) {
+                return Errors::badRequestError("Please login first, please try again later?");
+            }
+
+            // getting supplier information
+            $supplierInformation = $this->supplierDonorModel->selectByUser_id($logged_user_id);
+            if (sizeof($supplierInformation) === 0) {
+                return Errors::badRequestError("Supplier or Donor not found!, please try again later?");
+            }
+
+            foreach ($data['assets'] as $key => $value) {
+                // checking if serial number exists
+                $serialExists = $this->assetsModel->selectAssetsBySerialNumber($value['serial_number']);
+                if (sizeof($serialExists) > 0) {
+                    return Errors::badRequestError("This assets Serial Number: '" . $value['serial_number'] . "' already exists, please try again?");
+                }
+                // checking if category exists
+                $categoryExists = $this->assetCategoriesModel->selectAssetsCategoryById($value['assets_categories_id']);
+                if (sizeof($categoryExists) == 0) {
+                    return Errors::badRequestError("On index $key assets Category id not found, please try again?");
+                }
+                // checking if subcategory exists
+                $subCategoryExists = $this->assetSubCategoriesModel->selectAssetsSubCategoryById($value['assets_sub_categories_id']);
+                if (sizeof($subCategoryExists) == 0) {
+                    return Errors::badRequestError("On index $key assets sub category not found, please try again?");
+                }
+                // checking if brand exists
+                $brandExists = $this->brandsModel->selectBrandsById($value['brand_id']);
+                if (sizeof($brandExists) == 0) {
+                    return Errors::badRequestError("On index $key assets Brand id not found, please try again?");
+                }
+
+                // Validate gender
+                // if (!isset($item["confirm_status"]) || !in_array($item["confirm_status"], ['APPROVED', 'REJECTED'])) {
+                //     return Errors::badRequestError("On Index '$key' confirm_status must be 'APPROVED' or 'REJECTED'");
+                // }
+
+                // Validate users
+                if (isset($value["users"]) && !in_array($value["users"], ['SCHOOL', 'TEACHER', 'STUDENT', 'STAFF', 'HEAD_TEACHER'])) {
+                    return Errors::badRequestError("On Index '$key' users must be 'SCHOOL', 'TEACHER', 'STUDENT', 'STAFF' or 'HEAD_TEACHER'");
+                }
+
+                // Validate condition
+                if (!isset($value["condition"]) || !in_array($value["condition"], ['GOOD', 'OBSOLETE', 'BAD'])) {
+                    return Errors::badRequestError("On Index '$key' condition must be 'GOOD', 'OBSOLETE' or 'BAD'");
+                }
+
+                // Validate other keys
+                $requiredKeys = ['name', 'short_description', 'specification', 'price', 'delivery_date', 'warrant_period', 'currency'];
+
+                foreach ($requiredKeys as $requiredKey) {
+                    if (!isset($value[$requiredKey]) || empty($value[$requiredKey])) {
+                        return Errors::badRequestError("On index '$key' $requiredKey is either not set or empty");
+                    }
+                }
+            }
+
+            foreach ($data['assets'] as $key => $value) {
+                // Generate supplied_assets_id
+                $supplied_assets_id = UuidGenerator::gUuid();
+                $value['supplied_assets_id'] = $supplied_assets_id;
+                $value['supplier_id'] = $supplierInformation[0]['id'];
+                $value['supplier_name'] = $supplierInformation[0]['name'];
+                $this->supplierDonorModel->insertNewSuppliedAssets($value, $logged_user_id);
+            }
+            $response['status_code_header'] = 'HTTP/1.1 201 Created';
+            $response['body'] = json_encode([
+                "message" => "Assets added successfully!",
+                "results" => $data['assets'],
+            ]);
+            return $response;
+
+        } catch (\Throwable $th) {
+            //throw $th;
+            return Errors::databaseError($th->getMessage());
+        }
+
+    }
+
+    function isValidDate($date, $format = 'Y-m-d')
+    {
+        $d = DateTime::createFromFormat($format, $date);
+        return $d && $d->format($format) === $date;
+    }
+
+    function formatDate($date)
+    {
+        $dateTime = DateTime::createFromFormat('Y-m-d', $date);
+        $formattedDate = $dateTime->format('Y-m-d H:i:s');
+        return $formattedDate;
+    }
+
+    function addOneDayToDate($date)
+    {
+        $newTimestamp = strtotime('+1 day', strtotime($date));
+        $newDate = date('Y-m-d H:i:s', $newTimestamp);
+        return $newDate; // Output: 2024-01-02 00:00:00
+    }
+
+    /**
+     * getting all assets category
+     * @param NULL
+     * @return OBJECT $results
+     */
+    public function getAssetsUploadedByUser()
+    {
+        // getting authorized user id
+        $logged_user_id = AuthValidation::authorized()->id;
+        // getting input data
+        $data = (array) json_decode(file_get_contents('php://input'), true);
+        try {
+            if (!isset($data['start_date']) || !$this->isValidDate($data['start_date'])) {
+                return Errors::badRequestError("Invalid start_date must be Y-m-d");
+            }
+            if (!isset($data['end_date']) || !$this->isValidDate($data['end_date'])) {
+                return Errors::badRequestError("Invalid start_date must be Y-m-d");
+            }
+            $start_date = $this->formatDate($data['start_date']);
+            $end_date = $this->addOneDayToDate($this->formatDate($data['end_date']));
+            $results = $this->supplierDonorModel->getAssetsUploadedBYuser($logged_user_id, $start_date, $end_date);
+            foreach ($results as $key => $value) {
+                $results[$key]['specification'] = json_decode($value['specification']);
+            }
+            $response['status_code_header'] = 'HTTP/1.1 200 OK';
+            $response['body'] = json_encode($results);
+            return $response;
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
+        }
+    }
+
+    /**
+     * getting all assets category
+     * @param NULL
+     * @return OBJECT $results
+     */
+    public function getAssetsUploadedByInstitution()
+    {
+        // getting authorized user id
+        $logged_user_id = AuthValidation::authorized()->id;
+        // getting input data
+        $data = (array) json_decode(file_get_contents('php://input'), true);
+        try {
+            if (!isset($data['start_date']) || !$this->isValidDate($data['start_date'])) {
+                return Errors::badRequestError("Invalid start_date must be Y-m-d");
+            }
+            if (!isset($data['end_date']) || !$this->isValidDate($data['end_date'])) {
+                return Errors::badRequestError("Invalid start_date must be Y-m-d");
+            }
+            if (!isset($data['supplier_id'])) {
+                return Errors::badRequestError("supplier_id is required");
+            }
+            $start_date = $this->formatDate($data['start_date']);
+            $end_date = $this->addOneDayToDate($this->formatDate($data['end_date']));
+            $results = $this->supplierDonorModel->getAssetsUploadedBYInstitution($data['supplier_id'], $start_date, $end_date);
+            foreach ($results as $key => $value) {
+                $results[$key]['specification'] = json_decode($value['specification']);
+            }
+            $response['status_code_header'] = 'HTTP/1.1 200 OK';
+            $response['body'] = json_encode($results);
             return $response;
         } catch (\Throwable $th) {
             return Errors::databaseError($th->getMessage());
