@@ -37,6 +37,19 @@ class SupplierDonorModel
         }
     }
 
+    public function selectByUser_id($user_id)
+    {
+        $statement = "SELECT * FROM supplierDonor_tbl WHERE user_id=? limit 1";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array($user_id));
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $result;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
     public function selectByName($name)
     {
         $statement = "SELECT * FROM supplierDonor_tbl WHERE name=?";
@@ -65,11 +78,12 @@ class SupplierDonorModel
 
     public function insertNewSupplier($data, $logged_user_id)
     {
-        $statement = "INSERT INTO `supplierDonor_tbl`(`id`, `name`, `institution`, `description`, `created_by`, `type`) VALUES (:id, :name, :institution,:description,:created_by,:type)";
+        $statement = "INSERT INTO `supplierDonor_tbl`(`id`, `user_id`, `name`, `institution`, `description`, `created_by`, `type`) VALUES (:id, :user_id, :name, :institution,:description,:created_by,:type)";
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array(
                 ':id' => $data['id'],
+                ':user_id' => $data['user_id'],
                 ':name' => strtolower(trim($data['name'])),
                 ':institution' => isset($data['institution']) ? $data['institution'] : null,
                 ':description' => isset($data['description']) ? $data['description'] : null,
@@ -84,11 +98,12 @@ class SupplierDonorModel
 
     public function updateSupplier($data)
     {
-        $statement = "UPDATE `supplierDonor_tbl` SET `name`=:name,`institution`=:institution,`description`=:description,`status`=:status,`type`=:type WHERE `id`=:id";
+        $statement = "UPDATE `supplierDonor_tbl` SET `name`=:name, `user_id`=:user_id,`institution`=:institution,`description`=:description,`status`=:status,`type`=:type WHERE `id`=:id";
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array(
                 ':id' => $data['id'],
+                ':user_id' => $data['user_id'],
                 ':name' => strtolower(trim($data['name'])),
                 ':institution' => isset($data['institution']) ? $data['institution'] : null,
                 ':description' => isset($data['description']) ? $data['description'] : null,

@@ -57,6 +57,10 @@ class SupplierDonorController
         // getting authorized user id
         $logged_user_id = AuthValidation::authorized()->id;
         try {
+            // checking if user id is set
+            if (!isset($data['user_id']) || empty($data['user_id'])) {
+                return Errors::badRequestError("user_id is required, please try again?");
+            }
             // checking if type exist
             if (!isset($data['type']) || ($data['type'] !== "SUPPLIER" && $data['type'] !== "DONOR")) {
                 return Errors::badRequestError("Type is required and must be SUPPLIER or DONOR, please try again?");
@@ -115,6 +119,10 @@ class SupplierDonorController
         // getting authorized user id
         $logged_user_id = AuthValidation::authorized()->id;
         try {
+            // checking if user id is set
+            if (!isset($data['user_id']) || empty($data['user_id'])) {
+                return Errors::badRequestError("user_id is required, please try again?");
+            }
             // checking if supplier exists
             $supplierExists = $this->supplierDonorModel->selectById($id);
             if (sizeof($supplierExists) == 0) {

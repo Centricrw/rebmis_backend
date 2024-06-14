@@ -1,13 +1,12 @@
 <?php
 namespace Src\Controller;
 
-use Src\Models\AuthModel;
 use Src\Models\CohortconditionModel;
 use Src\Models\RolesModel;
 use Src\Models\SchoolLocationsModel;
 use Src\Models\SchoolsModel;
-use Src\Models\SectorsModel;
 use Src\Models\StakeholdersModel;
+use Src\Models\SupplierDonorModel;
 use Src\Models\TrainingsModel;
 use Src\Models\UserRoleModel;
 use Src\Models\UsersModel;
@@ -22,14 +21,13 @@ class AuthController
 {
     private $db;
     private $usersModel;
-    private $authModel;
     private $rolesModel;
     private $userRoleModel;
     private $schoolLocationsModel;
     private $schoolsModel;
-    private $sectorsModel;
     private $stakeholdersModel;
     private $trainingsModel;
+    private $supplierDonorModel;
     private $request_method;
     private $params;
     private $cohortconditionModel;
@@ -39,16 +37,15 @@ class AuthController
         $this->db = $db;
         $this->request_method = $request_method;
         $this->params = $params;
-        $this->authModel = new AuthModel($db);
         $this->usersModel = new UsersModel($db);
         $this->rolesModel = new RolesModel($db);
         $this->userRoleModel = new UserRoleModel($db);
         $this->schoolLocationsModel = new SchoolLocationsModel($db);
         $this->schoolsModel = new SchoolsModel($db);
-        $this->sectorsModel = new SectorsModel($db);
         $this->stakeholdersModel = new StakeholdersModel($db);
         $this->cohortconditionModel = new CohortconditionModel($db);
         $this->trainingsModel = new TrainingsModel($db);
+        $this->supplierDonorModel = new SupplierDonorModel($db);
     }
 
     function processRequest()
@@ -651,6 +648,13 @@ class AuthController
                 $rlt->stakeholder = count($stakeholder) > 0 ? $stakeholder[0] : null;
             } else {
                 $rlt->stakeholder = null;
+            }
+
+            if (strtolower($user_role[0]['role']) == "donor" || strtolower($user_role[0]['supplier'])) {
+                $supplierDonorInformation = $this->supplierDonorModel->selectByUser_id($user_role[0]['user_id']);
+                $rlt->supplierDonorInformation = count($supplierDonorInformation) > 0 ? $supplierDonorInformation[0] : null;
+            } else {
+                $rlt->supplierDonorInformation = null;
             }
         }
 
