@@ -50,6 +50,8 @@ class SupplierDonorController
                     $response = $this->getAssetsUploadedByUser();
                 } else if (isset($this->params['id']) && $this->params['id'] == "get_supplier_assets") {
                     $response = $this->getAssetsUploadedByInstitution();
+                } else if (isset($this->params['id']) && $this->params['id'] == "confirm_supplied_asset") {
+                    $response = $this->confirmSuppliedAsset();
                 } else {
                     $response = $this->createNewSupplier();
                 }
@@ -223,11 +225,6 @@ class SupplierDonorController
                     return Errors::badRequestError("On index $key assets Brand id not found, please try again?");
                 }
 
-                // Validate gender
-                // if (!isset($item["confirm_status"]) || !in_array($item["confirm_status"], ['APPROVED', 'REJECTED'])) {
-                //     return Errors::badRequestError("On Index '$key' confirm_status must be 'APPROVED' or 'REJECTED'");
-                // }
-
                 // Validate users
                 if (isset($value["users"]) && !in_array($value["users"], ['SCHOOL', 'TEACHER', 'STUDENT', 'STAFF', 'HEAD_TEACHER'])) {
                     return Errors::badRequestError("On Index '$key' users must be 'SCHOOL', 'TEACHER', 'STUDENT', 'STAFF' or 'HEAD_TEACHER'");
@@ -353,6 +350,57 @@ class SupplierDonorController
             $response['body'] = json_encode($results);
             return $response;
         } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
+        }
+    }
+
+    /**
+     * confirm supplied assets by reb user
+     * @param NULL
+     * @return OBJECT $results
+     */
+    public function confirmSuppliedAsset()
+    {
+        // getting authorized user id
+        $logged_user_id = AuthValidation::authorized()->id;
+        // getting input data
+        $data = (array) json_decode(file_get_contents('php://input'), true);
+        try {
+            $user_role = $this->userRoleModel->findCurrentUserRole($logged_user_id);
+            if (sizeof($user_role) === 0) {
+                return Errors::badRequestError("Please login first, please try again later?");
+            }
+
+            // validating there is id in array
+            if (!is_array($data["supplied_assets_ids"]) && empty($data["supplied_assets_ids"])) {
+                return Errors::badRequestError("supplied_assets_ids must be array and is required");
+            }
+
+            // Validate confirm_status
+            if (!isset($data["confirm_status"]) || !in_array($data["confirm_status"], ['APPROVED', 'REJECTED'])) {
+                return Errors::badRequestError("confirm_status must be 'APPROVED' or 'REJECTED'");
+            }
+
+            $suppliedAssets = $this->supplierDonorModel->getSuppliedAssetsByIds($data['supplied_assets_ids'], $data["confirm_status"]);
+
+            // updated found ids
+            $this->supplierDonorModel->confirmSuppliedAssetsByIds($data['supplied_assets_ids'], $data["confirm_status"]);
+
+            // move supplier assets to assets
+            if ($data["confirm_status"] === "APPROVED") {
+                foreach ($suppliedAssets as $key => $value) {
+                    // Generate assets asset id
+                    $generated_assets_id = UuidGenerator::gUuid();
+                    $value['id'] = $generated_assets_id;
+                    $this->assetsModel->insertNewAsset($value, $logged_user_id);
+                }
+            }
+
+            $response['status_code_header'] = 'HTTP/1.1 200 OK';
+            $response['body'] = json_encode($suppliedAssets);
+            return $response;
+        } catch (\Throwable $th) {
+            //throw $th;
             return Errors::databaseError($th->getMessage());
         }
     }

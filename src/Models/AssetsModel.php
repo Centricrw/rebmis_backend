@@ -30,12 +30,12 @@ class AssetsModel
                 ':name' => strtolower($assets_name),
                 ':serial_number' => $data['serial_number'],
                 ':brand_id' => $data['brand_id'],
-                ':delivery_date' => $currentDate,
+                ':delivery_date' => isset($data['delivery_date']) ? $data['delivery_date'] : $currentDate,
                 ':assets_categories_id' => $data['assets_categories_id'],
                 ':assets_sub_categories_id' => isset($data['assets_sub_categories_id']) ? $data['assets_sub_categories_id'] : null,
                 ':supplier_id' => isset($data['supplier_id']) ? $data['supplier_id'] : null,
                 ':supplier_name' => isset($data['supplier_name']) ? $data['supplier_name'] : null,
-                ':specification' => json_encode($data['specification']),
+                ':specification' => is_string($data['specification']) ? $data['specification'] : json_encode($data['specification']),
                 ':created_by' => $created_by,
             ));
             return $statement->rowCount();
@@ -694,6 +694,23 @@ class AssetsModel
             ));
             $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
             return $results;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    public function getAssetsBySerialNumbers($serialNumbers)
+    {
+        if (empty($serialNumbers)) {
+            return []; // Return an empty array if no supplier IDs are provided
+        }
+        $placeholders = implode(',', array_fill(0, count($serialNumbers), '?'));
+        $statement = "SELECT * FROM `assets` WHERE `serial_number` IN ($placeholders)";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute($serialNumbers);
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $result;
         } catch (\PDOException $e) {
             throw new Error($e->getMessage());
         }
