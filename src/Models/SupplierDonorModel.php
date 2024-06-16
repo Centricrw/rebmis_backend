@@ -181,4 +181,40 @@ class SupplierDonorModel
         }
     }
 
+    public function getSuppliedAssetsByIds($supplier_ids, $status = 'APPROVED')
+    {
+        if (empty($supplier_ids)) {
+            return []; // Return an empty array if no supplier IDs are provided
+        }
+        $placeholders = implode(',', array_fill(0, count($supplier_ids), '?'));
+        $statement = "SELECT * FROM `supplied_assets` WHERE confirm_status != ? AND `supplied_assets_id` IN ($placeholders)";
+        $mergedArray = array_merge([$status], $supplier_ids);
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute($mergedArray);
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $result;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    public function confirmSuppliedAssetsByIds($supplier_ids, $confirm_status)
+    {
+        if (empty($supplier_ids)) {
+            return []; // Return an empty array if no supplier IDs are provided
+        }
+        $placeholders = implode(',', array_fill(0, count($supplier_ids), '?'));
+        $statement = "UPDATE `supplied_assets` SET confirm_status = ? WHERE `supplied_assets_id` IN ($placeholders)";
+        $mergedArray = array_merge([$confirm_status], $supplier_ids);
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute($mergedArray);
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $result;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
 }
