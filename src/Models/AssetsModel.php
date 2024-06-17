@@ -607,7 +607,7 @@ class AssetsModel
     {
         $results_per_page = 50;
         $page_first_result = ($page - 1) * $results_per_page;
-        $queryCount = "SELECT COUNT(*) AS total_count FROM `assets` WHERE `created_by` = :created_by";
+        $queryCount = "SELECT COUNT(*) AS total_count FROM `assets` WHERE `created_by` = :created_by AND school_code = :school_code";
 
         $statement = "SELECT ASSET.*, S.school_name, LEVELS.level_name as school_level_name, AC.assets_categories_name, ASUB.name as assets_sub_categories_name FROM `assets` ASSET
         INNER JOIN `assets_categories` AC ON AC.assets_categories_id = ASSET.assets_categories_id
@@ -628,7 +628,10 @@ class AssetsModel
             $number_of_page = ceil($number_of_result[0]['total_count'] / $results_per_page);
 
             $statement = $this->db->prepare($statement);
-            $statement->execute(array(":created_by" => $logged_user_id));
+            $statement->execute(array(
+                ":created_by" => $logged_user_id,
+                ":school_code" => $schoolCode,
+            ));
             $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
 
             return [
