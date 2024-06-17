@@ -637,6 +637,7 @@ class AssetsModel
             return [
                 "total_pages" => $number_of_page,
                 "current_page" => $page,
+                "total_assets" => $number_of_result[0]['total_count'],
                 "assets" => $results,
             ];
         } catch (\PDOException $e) {
