@@ -603,11 +603,11 @@ class AssetsModel
      * @param STRING $logged_user_id
      * @return OBJECT $results
      */
-    public function selectAssetsUploadedByUser($logged_user_id, $page)
+    public function selectAssetsUploadedByUser($logged_user_id, $schoolCode, $page)
     {
-        $results_per_page = 10;
+        $results_per_page = 50;
         $page_first_result = ($page - 1) * $results_per_page;
-        $queryCount = "SELECT COUNT(*) AS total_count FROM `assets` WHERE `created_by` = :created_by";
+        $queryCount = "SELECT COUNT(*) AS total_count FROM `assets` WHERE `created_by` = :created_by AND school_code = :school_code";
 
         $statement = "SELECT ASSET.*, S.school_name, LEVELS.level_name as school_level_name, AC.assets_categories_name, ASUB.name as assets_sub_categories_name FROM `assets` ASSET
         INNER JOIN `assets_categories` AC ON AC.assets_categories_id = ASSET.assets_categories_id
@@ -615,17 +615,23 @@ class AssetsModel
         INNER JOIN `schools` S ON S.school_code = ASSET.school_code
         LEFT JOIN `assets_sub_categories` ASUB ON ASUB.id = ASSET.assets_sub_categories_id
         LEFT JOIN `levels` LEVELS ON ASSET.level_code = LEVELS.level_code
-        WHERE ASSET.created_by = :created_by LIMIT " . $page_first_result . ',' . $results_per_page;
+        WHERE ASSET.created_by = :created_by AND ASSET.school_code = :school_code LIMIT " . $page_first_result . ',' . $results_per_page;
         try {
 
             $resultCount = $this->db->prepare($queryCount);
-            $resultCount->execute(array(":created_by" => $logged_user_id));
+            $resultCount->execute(array(
+                ":created_by" => $logged_user_id,
+                ":school_code" => $schoolCode,
+            ));
             $number_of_result = $resultCount->fetchAll(\PDO::FETCH_ASSOC);
             // determining the total number of pages available
             $number_of_page = ceil($number_of_result[0]['total_count'] / $results_per_page);
 
             $statement = $this->db->prepare($statement);
-            $statement->execute(array(":created_by" => $logged_user_id));
+            $statement->execute(array(
+                ":created_by" => $logged_user_id,
+                ":school_code" => $schoolCode,
+            ));
             $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
 
             return [
