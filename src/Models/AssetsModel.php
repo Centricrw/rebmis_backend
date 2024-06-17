@@ -611,7 +611,7 @@ class AssetsModel
         INNER JOIN `schools` S ON S.school_code = ASSET.school_code
         LEFT JOIN `assets_sub_categories` ASUB ON ASUB.id = ASSET.assets_sub_categories_id
         LEFT JOIN `levels` LEVELS ON ASSET.level_code = LEVELS.level_code
-        WHERE ASSET.created_by = :created_by";
+        WHERE ASSET.created_by = :created_by limit 10";
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array(":created_by" => $logged_user_id));
