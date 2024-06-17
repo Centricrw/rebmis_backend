@@ -605,7 +605,7 @@ class AssetsModel
      */
     public function selectAssetsUploadedByUser($logged_user_id, $page)
     {
-        $results_per_page = 10;
+        $results_per_page = 50;
         $page_first_result = ($page - 1) * $results_per_page;
         $queryCount = "SELECT COUNT(*) AS total_count FROM `assets` WHERE `created_by` = :created_by";
 
