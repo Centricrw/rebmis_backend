@@ -176,6 +176,7 @@ $route->router("/supplier_donor/{id}", "src/Controller/supplierDonorController.p
 
 // MIGRATION
 $route->router("/migration", "src/Controller/migrationController.php");
+$route->router("/migration/{page}", "src/Controller/migrationController.php");
 
 // DELIVERY NOTE
 $route->router("/download_delivery_note", "src/Controller/deliveryNoteController.php");

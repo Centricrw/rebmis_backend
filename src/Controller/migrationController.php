@@ -37,7 +37,7 @@ class migrationController
     {
         switch ($this->request_method) {
             case "GET":
-                $response = $this->getAllAssetsUploadedByUser();
+                $response = $this->getAllAssetsUploadedByUser($this->params['page']);
                 break;
             case "POST":
                 $response = $this->insertMigrationAssets();
@@ -119,19 +119,17 @@ class migrationController
      * @param NULL
      * @return OBJECT $results
      */
-    public function getAllAssetsUploadedByUser()
+    public function getAllAssetsUploadedByUser($page = 1)
     {
         // getting authorized user id
         $logged_user_id = AuthValidation::authorized()->id;
         try {
-            $results = $this->assetsModel->selectAssetsUploadedByUser($logged_user_id);
-            $newResults = [];
-            foreach ($results as $key => $value) {
-                $value['specification'] = json_decode($value['specification']);
-                array_push($newResults, $value);
+            $results = $this->assetsModel->selectAssetsUploadedByUser($logged_user_id, $page);
+            foreach ($results['assets'] as $key => $value) {
+                $results['assets'][$key]['specification'] = json_decode($value['specification']);
             }
             $response['status_code_header'] = 'HTTP/1.1 200 OK';
-            $response['body'] = json_encode($newResults);
+            $response['body'] = json_encode($results);
             return $response;
         } catch (\Throwable $th) {
             return Errors::databaseError($th->getMessage());
