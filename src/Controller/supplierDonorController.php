@@ -236,7 +236,7 @@ class SupplierDonorController
                 }
 
                 // Validate other keys
-                $requiredKeys = ['name', 'short_description', 'specification', 'price', 'delivery_date', 'warrant_period', 'currency'];
+                $requiredKeys = ['name', 'specification', 'price', 'delivery_date', 'warrant_period', 'currency'];
 
                 foreach ($requiredKeys as $requiredKey) {
                     if (!isset($value[$requiredKey]) || empty($value[$requiredKey])) {

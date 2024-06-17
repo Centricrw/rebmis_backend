@@ -104,7 +104,7 @@ class SupplierDonorModel
             $statement->execute(array(
                 ':supplied_assets_id' => $data['supplied_assets_id'],
                 ':name' => $data['name'],
-                ':short_description' => $data['short_description'],
+                ':short_description' => $data['name'],
                 ':serial_number' => $data['serial_number'],
                 ':batch_details_id' => isset($data['batch_details_id']) ? $data['batch_details_id'] : null,
                 ':brand_id' => $data['brand_id'],
