@@ -545,6 +545,12 @@ class AuthController
                 } else {
                     $rlt->stakeholder = null;
                 }
+                if (strtolower($user_role[0]['role']) == "donor" || strtolower($user_role[0]['role']) == "supplier") {
+                    $supplierDonorInformation = $this->supplierDonorModel->selectByUser_id($user_role[0]['user_id']);
+                    $rlt->supplierDonorInformation = count($supplierDonorInformation) > 0 ? $supplierDonorInformation[0] : null;
+                } else {
+                    $rlt->supplierDonorInformation = null;
+                }
             }
         } else {
             $rlt = null;
