@@ -149,7 +149,11 @@ class SupplierDonorModel
 
     public function getAssetsUploadedBYuser($user_id, $start_date, $end_date)
     {
-        $statement = "SELECT * FROM supplied_assets WHERE created_by = :created_by AND create_at BETWEEN :start_date AND :end_date";
+        $statement = "SELECT supplied_assets.*, assets_categories.assets_categories_name, assets_sub_categories.name as assets_sub_categories_name, Brands.name FROM supplied_assets
+        INNER JOIN `assets_categories` ON supplied_assets.assets_categories_id = assets_categories.assets_categories_id
+        LEFT JOIN `assets_sub_categories` ON supplied_assets.assets_sub_categories_id = assets_sub_categories.id
+        INNER JOIN `Brands` ON supplied_assets.brand_id = Brands.id
+        WHERE supplied_assets.created_by = :created_by AND supplied_assets.create_at BETWEEN :start_date AND :end_date";
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array(
@@ -166,7 +170,11 @@ class SupplierDonorModel
 
     public function getAssetsUploadedBYInstitution($supplier_id, $start_date, $end_date)
     {
-        $statement = "SELECT * FROM supplied_assets WHERE supplier_id = :supplier_id AND create_at BETWEEN :start_date AND :end_date";
+        $statement = "SELECT supplied_assets.*, assets_categories.assets_categories_name, assets_sub_categories.name as assets_sub_categories_name, Brands.name FROM supplied_assets
+        INNER JOIN `assets_categories` ON supplied_assets.assets_categories_id = assets_categories.assets_categories_id
+        LEFT JOIN `assets_sub_categories` ON supplied_assets.assets_sub_categories_id = assets_sub_categories.id
+        INNER JOIN `Brands` ON supplied_assets.brand_id = Brands.id
+        WHERE supplied_assets.supplier_id = :supplier_id AND supplied_assets.create_at BETWEEN :start_date AND :end_date";
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array(
