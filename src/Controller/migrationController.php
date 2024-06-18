@@ -6,6 +6,7 @@ use Src\Models\AssetsModel;
 use Src\Models\AssetSubCategoriesModel;
 use Src\Models\BrandsModel;
 use Src\Models\SchoolsModel;
+use Src\Models\UserRoleModel;
 use Src\System\AuthValidation;
 use Src\System\Errors;
 use Src\System\UuidGenerator;
@@ -18,6 +19,7 @@ class migrationController
     private $brandsModel;
     private $assetsModel;
     private $schoolsModel;
+    private $userRoleModel;
     private $request_method;
     private $params;
 
@@ -31,6 +33,7 @@ class migrationController
         $this->brandsModel = new BrandsModel($db);
         $this->assetsModel = new AssetsModel($db);
         $this->schoolsModel = new SchoolsModel($db);
+        $this->userRoleModel = new UserRoleModel($db);
     }
 
     function processRequest()
@@ -124,13 +127,28 @@ class migrationController
         // getting authorized user id
         $logged_user_id = AuthValidation::authorized()->id;
         try {
-            $results = $this->assetsModel->selectAssetsUploadedByUser($logged_user_id, $schoolCode, $page);
-            foreach ($results['assets'] as $key => $value) {
-                $results['assets'][$key]['specification'] = json_decode($value['specification']);
+            $user_role = $this->userRoleModel->findCurrentUserRole($logged_user_id);
+            if (sizeof($user_role) === 0) {
+                return Errors::badRequestError("Please login first, please try again later?");
             }
-            $response['status_code_header'] = 'HTTP/1.1 200 OK';
-            $response['body'] = json_encode($results);
-            return $response;
+
+            if ($user_role[0]['role_id'] == "4") {
+                $results = $this->assetsModel->selectAllAssetsMigrated($schoolCode, $page);
+                foreach ($results['assets'] as $key => $value) {
+                    $results['assets'][$key]['specification'] = json_decode($value['specification']);
+                }
+                $response['status_code_header'] = 'HTTP/1.1 200 OK';
+                $response['body'] = json_encode($results);
+                return $response;
+            } else {
+                $results = $this->assetsModel->selectAssetsUploadedByUser($logged_user_id, $schoolCode, $page);
+                foreach ($results['assets'] as $key => $value) {
+                    $results['assets'][$key]['specification'] = json_decode($value['specification']);
+                }
+                $response['status_code_header'] = 'HTTP/1.1 200 OK';
+                $response['body'] = json_encode($results);
+                return $response;
+            }
         } catch (\Throwable $th) {
             return Errors::databaseError($th->getMessage());
         }

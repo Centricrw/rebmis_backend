@@ -149,7 +149,7 @@ class SupplierDonorModel
 
     public function getAssetsUploadedBYuser($user_id, $start_date, $end_date)
     {
-        $statement = "SELECT supplied_assets.*, assets_categories.assets_categories_name, assets_sub_categories.name as assets_sub_categories_name, Brands.name FROM supplied_assets
+        $statement = "SELECT supplied_assets.*, assets_categories.assets_categories_name, assets_sub_categories.name as assets_sub_categories_name, Brands.name as brand_name FROM supplied_assets
         INNER JOIN `assets_categories` ON supplied_assets.assets_categories_id = assets_categories.assets_categories_id
         LEFT JOIN `assets_sub_categories` ON supplied_assets.assets_sub_categories_id = assets_sub_categories.id
         INNER JOIN `Brands` ON supplied_assets.brand_id = Brands.id
@@ -170,7 +170,7 @@ class SupplierDonorModel
 
     public function getAssetsUploadedBYInstitution($supplier_id, $start_date, $end_date)
     {
-        $statement = "SELECT supplied_assets.*, assets_categories.assets_categories_name, assets_sub_categories.name as assets_sub_categories_name, Brands.name FROM supplied_assets
+        $statement = "SELECT supplied_assets.*, assets_categories.assets_categories_name, assets_sub_categories.name as assets_sub_categories_name, Brands.name as brand_name FROM supplied_assets
         INNER JOIN `assets_categories` ON supplied_assets.assets_categories_id = assets_categories.assets_categories_id
         LEFT JOIN `assets_sub_categories` ON supplied_assets.assets_sub_categories_id = assets_sub_categories.id
         INNER JOIN `Brands` ON supplied_assets.brand_id = Brands.id
