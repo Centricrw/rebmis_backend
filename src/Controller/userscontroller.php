@@ -324,7 +324,6 @@ class UsersController
     // Get a user by id
     function getUser($params)
     {
-
         $result = $this->usersModel->findOneUser($params);
         if (sizeof($result) > 0) {
             unset($result[0]['password']);
