@@ -52,6 +52,8 @@ class SupplierDonorController
                     $response = $this->getAssetsUploadedByInstitution();
                 } else if (isset($this->params['id']) && $this->params['id'] == "confirm_supplied_asset") {
                     $response = $this->confirmSuppliedAsset();
+                } else if (isset($this->params['id']) && $this->params['id'] == "pending_supplied_asset") {
+                    $response = $this->confirmSuppliedAsset();
                 } else {
                     $response = $this->createNewSupplier();
                 }
@@ -399,6 +401,35 @@ class SupplierDonorController
             $response['status_code_header'] = 'HTTP/1.1 200 OK';
             $response['body'] = json_encode($suppliedAssets);
             return $response;
+        } catch (\Throwable $th) {
+            //throw $th;
+            return Errors::databaseError($th->getMessage());
+        }
+    }
+
+    /**
+     * confirm supplied assets by reb user
+     * @param NULL
+     * @return OBJECT $results
+     */
+    public function getPendingSuppliedAsset()
+    {
+        // getting authorized user id
+        $logged_user_id = AuthValidation::authorized()->id;
+        // getting input data
+        $data = (array) json_decode(file_get_contents('php://input'), true);
+        try {
+            if (!isset($data['supplier_id'])) {
+                return Errors::badRequestError("supplier_id is required");
+            }
+            $suppliedAssets = $this->supplierDonorModel->getSuppliedAssetsBySupplierID($data['supplier_id'], "PENDING");
+            foreach ($suppliedAssets as $key => $value) {
+                $suppliedAssets[$key]['specification'] = json_decode($value['specification']);
+            }
+            $response['status_code_header'] = 'HTTP/1.1 200 OK';
+            $response['body'] = json_encode($suppliedAssets);
+            return $response;
+
         } catch (\Throwable $th) {
             //throw $th;
             return Errors::databaseError($th->getMessage());
