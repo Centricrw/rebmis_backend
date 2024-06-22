@@ -349,7 +349,7 @@ class UsersModel
         }
     }
 
-    public function findOneUser($user_id, $phone_number = "", $status = 1)
+    public function findOneUser($user_id, $status = 1)
     {
         $statement = "SELECT * FROM users WHERE user_id = ? OR staff_code = ?  AND status = ? LIMIT 1";
 
