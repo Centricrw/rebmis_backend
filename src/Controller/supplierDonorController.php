@@ -342,9 +342,9 @@ class SupplierDonorController
             }
             $start_date = $this->formatDate($data['start_date']);
             $end_date = $this->addOneDayToDate($this->formatDate($data['end_date']));
-            $results = $this->supplierDonorModel->getAssetsUploadedBYInstitution($data['supplier_id'], $start_date, $end_date);
-            foreach ($results as $key => $value) {
-                $results[$key]['specification'] = json_decode($value['specification']);
+            $results = $this->supplierDonorModel->getAssetsUploadedBYInstitution($data['supplier_id'], $start_date, $end_date, $data['status'], $data['page']);
+            foreach ($results['assets'] as $key => $value) {
+                $results['assets'][$key]['specification'] = json_decode($value['specification']);
             }
             $response['status_code_header'] = 'HTTP/1.1 200 OK';
             $response['body'] = json_encode($results);

@@ -168,22 +168,43 @@ class SupplierDonorModel
         }
     }
 
-    public function getAssetsUploadedBYInstitution($supplier_id, $start_date, $end_date)
+    public function getAssetsUploadedBYInstitution($supplier_id, $start_date, $end_date, $status = 'PENDING', $page = 1)
     {
+        $results_per_page = 50;
+        $page_first_result = ($page - 1) * $results_per_page;
+        $queryCount = "SELECT COUNT(*) AS total_count FROM `supplied_assets` WHERE confirm_status = :confirm_status AND supplier_id = :supplier_id AND create_at BETWEEN :start_date AND :end_date";
+
         $statement = "SELECT supplied_assets.*, assets_categories.assets_categories_name, assets_sub_categories.name as assets_sub_categories_name, Brands.name as brand_name FROM supplied_assets
         INNER JOIN `assets_categories` ON supplied_assets.assets_categories_id = assets_categories.assets_categories_id
         LEFT JOIN `assets_sub_categories` ON supplied_assets.assets_sub_categories_id = assets_sub_categories.id
         INNER JOIN `Brands` ON supplied_assets.brand_id = Brands.id
-        WHERE supplied_assets.supplier_id = :supplier_id AND supplied_assets.create_at BETWEEN :start_date AND :end_date";
+        WHERE supplied_assets.confirm_status = :confirm_status AND supplied_assets.supplier_id = :supplier_id AND supplied_assets.create_at BETWEEN :start_date AND :end_date LIMIT " . $page_first_result . ',' . $results_per_page;
         try {
-            $statement = $this->db->prepare($statement);
-            $statement->execute(array(
+            $resultCount = $this->db->prepare($queryCount);
+            $resultCount->execute(array(
+                ':confirm_status' => $status,
                 ':supplier_id' => $supplier_id,
                 ':start_date' => $start_date,
                 ':end_date' => $end_date,
             ));
-            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
-            return $result;
+            $number_of_result = $resultCount->fetchAll(\PDO::FETCH_ASSOC);
+            // determining the total number of pages available
+            $number_of_page = ceil($number_of_result[0]['total_count'] / $results_per_page);
+
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
+                ':confirm_status' => $status,
+                ':supplier_id' => $supplier_id,
+                ':start_date' => $start_date,
+                ':end_date' => $end_date,
+            ));
+            $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return [
+                "total_pages" => $number_of_page,
+                "current_page" => $page,
+                "total_assets" => $number_of_result[0]['total_count'],
+                "assets" => $results,
+            ];
         } catch (\PDOException $e) {
             throw new Error($e->getMessage());
         }
