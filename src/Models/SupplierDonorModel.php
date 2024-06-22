@@ -228,6 +228,28 @@ class SupplierDonorModel
         }
     }
 
+    public function getSuppliedAssetsBySupplierID($supplier_ids, $status = 'PENDING')
+    {
+        if (empty($supplier_ids)) {
+            return []; // Return an empty array if no supplier IDs are provided
+        }
+        $statement = "SELECT supplied_assets.*, assets_categories.assets_categories_name, assets_sub_categories.name as assets_sub_categories_name, Brands.name as brand_name FROM `supplied_assets`
+        INNER JOIN `assets_categories` ON supplied_assets.assets_categories_id = assets_categories.assets_categories_id
+        LEFT JOIN `assets_sub_categories` ON supplied_assets.assets_sub_categories_id = assets_sub_categories.id
+        INNER JOIN `Brands` ON supplied_assets.brand_id = Brands.id
+        WHERE supplied_assets.`confirm_status` = :confirm_status AND supplied_assets.`supplier_id` = :supplier_id";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
+                "supplier_id" => $supplier_ids,
+                "confirm_status" => $status));
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $result;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
     public function confirmSuppliedAssetsByIds($supplier_ids, $confirm_status)
     {
         if (empty($supplier_ids)) {
