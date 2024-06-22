@@ -241,7 +241,14 @@ class AssetsDistributionController
                 return $response;
             }
 
-            $results = $this->assetsDistributionModel->selectAllDistributionBatch();
+            if (strtolower($user_role[0]['role_id']) == 4) {
+                $results = $this->assetsDistributionModel->selectAllDistributionBatch();
+                $response['status_code_header'] = 'HTTP/1.1 200 OK';
+                $response['body'] = json_encode($results);
+                return $response;
+            }
+
+            $results = $this->assetsDistributionModel->selectAllDistributionBatchStatus();
             $response['status_code_header'] = 'HTTP/1.1 200 OK';
             $response['body'] = json_encode($results);
             return $response;
