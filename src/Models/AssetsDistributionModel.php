@@ -207,6 +207,25 @@ class AssetsDistributionModel
      * @param NULL
      * @return OBJECT $results
      */
+    public function selectAllDistributionBatchStatus($status = 'approved')
+    {
+        $statement = "SELECT * FROM `assets_distriution_batch` WHERE `batch_status` = ? AND `status` = ?";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array($status, 1));
+            $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $batchDetails = array_map(array($this, 'getBatchDetails'), $results);
+            return $batchDetails;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    /**
+     * get All distribution assets batch
+     * @param NULL
+     * @return OBJECT $results
+     */
     public function selectAllDistributionBatchBYusedId($logged_user_id)
     {
         $statement = "SELECT * FROM `assets_distriution_batch` WHERE `created_by` = ?  AND  `status` = ?";
