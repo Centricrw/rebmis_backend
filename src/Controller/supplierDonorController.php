@@ -176,9 +176,6 @@ class SupplierDonorController
         }
     }
 
-    //TODO: approve assets
-    //TODO: and then save it to assets
-
     /**
      * add new supplied assets
      *
