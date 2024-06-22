@@ -418,6 +418,33 @@ class AssetsDistributionModel
     }
 
     /**
+     * update Insert new school Distribution
+     * @param OBJECT $data
+     * @param NUMBER $id
+     * @return NUMBER $results
+     */
+    public function updateSchoolDistribution($data, $logged_user_id)
+    {
+        $statement = "UPDATE `assets_distriution_school` SET `batch_id` = :batch_id, `level_code` = :level_code, `school_code` = :school_code, `batch_details_id` = :batch_details_id,`assets_number_limit` = :assets_number_limit, `updated_by` = :updated_by WHERE `assets_school_distribution_id`=:assets_school_distribution_id";
+        try {
+            // Remove white spaces from both sides of a string
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
+                ':assets_school_distribution_id' => $data['assets_school_distribution_id'],
+                ':batch_id' => $data['batch_id'],
+                ':level_code' => $data['level_code'],
+                ':school_code' => $data['school_code'],
+                ':batch_details_id' => $data['batch_details_id'],
+                ':assets_number_limit' => $data['assets_number_limit'],
+                ':updated_by' => $logged_user_id,
+            ));
+            return $statement->rowCount();
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    /**
      * get level by level_code
      * @param Number $levelCode
      * @return OBJECT $results

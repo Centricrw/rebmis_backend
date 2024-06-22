@@ -75,6 +75,8 @@ class AssetsDistributionController
             case "PUT":
                 if (isset($this->params['action']) && $this->params['action'] == "updatedefinition") {
                     $response = $this->updateBatchDefinition($this->params['id']);
+                } else if (isset($this->params['action']) && $this->params['action'] == "update_school_distribution") {
+                    $response = $this->updateSchoolDistribution();
                 } else {
                     $response = $this->updateDistributionBatch($this->params['id']);
                 }
@@ -211,6 +213,33 @@ class AssetsDistributionController
                 $this->assetsDistributionModel->insertNewSchoolDistribution($value, $logged_user_id);
             }
 
+            $response['status_code_header'] = 'HTTP/1.1 201 Created';
+            $response['body'] = json_encode($data);
+            return $response;
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
+        }
+    }
+
+    /**
+     * update school distribution asset
+     * @param OBJECT $data
+     * @return OBJECT $results
+     */
+
+    public function updateSchoolDistribution()
+    {
+        // getting input data
+        $data = (array) json_decode(file_get_contents('php://input'), true);
+        // Validate input if not empty
+        $validateInputData = self::ValidateUpdateDistributionSchoolsData($data);
+        if (!$validateInputData['validated']) {
+            return Errors::unprocessableEntityResponse($validateInputData['message']);
+        }
+        // getting authorized user id
+        $logged_user_id = AuthValidation::authorized()->id;
+        try {
+            $this->assetsDistributionModel->updateSchoolDistribution($data, $logged_user_id);
             $response['status_code_header'] = 'HTTP/1.1 201 Created';
             $response['body'] = json_encode($data);
             return $response;
@@ -682,11 +711,22 @@ class AssetsDistributionController
      */
     public function countRemainAssetsInBatchDetails()
     {
-        // geting authorized user id
+        // getting authorized user id
         $logged_user_id = AuthValidation::authorized()->id;
         try {
             $results = [];
-            $batches = $this->assetsDistributionModel->selectAllDistributionBatch();
+            $batches = [];
+            $user_role = $this->userRoleModel->findCurrentUserRole($logged_user_id);
+            if (sizeof($user_role) === 0) {
+                return Errors::badRequestError("Please login first, please try again later?");
+            }
+            if (strtolower($user_role[0]['role']) == "donor" || strtolower($user_role[0]['role']) == "supplier") {
+                $batches = $this->assetsDistributionModel->selectAllDistributionBatchBYusedId($logged_user_id);
+            } else if (strtolower($user_role[0]['role_id']) == 4) {
+                $batches = $this->assetsDistributionModel->selectAllDistributionBatch();
+            } else {
+                $batches = $this->assetsDistributionModel->selectAllDistributionBatchStatus();
+            }
             if (count($batches) > 0) {
                 foreach ($batches as &$item) {
                     $total_limit = 0;
@@ -907,6 +947,67 @@ class AssetsDistributionController
                     return ["validated" => false, "message" => "Invalid assets_number_limit must be number!, please try again?"];
                 }
             }
+        }
+        return ["validated" => true, "message" => "OK"];
+    }
+
+    private function ValidateUpdateDistributionSchoolsData($input)
+    {
+        // validate batch_id
+        if (empty($value['assets_school_distribution_id'])) {
+            return ["validated" => false, "message" => "assets_school_distribution_id is required!, please try again"];
+        }
+        // validate batch_id
+        if (empty($value['batch_id'])) {
+            return ["validated" => false, "message" => "batch_id is required!, please try again"];
+        }
+        if (isset($value['batch_id'])) {
+            $bacthExists = $this->assetsDistributionModel->selectDistributionBatchById($value['batch_id']);
+            if (sizeof($bacthExists) == 0) {
+                return ["validated" => false, "message" => "Batch category Id not found!, please try again?"];
+            }
+        }
+
+        // validate level_code
+        if (empty($value['level_code'])) {
+            return ["validated" => false, "message" => "level_code is required!, please try again?"];
+        }
+        if (isset($value['level_code'])) {
+            $levleExists = $this->assetsDistributionModel->selectLevelsByLevelCode($value['level_code']);
+            if (sizeof($levleExists) == 0) {
+                return ["validated" => false, "message" => "Level code not found!, please try again?"];
+            }
+        }
+
+        // validate school_code
+        if (empty($value['school_code'])) {
+            return ["validated" => false, "message" => "school_code is required!, please try again?"];
+        }
+        if (isset($value['school_code'])) {
+            $schoolExists = $this->assetsDistributionModel->selectSchoolBySchoolCode($value['school_code']);
+            if (sizeof($schoolExists) == 0) {
+                return ["validated" => false, "message" => "School code '" . $value['school_code'] . "' not found!, please try again?"];
+            }
+        }
+
+        // validating batch_details_id
+        if (empty($value['batch_details_id'])) {
+            return ["validated" => false, "message" => "batch_details_id is required!, please try again?"];
+        }
+        if (isset($value['batch_details_id'])) {
+            $Exists = $this->assetsDistributionModel->selectBatchDefinitionBYId($value['batch_details_id']);
+            if (sizeof($Exists) == 0) {
+                return ["validated" => false, "message" => "Category id not found!, please try again?"];
+            }
+        }
+
+        //TODO: checking if does not exceed the limit
+        // validating assets_number_limit
+        if (empty($value['assets_number_limit'])) {
+            return ["validated" => false, "message" => "assets_number_limit is required!, please try again?"];
+        }
+        if (!empty($value['assets_number_limit']) && !is_numeric($value['assets_number_limit'])) {
+            return ["validated" => false, "message" => "Invalid assets_number_limit must be number!, please try again?"];
         }
         return ["validated" => true, "message" => "OK"];
     }
