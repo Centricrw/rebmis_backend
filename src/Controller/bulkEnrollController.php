@@ -158,7 +158,7 @@ class bulkEnrollController
         }
 
         // Check if user already exists
-        $existingUser = $this->usersModel->findOneUserShort($userData['staff_code'], $userData['phone_number']);
+        $existingUser = $this->usersModel->findOneUserShort($userData['staff_code']);
         if (sizeof($existingUser) > 0) {
             //* update user
             $this->usersModel->updateUser($insertedData, $existingUser[0]['user_id'], $created_by_user_id);
