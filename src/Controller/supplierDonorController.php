@@ -53,7 +53,7 @@ class SupplierDonorController
                 } else if (isset($this->params['id']) && $this->params['id'] == "confirm_supplied_asset") {
                     $response = $this->confirmSuppliedAsset();
                 } else if (isset($this->params['id']) && $this->params['id'] == "pending_supplied_asset") {
-                    $response = $this->confirmSuppliedAsset();
+                    $response = $this->getPendingSuppliedAsset();
                 } else {
                     $response = $this->createNewSupplier();
                 }
