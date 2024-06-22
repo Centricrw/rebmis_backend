@@ -7,6 +7,7 @@ use Src\Models\AssetsModel;
 use Src\Models\AssetSubCategoriesModel;
 use Src\Models\BrandsModel;
 use Src\Models\SchoolsModel;
+use Src\Models\UserRoleModel;
 use Src\System\AuthValidation;
 use Src\System\Errors;
 use Src\System\UuidGenerator;
@@ -22,6 +23,7 @@ class AssetsDistributionController
     private $schoolsModel;
     private $request_method;
     private $params;
+    private $userRoleModel;
 
     public function __construct($db, $request_method, $params)
     {
@@ -34,6 +36,7 @@ class AssetsDistributionController
         $this->assetsDistributionModel = new AssetsDistributionModel($db);
         $this->assetsModel = new AssetsModel($db);
         $this->schoolsModel = new SchoolsModel($db);
+        $this->userRoleModel = new UserRoleModel($db);
     }
 
     function processRequest()
@@ -226,6 +229,18 @@ class AssetsDistributionController
         // getting authorized user id
         $logged_user_id = AuthValidation::authorized()->id;
         try {
+            $user_role = $this->userRoleModel->findCurrentUserRole($logged_user_id);
+            if (sizeof($user_role) === 0) {
+                return Errors::badRequestError("Please login first, please try again later?");
+            }
+
+            if (strtolower($user_role[0]['role']) == "donor" || strtolower($user_role[0]['role']) == "supplier") {
+                $results = $this->assetsDistributionModel->selectAllDistributionBatchBYusedId($logged_user_id);
+                $response['status_code_header'] = 'HTTP/1.1 200 OK';
+                $response['body'] = json_encode($results);
+                return $response;
+            }
+
             $results = $this->assetsDistributionModel->selectAllDistributionBatch();
             $response['status_code_header'] = 'HTTP/1.1 200 OK';
             $response['body'] = json_encode($results);
