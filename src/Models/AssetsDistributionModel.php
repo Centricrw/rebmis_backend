@@ -550,7 +550,6 @@ class AssetsDistributionModel
      */
     public function selectBatchAssetsDetailsByBatchID($batch_details_id)
     {
-        // SELECT * FROM `batch_details` WHERE `batch_id` = :batch_id
         $statement = "SELECT A.*, L.level_name, S.school_name, AC.assets_categories_name, ASUB.name as assets_sub_categories_name, Br.name as brand_name  FROM `assets` A
         INNER JOIN `schools` S ON S.school_code = A.school_code
         INNER JOIN `levels` L ON L.level_code = A.level_code
