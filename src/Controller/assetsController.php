@@ -47,6 +47,8 @@ class AssetCategoriesController
                     $response = $this->getSchoolAssetsSummary();
                 } else if (isset($this->params['id']) && $this->params['id'] == "get_unassigned_assets") {
                     $response = $this->getNotAssignedAssetsFromStock();
+                } else if (isset($this->params['id']) && $this->params['action'] == "confirm_school_assets") {
+                    $response = $this->confirmSchoolAssets($this->params['id']);
                 } else {
                     $response = $this->createNewAssets();
                 }
@@ -344,6 +346,47 @@ class AssetCategoriesController
 
             $response['status_code_header'] = 'HTTP/1.1 201 Created';
             $response['body'] = json_encode($data);
+            return $response;
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
+        }
+    }
+
+    /**
+     * get confirm school assets
+     * @param STRING $school_code
+     * @return OBJECT $results
+     */
+
+    public function confirmSchoolAssets($school_code)
+    {
+        // getting input data
+        $data = (array) json_decode(file_get_contents('php://input'), true);
+        // getting authorized user id
+        $logged_user_id = AuthValidation::authorized()->id;
+        try {
+            $schoolHasAssets = $this->assetsModel->getSchoolAssetsBySchoolCode($school_code);
+            if (count($schoolHasAssets) === 0) {
+                return Errors::badRequestError("School assets not found, please try again?");
+            }
+
+            // validating there is id in array
+            if (!is_array($data["assets_ids"]) && empty($data["assets_ids"])) {
+                return Errors::badRequestError("supplied_assets_ids must be array and is required");
+            }
+
+            // Validate confirm_status
+            if (!isset($data["confirm_status"]) || !in_array($data["confirm_status"], ['RECEIVED', 'NOT RECEIVED'])) {
+                return Errors::badRequestError("confirm_status must be 'NOT RECEIVED' or 'RECEIVED'");
+            }
+
+            // updated found ids
+            $this->assetsModel->confirmSchoolAssetsByIds($data['assets_ids'], $data["confirm_status"], $school_code);
+
+            $response['status_code_header'] = 'HTTP/1.1 201 Created';
+            $response['body'] = json_encode([
+                "message" => "Assets updated successfully!",
+            ]);
             return $response;
         } catch (\Throwable $th) {
             return Errors::databaseError($th->getMessage());

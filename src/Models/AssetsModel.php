@@ -783,4 +783,22 @@ class AssetsModel
             throw new Error($e->getMessage());
         }
     }
+
+    public function confirmSchoolAssetsByIds($supplier_ids, $confirm_status, $school_code)
+    {
+        if (empty($supplier_ids)) {
+            return []; // Return an empty array if no supplier IDs are provided
+        }
+        $placeholders = implode(',', array_fill(0, count($supplier_ids), '?'));
+        $statement = "UPDATE `assets` SET school_confirm = ? WHERE `school_code` = ? AND `assets_id` IN ($placeholders)";
+        $mergedArray = array_merge([$confirm_status, $school_code], $supplier_ids);
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute($mergedArray);
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $result;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
 }

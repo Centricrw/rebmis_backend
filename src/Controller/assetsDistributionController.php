@@ -47,6 +47,8 @@ class AssetsDistributionController
                     $response = $this->getSchoolDistributionOnBatchDetails($this->params['id']);
                 } else if (isset($this->params['id']) && $this->params['id'] == "remaining_assets") {
                     $response = $this->countRemainAssetsInBatchDetails();
+                } else if (isset($this->params['id']) && $this->params['action'] == "batch_assets") {
+                    $response = $this->getAssetsOnBatchHandler($this->params['id']);
                 } else {
                     $response = $this->getAllDistributionBatch();
                 }
@@ -748,6 +750,36 @@ class AssetsDistributionController
 
             $response['status_code_header'] = 'HTTP/1.1 200 OK';
             $response['body'] = json_encode($batches);
+            return $response;
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
+        }
+    }
+
+    /**
+     * Create new school distribution asset
+     * @param OBJECT $data
+     * @return OBJECT $results
+     */
+
+    public function getAssetsOnBatchHandler($batch_id)
+    {
+        // getting authorized user id
+        $logged_user_id = AuthValidation::authorized()->id;
+        try {
+            $batchExists = $this->assetsDistributionModel->selectDistributionBatchById($batch_id);
+            if (count($batchExists) === 0) {
+                return Errors::badRequestError("There is no batch found, please try again?");
+            }
+            // $batchDetails = $this->assetsDistributionModel->selectBatchDetailsByBatchID($batch_id);
+            $assets = [];
+            foreach ($batchExists[0]['batch_details'] as $key => $value) {
+                $assetsOnBatchDetails = $this->assetsDistributionModel->selectBatchAssetsDetailsByBatchID($value['id']);
+                $batchExists[0]['batch_details'][$key]["assets_distributed"] = $assetsOnBatchDetails;
+            }
+
+            $response['status_code_header'] = 'HTTP/1.1 201 Created';
+            $response['body'] = json_encode($batchExists);
             return $response;
         } catch (\Throwable $th) {
             return Errors::databaseError($th->getMessage());
