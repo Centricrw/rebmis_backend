@@ -22,7 +22,6 @@ class AssetsRequestModel
         $statement = "INSERT INTO `assets_request`(`assets_request_id`, `school_code`, `category_id`, `subcategory_id`, `assets_number`, `users`, `reason`, `checklist`, `created_by`) VALUES (:assets_request_id, :school_code, :category_id, :subcategory_id, :assets_number, :users,:reason,:checklist,:created_by)";
         try {
             // Remove whiteSpaces from both sides of a string
-            $assets_name = trim($data['name']);
             $statement = $this->db->prepare($statement);
             $statement->execute(array(
                 ':assets_request_id' => $data['assets_request_id'],
