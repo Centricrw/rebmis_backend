@@ -91,8 +91,8 @@ class AssetCategoriesController
             $results = $this->assetCategoriesModel->selectAllAssetsCategory();
             $newResults = [];
             foreach ($results as $key => $value) {
-                $value['attributes'] = unserialize($value['attributes']);
-                $value['checklist'] = json_decode($value['checklist']);
+                $value['attributes'] = isset($value['attributes']) ? unserialize($value['attributes']) : [];
+                $value['checklist'] = isset($value['checklist']) ? json_decode($value['checklist']) : [];
                 array_push($newResults, $value);
             }
             $response['status_code_header'] = 'HTTP/1.1 200 OK';
