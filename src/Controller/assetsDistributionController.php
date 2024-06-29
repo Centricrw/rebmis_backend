@@ -70,6 +70,8 @@ class AssetsDistributionController
                     $response = $this->generateRebEngravingCode();
                 } else if (isset($this->params['id']) && $this->params['id'] == "school_assign_asset") {
                     $response = $this->assignEngravingCodeToAssetsAndSchool();
+                } else if (isset($this->params['id']) && $this->params['action'] == "assets_distributed_on_school") {
+                    $response = $this->getAssetsOnBatchHandlerBySchool($this->params['id']);
                 } else {
                     $response = $this->createNewDistributionBatch();
                 }
@@ -783,6 +785,42 @@ class AssetsDistributionController
                 } else {
                     $assetsOnBatchDetails = $this->assetsDistributionModel->selectBatchAssetsDetailsByBatchID($value['id']);
                 }
+                $batchExists[0]['batch_details'][$key]["assets_distributed"] = $assetsOnBatchDetails;
+            }
+
+            $response['status_code_header'] = 'HTTP/1.1 201 Created';
+            $response['body'] = json_encode($batchExists);
+            return $response;
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
+        }
+    }
+
+    public function getAssetsOnBatchHandlerBySchool($batch_id)
+    {
+        // getting input data
+        $data = (array) json_decode(file_get_contents('php://input'), true);
+        // getting authorized user id
+        $logged_user_id = AuthValidation::authorized()->id;
+        try {
+            $batchExists = $this->assetsDistributionModel->selectDistributionBatchById($batch_id);
+            if (count($batchExists) === 0) {
+                return Errors::badRequestError("There is no batch found, please try again?");
+            }
+
+            // Validate confirm_status
+            if (!isset($data["status"]) || !in_array($data["status"], ['RECEIVED', 'NOT RECEIVED'])) {
+                return Errors::badRequestError("status must be 'NOT RECEIVED' or 'RECEIVED'");
+            }
+
+            // checking if school exists
+            $schoolExists = $this->schoolsModel->findByCode($data['school_code']);
+            if (sizeof($schoolExists) == 0) {
+                return Errors::notFoundError("School Id not found!, please try again?");
+            }
+
+            foreach ($batchExists[0]['batch_details'] as $key => $value) {
+                $assetsOnBatchDetails = $this->assetsDistributionModel->selectBatchAssetsDetailsByBatchIDBySchool($value['id'], $data['school_code'], $data['status']);
                 $batchExists[0]['batch_details'][$key]["assets_distributed"] = $assetsOnBatchDetails;
             }
 

@@ -601,4 +601,35 @@ class AssetsDistributionModel
             throw new Error($e->getMessage());
         }
     }
+
+    /**
+     * select assets on batch
+     * @param STRING $batch_details_id
+     * @return OBJECT $results
+     */
+    public function selectBatchAssetsDetailsByBatchIDBySchool($batch_details_id, $schoolCode, $status = "RECEIVED")
+    {
+        $statement = "SELECT A.*, L.level_name, S.school_name, AC.assets_categories_name, ASUB.name as assets_sub_categories_name, Br.name as brand_name  FROM `assets` A
+        INNER JOIN `schools` S ON S.school_code = A.school_code
+        INNER JOIN `levels` L ON L.level_code = A.level_code
+        INNER JOIN `assets_categories` AC ON AC.assets_categories_id = A.assets_categories_id
+        LEFT JOIN `assets_sub_categories` ASUB ON ASUB.id = A.assets_sub_categories_id
+        INNER JOIN `Brands` Br ON Br.id = A.brand_id
+        WHERE A.batch_details_id = :batch_details_id AND A.school_code = :school_code AND school_confirm = :school_confirm";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
+                ':batch_details_id' => $batch_details_id,
+                ':school_code' => $schoolCode,
+                ':school_confirm' => $status,
+            ));
+            $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            foreach ($results as $key => $value) {
+                $results[$key]['specification'] = json_decode($value['specification']);
+            }
+            return $results;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
 }
