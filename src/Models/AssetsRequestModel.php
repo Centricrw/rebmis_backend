@@ -407,4 +407,22 @@ class AssetsRequestModel
             throw new Error($e->getMessage());
         }
     }
+
+    public function updateServerAssetsRequest($assets_request_id, $confirm_status)
+    {
+        if (empty($assets_request_id)) {
+            return []; // Return an empty array if no supplier IDs are provided
+        }
+        $placeholders = implode(',', array_fill(0, count($assets_request_id), '?'));
+        $statement = "UPDATE `assets_request` SET assets_request_status = ? WHERE `assets_request_id` IN ($placeholders)";
+        $mergedArray = array_merge([$confirm_status], $assets_request_id);
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute($mergedArray);
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $result;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
 }

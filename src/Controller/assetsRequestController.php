@@ -64,6 +64,8 @@ class AssetsRequestController
                     $response = $this->confirmSchoolRequestAssets();
                 } else if (isset($this->params['action']) && $this->params['action'] == "reject_visit") {
                     $response = $this->rejectSchoolRequestedVisitHandler();
+                } else if (isset($this->params['action']) && $this->params['action'] == "serve_request") {
+                    $response = $this->serveAssetsRequest();
                 } else {
                     $response = $this->createNewRequestAssets();
                 }
@@ -509,9 +511,37 @@ class AssetsRequestController
                     $this->sendEmailHandler->sendSMSMessage($headTeacherEmail, "REB MIS Returned Your Request", $message);
                     break;
                 default:
-                    # code...
-                    break;
+                    return Errors::badRequestError("Email status not found, please try again later?");
             }
+        }
+    }
+
+    public function serveAssetsRequest()
+    {
+        // getting authorized user id
+        $logged_user_id = AuthValidation::authorized()->id;
+        // getting input data
+        $data = (array) json_decode(file_get_contents('php://input'), true);
+        try {
+            // validating there is id in array
+            if (!is_array($data["assets_request_ids"]) && empty($data["assets_request_ids"])) {
+                return Errors::badRequestError("assets_request_ids must be array and is required");
+            }
+
+            // Validate confirm_status
+            if (!isset($data["confirm_status"]) || !in_array($data["confirm_status"], ['SERVED'])) {
+                return Errors::badRequestError("confirm_status must be 'SERVED'");
+            }
+
+            $this->assetsRequestModel->updateServerAssetsRequest($data['assets_request_ids'], 'SERVED');
+            $response['status_code_header'] = 'HTTP/1.1 201 Created';
+            $response['body'] = json_encode([
+                "message" => "Request updated successfully!",
+                "results" => $data,
+            ]);
+            return $response;
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
         }
     }
 
