@@ -767,14 +767,22 @@ class AssetsDistributionController
         // getting authorized user id
         $logged_user_id = AuthValidation::authorized()->id;
         try {
+            $user_role = $this->userRoleModel->findCurrentUserRole($logged_user_id);
+            if (sizeof($user_role) === 0) {
+                return Errors::badRequestError("Please login first, please try again later?");
+            }
+
             $batchExists = $this->assetsDistributionModel->selectDistributionBatchById($batch_id);
             if (count($batchExists) === 0) {
                 return Errors::badRequestError("There is no batch found, please try again?");
             }
-            // $batchDetails = $this->assetsDistributionModel->selectBatchDetailsByBatchID($batch_id);
-            $assets = [];
             foreach ($batchExists[0]['batch_details'] as $key => $value) {
-                $assetsOnBatchDetails = $this->assetsDistributionModel->selectBatchAssetsDetailsByBatchID($value['id']);
+                $assetsOnBatchDetails = [];
+                if (strtolower($user_role[0]['role']) == "engraver") {
+                    $assetsOnBatchDetails = $this->assetsDistributionModel->selectBatchAssetsDetailsByBatchIDEngravedUser($value['id'], $logged_user_id);
+                } else {
+                    $assetsOnBatchDetails = $this->assetsDistributionModel->selectBatchAssetsDetailsByBatchID($value['id']);
+                }
                 $batchExists[0]['batch_details'][$key]["assets_distributed"] = $assetsOnBatchDetails;
             }
 

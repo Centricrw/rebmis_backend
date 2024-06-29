@@ -354,7 +354,7 @@ class AssetsRequestController
         $data = (array) json_decode(file_get_contents('php://input'), true);
         // getting authorized user id
         $logged_user_id = AuthValidation::authorized()->id;
-        $definedStatus = array('PENDING', 'RETURNED', 'APPROVED', 'REJECTED');
+        $definedStatus = array('PENDING', 'RETURNED', 'APPROVED', 'REJECTED', 'SERVED');
         try {
             //checking if school already on visiting list
             $schoolRequestExists = $this->assetsRequestModel->getSchoolRequestAssetById($data['assets_request_id']);
