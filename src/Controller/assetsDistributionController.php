@@ -49,6 +49,8 @@ class AssetsDistributionController
                     $response = $this->countRemainAssetsInBatchDetails();
                 } else if (isset($this->params['id']) && $this->params['action'] == "batch_assets") {
                     $response = $this->getAssetsOnBatchHandler($this->params['id']);
+                } else if (isset($this->params['id']) && $this->params['action'] == "batch_on_school") {
+                    $response = $this->getAllDistributionBatchOnSchool($this->params['id']);
                 } else {
                     $response = $this->getAllDistributionBatch();
                 }
@@ -826,6 +828,31 @@ class AssetsDistributionController
 
             $response['status_code_header'] = 'HTTP/1.1 201 Created';
             $response['body'] = json_encode($batchExists);
+            return $response;
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
+        }
+    }
+
+    /**
+     * getting all Batch category
+     * @param NULL
+     * @return OBJECT $results
+     */
+    public function getAllDistributionBatchOnSchool($school_code)
+    {
+        // getting authorized user id
+        $logged_user_id = AuthValidation::authorized()->id;
+        try {
+            $results = $this->assetsDistributionModel->selectAllDistributionBatchOnSchool($school_code);
+            foreach ($results as $key => $value) {
+                $batch = $this->assetsDistributionModel->selectDistributionBatchById($value['batch_id'], false);
+                $batchDetails = $this->assetsDistributionModel->selectBatchDefinitionBYId($value['batch_details_id'], true);
+                $results[$key]['Batch'] = count($batch) > 0 ? $batch[0] : null;
+                $results[$key]['Batch_details'] = count($batchDetails) > 0 ? $batchDetails[0] : null;
+            }
+            $response['status_code_header'] = 'HTTP/1.1 200 OK';
+            $response['body'] = json_encode($results);
             return $response;
         } catch (\Throwable $th) {
             return Errors::databaseError($th->getMessage());
