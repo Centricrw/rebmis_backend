@@ -39,7 +39,9 @@ class AssetCategoriesController
                 } else if (isset($this->params['action']) && $this->params['action'] == "school") {
                     $response = $this->getSchoolAssetBySchoolCode($this->params['id']);
                 } else {
-                    $response = $this->getAllAssets();
+                    $page = isset($this->params['action']) && is_numeric(trim($this->params['action'])) ? $this->params['action'] : 1;
+                    $limit = isset($this->params['id']) && is_numeric(trim($this->params['id'])) ? $this->params['id'] : 50;
+                    $response = $this->getAllAssets($page, $limit);
                 }
                 break;
             case "POST":
@@ -132,19 +134,17 @@ class AssetCategoriesController
      * @param NULL
      * @return OBJECT $results
      */
-    public function getAllAssets()
+    public function getAllAssets($page, $limit)
     {
         // getting authorized user id
         $logged_user_id = AuthValidation::authorized()->id;
         try {
-            $results = $this->assetsModel->selectAllAssets();
-            $newResults = [];
-            foreach ($results as $key => $value) {
-                $value['specification'] = json_decode($value['specification']);
-                array_push($newResults, $value);
+            $results = $this->assetsModel->selectAllAssets($page, $limit);
+            foreach ($results['assets'] as $key => $value) {
+                $results['assets'][$key]['specification'] = json_decode($value['specification']);
             }
             $response['status_code_header'] = 'HTTP/1.1 200 OK';
-            $response['body'] = json_encode($newResults);
+            $response['body'] = json_encode($results);
             return $response;
         } catch (\Throwable $th) {
             return Errors::databaseError($th->getMessage());
