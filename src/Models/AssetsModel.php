@@ -235,17 +235,34 @@ class AssetsModel
      * @param NULL
      * @return OBJECT $results
      */
-    public function selectAllAssets()
+    public function selectAllAssets($page = 1, $limit = 50)
     {
+        $results_per_page = $limit;
+        $page_first_result = ($page - 1) * $results_per_page;
+        $queryCount = "SELECT COUNT(*) AS total_count FROM `assets` WHERE `status` = :status";
+
         $statement = "SELECT A.assets_id, A.name, A.serial_number, C.assets_categories_id, C.assets_categories_name, A.assets_sub_categories_id, SC.name as assets_sub_categories_name, A.brand_id, B.name as brand_name, A.specification  FROM `assets` A
         INNER JOIN `assets_categories` C ON A.assets_categories_id = C.assets_categories_id
         INNER JOIN `assets_sub_categories` SC ON A.assets_sub_categories_id = SC.id
-        INNER JOIN `Brands` B ON A.brand_id = B.id WHERE A.`status` = ?";
+        INNER JOIN `Brands` B ON A.brand_id = B.id WHERE A.`status` = ? LIMIT " . $page_first_result . ',' . $results_per_page;
         try {
+            // pagination handler
+            $resultCount = $this->db->prepare($queryCount);
+            $resultCount->execute(array(":status" => 1));
+            $number_of_result = $resultCount->fetchAll(\PDO::FETCH_ASSOC);
+            // determining the total number of pages available
+            $number_of_page = ceil($number_of_result[0]['total_count'] / $results_per_page);
+
             $statement = $this->db->prepare($statement);
             $statement->execute(array(1));
             $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
-            return $results;
+
+            return [
+                "total_pages" => $number_of_page,
+                "current_page" => $page,
+                "total_assets" => $number_of_result[0]['total_count'],
+                "assets" => $results,
+            ];
         } catch (\PDOException $e) {
             throw new Error($e->getMessage());
         }
