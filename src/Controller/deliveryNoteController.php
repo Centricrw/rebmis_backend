@@ -40,8 +40,11 @@ class DeliveryNoteController
                     $response = Errors::notFoundError("Route not found!");
                 }
             case 'POST':
-                if ($this->params['action'] == "received") {
-                    $response = $this->generateReceivedNoteForReb();
+                if(isset($this->params['action'])){
+                    if ($this->params['action'] == "received") {
+                        var_dump($this->params);
+                        $response = $this->generateReceivedNoteForReb();
+                    }
                 } else {
                     $response = $this->generateDeliveryNoteForSchool();
                 }
