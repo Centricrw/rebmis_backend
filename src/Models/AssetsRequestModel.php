@@ -18,7 +18,6 @@ class AssetsRequestModel
      */
     public function insertNewRequestAsset($data, $created_by)
     {
-        $currentDate = date('Y-m-d');
         $statement = "INSERT INTO `assets_request`(`assets_request_id`, `school_code`, `category_id`, `subcategory_id`, `assets_number`, `users`, `reason`, `checklist`, `created_by`) VALUES (:assets_request_id, :school_code, :category_id, :subcategory_id, :assets_number, :users,:reason,:checklist,:created_by)";
         try {
             // Remove whiteSpaces from both sides of a string
