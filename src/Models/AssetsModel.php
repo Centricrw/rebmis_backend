@@ -241,10 +241,13 @@ class AssetsModel
         $page_first_result = ($page - 1) * $results_per_page;
         $queryCount = "SELECT COUNT(*) AS total_count FROM `assets` WHERE `status` = :status";
 
-        $statement = "SELECT A.assets_id, A.name, A.serial_number, C.assets_categories_id, C.assets_categories_name, A.assets_sub_categories_id, SC.name as assets_sub_categories_name, A.brand_id, B.name as brand_name, A.specification  FROM `assets` A
+        $statement = "SELECT A.assets_id, A.name, A.serial_number, C.assets_categories_id, C.assets_categories_name, A.assets_sub_categories_id, SC.name as assets_sub_categories_name, A.brand_id, B.name as brand_name, A.specification, SCH.school_name, SCH.school_code, SCHL.district_name, SCHL.district_code, SCHL.sector_name, SCHL.sector_code, SCHL.cell_name, SCHL.cell_code, SCHL.village_name, SCHL.village_id  FROM `assets` A
         INNER JOIN `assets_categories` C ON A.assets_categories_id = C.assets_categories_id
         INNER JOIN `assets_sub_categories` SC ON A.assets_sub_categories_id = SC.id
-        INNER JOIN `Brands` B ON A.brand_id = B.id WHERE A.`status` = ? LIMIT " . $page_first_result . ',' . $results_per_page;
+        INNER JOIN `Brands` B ON A.brand_id = B.id
+        LEFT JOIN `schools` SCH ON SCH.school_code = A.school_code
+        LEFT JOIN `school_location` SCHL ON SCHL.village_id = SCH.region_code
+        WHERE A.`status` = ? LIMIT " . $page_first_result . ',' . $results_per_page;
         try {
             // pagination handler
             $resultCount = $this->db->prepare($queryCount);
