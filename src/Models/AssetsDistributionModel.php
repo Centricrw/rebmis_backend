@@ -594,12 +594,13 @@ class AssetsDistributionModel
         INNER JOIN `assets_categories` AC ON AC.assets_categories_id = A.assets_categories_id
         LEFT JOIN `assets_sub_categories` ASUB ON ASUB.id = A.assets_sub_categories_id
         INNER JOIN `Brands` Br ON Br.id = A.brand_id
-        WHERE A.batch_details_id = :batch_details_id AND A.updated_by = :updated_by";
+        WHERE A.batch_details_id = :batch_details_id AND (A.updated_by = :updated_by OR A.engraved_by = :engraved_by)";
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array(
                 ':batch_details_id' => $batch_details_id,
                 ':updated_by' => $logged_user_id,
+                ':engraved_by' => $logged_user_id,
             ));
             $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
             foreach ($results as $key => $value) {

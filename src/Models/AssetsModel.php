@@ -370,7 +370,8 @@ class AssetsModel
      */
     public function insertNewAssetsToSchool($data, $updated_by)
     {
-        $statement = "UPDATE `assets` SET `assets_tag` = :assets_tag, `school_code` = :school_code, `level_code` = :level_code, `asset_state` = :asset_state, `updated_by` = :updated_by WHERE `serial_number` = :serial_number";
+        $currentDate = date('Y-m-d');
+        $statement = "UPDATE `assets` SET `assets_tag` = :assets_tag, `school_code` = :school_code, `level_code` = :level_code, `asset_state` = :asset_state, `engraved_by` = :engraved_by, `engraved_at`= :engraved_at WHERE `serial_number` = :serial_number";
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array(
@@ -378,7 +379,8 @@ class AssetsModel
                 ':school_code' => $data['school_code'],
                 ':level_code' => $data['level_code'],
                 ':asset_state' => "assigned",
-                ':updated_by' => $updated_by,
+                ':engraved_by' => $updated_by,
+                ':engraved_at' => $currentDate,
                 ':serial_number' => $data['serial_number'],
             ));
             return $statement->rowCount();
