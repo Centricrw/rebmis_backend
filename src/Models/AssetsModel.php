@@ -817,6 +817,37 @@ class AssetsModel
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute($mergedArray);
+            $result = $statement->rowCount();
+            return $result;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    public function getAllCategoryCountAssets()
+    {
+        // how to select
+        $statement = "SELECT ASS.assets_categories_id, AC.assets_categories_name, COUNT(*) as count
+        FROM assets ASS
+        INNER JOIN assets_categories AC ON AC.assets_categories_id = ASS.assets_categories_id
+        GROUP BY ASS.assets_categories_id";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array());
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $result;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    public function getAllSchoolCountAssets()
+    {
+        // how to select
+        $statement = "SELECT ASS.assets_categories_id, AC.assets_categories_name, ASS.school_code, SC.school_name, COUNT(*) as count FROM assets ASS INNER JOIN assets_categories AC ON AC.assets_categories_id = ASS.assets_categories_id INNER JOIN schools SC ON SC.school_code = ASS.school_code GROUP BY ASS.assets_categories_id, AC.assets_categories_name, ASS.school_code, SC.school_name";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array());
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
             return $result;
         } catch (\PDOException $e) {
