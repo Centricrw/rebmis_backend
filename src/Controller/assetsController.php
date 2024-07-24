@@ -38,6 +38,10 @@ class AssetCategoriesController
                     $response = $this->getAssetBySerialNUmber($this->params['id']);
                 } else if (isset($this->params['action']) && $this->params['action'] == "school") {
                     $response = $this->getSchoolAssetBySchoolCode($this->params['id']);
+                } else if (isset($this->params['id']) && $this->params['id'] == "assets_category_count") {
+                    $response = $this->getAssetsCategoryCount();
+                } else if (isset($this->params['id']) && $this->params['id'] == "assets_school_category_count") {
+                    $response = $this->getAssetsSchoolCategoryCount();
                 } else {
                     $page = isset($this->params['action']) && is_numeric(trim($this->params['action'])) ? $this->params['action'] : 1;
                     $limit = isset($this->params['id']) && is_numeric(trim($this->params['id'])) ? $this->params['id'] : 50;
@@ -387,6 +391,42 @@ class AssetCategoriesController
             $response['body'] = json_encode([
                 "message" => "Assets updated successfully!",
             ]);
+            return $response;
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
+        }
+    }
+
+    /**
+     * count all category in assets
+     *
+     */
+    public function getAssetsCategoryCount()
+    {
+        // getting authorized user id
+        $logged_user_id = AuthValidation::authorized()->id;
+        try {
+            $results = $this->assetsModel->getAllCategoryCountAssets();
+            $response['status_code_header'] = 'HTTP/1.1 200 OK';
+            $response['body'] = json_encode($results);
+            return $response;
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
+        }
+    }
+
+    /**
+     * count all school category in assets
+     *
+     */
+    public function getAssetsSchoolCategoryCount()
+    {
+        // getting authorized user id
+        $logged_user_id = AuthValidation::authorized()->id;
+        try {
+            $results = $this->assetsModel->getAllSchoolCountAssets();
+            $response['status_code_header'] = 'HTTP/1.1 200 OK';
+            $response['body'] = json_encode($results);
             return $response;
         } catch (\Throwable $th) {
             return Errors::databaseError($th->getMessage());
