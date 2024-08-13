@@ -186,6 +186,10 @@ $route->router("/download_delivery_note/{action}", "src/Controller/deliveryNoteC
 $route->router("/school_assets_request", "src/Controller/assetsRequestController.php");
 $route->router("/school_assets_request/{action}", "src/Controller/assetsRequestController.php");
 
+// Cohort Course Grades TEST
+$route->router("/cohort_test", "src/Controller/candidate_test.php");
+$route->router("/cohort_test/{action}", "src/Controller/candidate_test.php");
+
 //write it at the last
 //arg is 404 file location
 $route->notFound("404.php");
