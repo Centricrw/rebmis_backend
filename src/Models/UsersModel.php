@@ -391,6 +391,20 @@ class UsersModel
         }
     }
 
+    public function findUserByStaffCodeShort($staff_code)
+    {
+        $statement = "SELECT staff_code FROM users WHERE staff_code = ? LIMIT 1";
+
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array($staff_code));
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $result;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
     public function findOneUserShort($user_id, $phone_number = "", $status = 1)
     {
         $statement = "SELECT `user_id` FROM users WHERE user_id = ? OR staff_code = ? OR phone_numbers = ?  AND status = ? LIMIT 1";
