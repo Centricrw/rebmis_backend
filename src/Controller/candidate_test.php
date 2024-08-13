@@ -62,10 +62,13 @@ class CandidatesTestController
             }
             // Check if the staffCode exists
             $existsStaffCode = [];
+            $notFoundStaffCode = [];
             foreach ($json_data as $key => $value) {
                 $user = $this->usersModel->findUserByStaffCodeShort($value['ID number']);
                 if (count($user) > 0) {
                     $existsStaffCode[] = $value;
+                } else {
+                    $notFoundStaffCode[] = $value;
                 }
             }
             // after checking save candidate which is on database
@@ -77,6 +80,8 @@ class CandidatesTestController
                 'message' => "Created",
                 'current_length' => count($json_data),
                 'verified_length' => count($existsStaffCode),
+                'not_found_length' => count($notFoundStaffCode),
+                'not_found_staff_code' => $notFoundStaffCode,
                 'data' => $existsStaffCode,
             ]);
             return $response;
