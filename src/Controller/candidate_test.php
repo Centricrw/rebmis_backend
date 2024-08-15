@@ -25,6 +25,9 @@ class CandidatesTestController
             case 'GET':
                 $response = $this->convertJsonAndCheckIfStaffCodeExists();
                 break;
+            case "POST":
+                $response = $this->filterTeachers();
+                break;
             default:
                 $response = Errors::notFoundError("Route not found!");
                 break;
@@ -88,6 +91,26 @@ class CandidatesTestController
         } catch (\Throwable $th) {
             return Errors::databaseError($th->getMessage());
         }
+    }
+
+    public function filterTeachers()
+    {
+        // Get input data
+        $data = json_decode(file_get_contents('php://input'), true);
+
+        // temparary array
+        $temp_success_array = array();
+
+        // deplcated user
+        $deplicated = array();
+        // Process enrollment
+        foreach ($data as $key => $teacherData) {
+            array_push($temp_success_array, $teacherData);
+            // save data to json file
+            $encodeData = json_encode($temp_success_array, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+            file_put_contents("./public/Cohort_Course_Grades.json", $encodeData);
+        }
+        return convertJsonAndCheckIfStaffCodeExists();
     }
 }
 
