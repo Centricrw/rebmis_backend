@@ -8,17 +8,19 @@ use Src\System\Errors;
 class AssetCategoriesController
 {
     private $db;
+    private $moodleDb;
     private $assetCategoriesModel;
     private $trainingsModel;
     private $request_method;
     private $params;
 
-    public function __construct($db, $request_method, $params)
+    public function __construct($db, $moodleDb, $request_method, $params)
     {
         $this->db = $db;
+        $this->moodleDb = $moodleDb;
         $this->request_method = $request_method;
         $this->params = $params;
-        $this->assetCategoriesModel = new AssetCategoriesModel($db);
+        $this->assetCategoriesModel = new AssetCategoriesModel($db, $moodleDb);
     }
 
     function processRequest()
@@ -147,5 +149,5 @@ class AssetCategoriesController
     }
 
 }
-$controller = new AssetCategoriesController($this->db, $request_method, $params);
+$controller = new AssetCategoriesController($this->db, $this->moodleDb, $request_method, $params);
 $controller->processRequest();
