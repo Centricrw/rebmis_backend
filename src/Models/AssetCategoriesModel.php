@@ -7,10 +7,12 @@ class AssetCategoriesModel
 {
 
     private $db = null;
+    private $moodleDb = null;
 
-    public function __construct($db)
+    public function __construct($db, $moodleDb = null)
     {
         $this->db = $db;
+        $this->moodleDb = $moodleDb;
     }
     /**
      * Create new asset category
