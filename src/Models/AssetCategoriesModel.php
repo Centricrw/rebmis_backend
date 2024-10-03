@@ -9,7 +9,7 @@ class AssetCategoriesModel
     private $db = null;
     private $moodleDb = null;
 
-    public function __construct($db, $moodleDb = null)
+    public function __construct($db, $moodleDb)
     {
         $this->db = $db;
         $this->moodleDb = $moodleDb;
