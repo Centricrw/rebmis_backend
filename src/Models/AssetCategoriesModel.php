@@ -9,7 +9,7 @@ class AssetCategoriesModel
     private $db = null;
     private $moodleDb = null;
 
-    public function __construct($db, $moodleDb)
+    public function __construct($db, $moodleDb = null)
     {
         $this->db = $db;
         $this->moodleDb = $moodleDb;
@@ -84,7 +84,7 @@ class AssetCategoriesModel
     {
         $statement = "SELECT * FROM `assets_categories` WHERE `status` = ?";
         try {
-            $statement = $this->db->prepare($statement);
+            $statement = $this->moodleDb->prepare($statement);
             $statement->execute(array(1));
             $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
             return $results;
