@@ -84,7 +84,7 @@ class AssetCategoriesModel
     {
         $statement = "SELECT * FROM `assets_categories` WHERE `status` = ?";
         try {
-            $statement = $this->moodleDb->prepare($statement);
+            $statement = $this->db->prepare($statement);
             $statement->execute(array(1));
             $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
             return $results;
