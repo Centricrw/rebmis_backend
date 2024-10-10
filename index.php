@@ -191,7 +191,8 @@ $route->router("/cohort_test", "src/Controller/candidate_test.php");
 $route->router("/cohort_test/{action}", "src/Controller/candidate_test.php");
 
 $route->router("/livemoodlegrade/{action}", "src/Controller/livemoodleController.php");
-$route->router("/livemoodlegrade/{action}/{id}", "src/Controller/livemoodleController.php");
+$route->router("/livemoodlegrade/{action}/{paid}", "src/Controller/livemoodleController.php");
+$route->router("/livemoodlegrade/{action}/{previous_courseid}/{current_courseid}", "src/Controller/livemoodleController.php");
 
 
 //write it at the last

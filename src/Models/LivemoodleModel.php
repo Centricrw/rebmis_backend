@@ -36,7 +36,7 @@ class LivemoodleModel
         } 
     }
 
-    public function get_grades($courseId){
+    public function get_pa_grades($courseId){
         $statement = "
             SELECT c.id as Course_Id, c.shortname AS shortname, c.fullname AS fullname, u.id AS User_Id,
             u.firstname AS firstname, u.lastname AS lastname, u.email AS email, COALESCE(ROUND(gg.finalgrade,2),0) as finalgrade
@@ -60,6 +60,56 @@ class LivemoodleModel
         try {
             $statement = $this->moodleDb->prepare($statement);
             $statement->execute(array($courseId));
+            $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $results;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    public function get_course_grades($previous_courseid,$current_courseid){
+        $statement = "
+            SELECT
+                u.id AS User_Id,
+                u.firstname AS firstname,
+                u.lastname AS lastname,
+                u.email AS email,
+                COALESCE(ROUND(g1.finalgrade, 2), 0) AS grades_course_1,
+                COALESCE(ROUND(g2.finalgrade, 2), 0) AS grades_course_2
+            FROM
+                mdl_user u
+            LEFT JOIN (
+                SELECT
+                    gg.userid,
+                    gg.finalgrade
+                FROM
+                    mdl_grade_grades gg
+                JOIN mdl_grade_items gi ON gg.itemid = gi.id
+                WHERE
+                    gi.courseid = ? AND gi.itemtype = 'course'
+            ) g1 ON g1.userid = u.id
+            LEFT JOIN (
+                SELECT
+                    gg.userid,
+                    gg.finalgrade
+                FROM
+                    mdl_grade_grades gg
+                JOIN mdl_grade_items gi ON gg.itemid = gi.id
+                WHERE
+                    gi.courseid = ? AND gi.itemtype = 'course'
+            ) g2 ON g2.userid = u.id
+            INNER JOIN mdl_role_assignments ra ON ra.userid = u.id
+            INNER JOIN mdl_context ct ON ct.id = ra.contextid AND ct.contextlevel = 50
+            INNER JOIN mdl_course c ON c.id = ct.instanceid AND c.id IN (2, 3)
+            INNER JOIN mdl_role r ON r.id = ra.roleid
+            WHERE
+                r.shortname = 'student'
+            ORDER BY
+                u.lastname, u.firstname;
+        ";
+        try {
+            $statement = $this->moodleDb->prepare($statement);
+            $statement->execute(array($previous_courseid, $current_courseid));
             $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
             return $results;
         } catch (\PDOException $e) {

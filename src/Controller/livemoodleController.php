@@ -28,11 +28,15 @@ class livemoodleController
             // GET DATA
             case "GET":
                 if (sizeof($this->params) > 0 && $this->params['action'] == "get_enrollments") {
-                    $response = $this->get_enrollments($this->params['id']);
+                    $response = $this->get_enrollments($this->params['paid']);
                     break;
                 }
-                elseif (sizeof($this->params) > 0 && $this->params['action'] == "get_grades") {
-                    $response = $this->get_grades($this->params['id']);
+                elseif (sizeof($this->params) > 0 && $this->params['action'] == "get_pa_grades") {
+                    $response = $this->get_pa_grades($this->params['paid']);
+                    break;
+                }
+                elseif (sizeof($this->params) > 0 && $this->params['action'] == "get_course_grades") {
+                    $response = $this->get_course_grades($this->params['previous_courseid'],$this->params['current_courseid']);
                     break;
                 }
                 break;
@@ -69,11 +73,25 @@ class livemoodleController
         }
     }
 
-    private function get_grades($courseId)
+    private function get_pa_grades($courseId)
     {
 
         try {
-            $result = $this->livemoodleModel->get_grades($courseId);
+            $result = $this->livemoodleModel->get_pa_grades($courseId);
+            // response
+            $response['status_code_header'] = 'HTTP/1.1 201 Created';
+            $response['body'] = json_encode($result);
+            return $response;
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
+        }
+    }
+
+    private function get_course_grades($previous_courseid,$current_courseid)
+    {
+        $fruits = array($previous_courseid, $current_courseid);
+        try {
+            $result = $this->livemoodleModel->get_course_grades($previous_courseid,$current_courseid);
             // response
             $response['status_code_header'] = 'HTTP/1.1 201 Created';
             $response['body'] = json_encode($result);
