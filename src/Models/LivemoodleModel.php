@@ -75,7 +75,8 @@ class LivemoodleModel
                 u.lastname AS lastname,
                 u.email AS email,
                 COALESCE(ROUND(g1.finalgrade, 2), 0) AS grades_course_1,
-                COALESCE(ROUND(g2.finalgrade, 2), 0) AS grades_course_2
+                COALESCE(ROUND(g2.finalgrade, 2), 0) AS grades_course_2,
+                COALESCE(ROUND(p2.progress, 2), 0) AS progress_course_2
             FROM
                 mdl_user u
             LEFT JOIN (
@@ -86,7 +87,7 @@ class LivemoodleModel
                     mdl_grade_grades gg
                 JOIN mdl_grade_items gi ON gg.itemid = gi.id
                 WHERE
-                    gi.courseid = ? AND gi.itemtype = 'course'
+                    gi.courseid = $previous_courseid AND gi.itemtype = 'course'
             ) g1 ON g1.userid = u.id
             LEFT JOIN (
                 SELECT
@@ -96,8 +97,19 @@ class LivemoodleModel
                     mdl_grade_grades gg
                 JOIN mdl_grade_items gi ON gg.itemid = gi.id
                 WHERE
-                    gi.courseid = ? AND gi.itemtype = 'course'
+                    gi.courseid = $current_courseid AND gi.itemtype = 'course'
             ) g2 ON g2.userid = u.id
+            LEFT JOIN (
+                SELECT
+                    ccc.userid,
+                    SUM(ccc.course) AS progress
+                FROM
+                    mdl_course_completion_crit_compl ccc
+                WHERE
+                    ccc.course = $current_courseid
+                GROUP BY
+                    ccc.userid
+            ) p2 ON p2.userid = u.id
             INNER JOIN mdl_role_assignments ra ON ra.userid = u.id
             INNER JOIN mdl_context ct ON ct.id = ra.contextid AND ct.contextlevel = 50
             INNER JOIN mdl_course c ON c.id = ct.instanceid AND c.id IN (2, 3)
@@ -109,7 +121,7 @@ class LivemoodleModel
         ";
         try {
             $statement = $this->moodleDb->prepare($statement);
-            $statement->execute(array($previous_courseid, $current_courseid));
+            $statement->execute();
             $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
             return $results;
         } catch (\PDOException $e) {
