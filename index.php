@@ -190,6 +190,10 @@ $route->router("/school_assets_request/{action}", "src/Controller/assetsRequestC
 $route->router("/cohort_test", "src/Controller/candidate_test.php");
 $route->router("/cohort_test/{action}", "src/Controller/candidate_test.php");
 
+$route->router("/livemoodlegrade/{action}", "src/Controller/livemoodleController.php");
+$route->router("/livemoodlegrade/{action}/{id}", "src/Controller/livemoodleController.php");
+
+
 //write it at the last
 //arg is 404 file location
 $route->notFound("404.php");
