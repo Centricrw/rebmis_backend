@@ -31,6 +31,10 @@ class livemoodleController
                     $response = $this->get_enrollments($this->params['id']);
                     break;
                 }
+                elseif (sizeof($this->params) > 0 && $this->params['action'] == "get_grades") {
+                    $response = $this->get_grades($this->params['id']);
+                    break;
+                }
                 break;
                 
             case "POST":
@@ -64,11 +68,19 @@ class livemoodleController
             return Errors::databaseError($th->getMessage());
         }
     }
-    private function get_grades()
-    {
-        // getting input data
-        $inputData = (array) json_decode(file_get_contents('php://input'), true);
 
+    private function get_grades($courseId)
+    {
+
+        try {
+            $result = $this->livemoodleModel->get_grades($courseId);
+            // response
+            $response['status_code_header'] = 'HTTP/1.1 201 Created';
+            $response['body'] = json_encode($result);
+            return $response;
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
+        }
     }
 
 }
