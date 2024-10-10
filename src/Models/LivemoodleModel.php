@@ -31,7 +31,7 @@ class LivemoodleModel
             $statement = $this->moodleDb->query($statement);
             $statement->execute(array($courseId));
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
-            return $result;
+            return $result[0];
         } catch (\PDOException $e) {
             throw new Error($e->getMessage());
         } 
