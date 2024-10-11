@@ -30,7 +30,7 @@ class LivemoodleModel
             $statement = $this->moodleDb->prepare($statement);
             $statement->execute(array($courseId));
             $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
-            return $results[0];
+            return $results[0]['enrolled_students'];
         } catch (\PDOException $e) {
             throw new Error($e->getMessage());
         } 
