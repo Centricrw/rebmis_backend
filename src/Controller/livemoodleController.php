@@ -88,7 +88,7 @@ class livemoodleController
             $il1 = new \stdClass; $il1->id = "6"; $il1->courseId = "788"; $il1->enrolled = "IL1: ".$this->livemoodleModel->get_enrollments("788");
             $il2 = new \stdClass; $il2->id = "7"; $il2->courseId = "789"; $il2->enrolled = "IL2: ".$this->livemoodleModel->get_enrollments("789");
             $il3 = new \stdClass; $il3->id = "8"; $il3->courseId = "790"; $il3->enrolled = "IL3: ".$this->livemoodleModel->get_enrollments("790");
-            $certified = new \stdClass; $certified->id = "8"; $certified->courseId = "00"; $certified->enrolled = "Certified: 0";
+            $certified = new \stdClass; $certified->id = "9"; $certified->courseId = "00"; $certified->enrolled = "Certified: 0";
 
             array_push($result,$test,$bl1,$bl2,$bl3,$il1,$il2,$il3,$certified);
             //$result = $this->livemoodleModel->get_enrollments($courseId);
