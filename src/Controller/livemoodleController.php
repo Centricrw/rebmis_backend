@@ -84,9 +84,9 @@ class livemoodleController
             $test = new \stdClass; $test->id = "2"; $test->courseId = "889"; $test->enrolled = "PA Test: ".$this->livemoodleModel->get_enrollments("889");
             $bl1 = new \stdClass; $bl1->id = "3"; $bl1->courseId = "782"; $bl1->enrolled = "BL1: ".$this->livemoodleModel->get_enrollments("782");
             $bl2 = new \stdClass; $bl2->id = "4"; $bl2->courseId = "784"; $bl2->enrolled = "BL2: ".$this->livemoodleModel->get_enrollments("784");
-            $bl3 = new \stdClass; $bl3->id = "5"; $bl3->courseId = "489"; $bl3->enrolled = "BL3: ".$this->livemoodleModel->get_enrollments("489");
-            $il1 = new \stdClass; $il1->id = "6"; $il1->courseId = "788"; $il1->enrolled = "IL1: ".$this->livemoodleModel->get_enrollments("788");
-            $il2 = new \stdClass; $il2->id = "7"; $il2->courseId = "789"; $il2->enrolled = "IL2: ".$this->livemoodleModel->get_enrollments("789");
+            $bl3 = new \stdClass; $bl3->id = "5"; $bl3->courseId = "789"; $bl3->enrolled = "BL3: ".$this->livemoodleModel->get_enrollments("789");
+            $il1 = new \stdClass; $il1->id = "6"; $il1->courseId = "787"; $il1->enrolled = "IL1: ".$this->livemoodleModel->get_enrollments("787");
+            $il2 = new \stdClass; $il2->id = "7"; $il2->courseId = "788"; $il2->enrolled = "IL2: ".$this->livemoodleModel->get_enrollments("788");
             $il3 = new \stdClass; $il3->id = "8"; $il3->courseId = "790"; $il3->enrolled = "IL3: ".$this->livemoodleModel->get_enrollments("790");
             $certified = new \stdClass; $certified->id = "9"; $certified->courseId = "00"; $certified->enrolled = "Certified: 0";
 
