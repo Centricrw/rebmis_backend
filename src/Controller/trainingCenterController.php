@@ -35,7 +35,11 @@ class TrainingCenterController
                 }
                 break;
             case "POST":
-                $response = $this->createNewTrainingCenter();
+                if (!isset($this->params['action'])) {
+                    $response = $this->createNewTrainingCenter();
+                } else {
+                    $response = Errors::notFoundError("Route not found!");
+                }
                 break;
             case "PUT":
                 if ($this->params['action'] == "assign") {
