@@ -190,6 +190,12 @@ $route->router("/school_assets_request/{action}", "src/Controller/assetsRequestC
 $route->router("/cohort_test", "src/Controller/candidate_test.php");
 $route->router("/cohort_test/{action}", "src/Controller/candidate_test.php");
 
+// STUDENTS
+$route->router("/students", "src/Controller/studentsController.php");
+$route->router("/students/{action}", "src/Controller/studentsController.php");
+$route->router("/students/{action}/{id}", "src/Controller/studentsController.php");
+
+// livemoodlegrade
 $route->router("/livemoodlegrade/{action}", "src/Controller/livemoodleController.php");
 $route->router("/livemoodlegrade/{action}/{paid}", "src/Controller/livemoodleController.php");
 $route->router("/livemoodlegrade/{action}/{previous_courseid}/{current_courseid}", "src/Controller/livemoodleController.php");
