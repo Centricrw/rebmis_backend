@@ -190,6 +190,11 @@ $route->router("/school_assets_request/{action}", "src/Controller/assetsRequestC
 $route->router("/cohort_test", "src/Controller/candidate_test.php");
 $route->router("/cohort_test/{action}", "src/Controller/candidate_test.php");
 
+// STUDENTS
+$route->router("/students", "src/Controller/studentsController.php");
+$route->router("/students/{action}", "src/Controller/studentsController.php");
+$route->router("/students/{action}/{id}", "src/Controller/studentsController.php");
+
 //write it at the last
 //arg is 404 file location
 $route->notFound("404.php");
