@@ -195,6 +195,12 @@ $route->router("/students", "src/Controller/studentsController.php");
 $route->router("/students/{action}", "src/Controller/studentsController.php");
 $route->router("/students/{action}/{id}", "src/Controller/studentsController.php");
 
+// livemoodlegrade
+$route->router("/livemoodlegrade/{action}", "src/Controller/livemoodleController.php");
+$route->router("/livemoodlegrade/{action}/{paid}", "src/Controller/livemoodleController.php");
+$route->router("/livemoodlegrade/{action}/{previous_courseid}/{current_courseid}", "src/Controller/livemoodleController.php");
+
+
 //write it at the last
 //arg is 404 file location
 $route->notFound("404.php");
