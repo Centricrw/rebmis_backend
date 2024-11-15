@@ -206,9 +206,7 @@ class BrandsController
         $logged_user_id = AuthValidation::authorized()->id;
         try {
             // initializing socket
-            $socketVersion = new Version2X("http://localhost:6200", [
-                'path' => '/rebmis_live',
-            ]);
+            $socketVersion = new Version2X("http://localhost:6200/rebmis_live");
             $socketClient = new Client($socketVersion);
             $socketClient->initialize();
 
