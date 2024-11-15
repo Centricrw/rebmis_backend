@@ -61,7 +61,6 @@ class BrandsController
 
     function getStudentFromSdms($student)
     {
-        $student['is_from_sdms'] = false;
         $url = "https://elearning.reb.rw/sandbox/local/custom_service/userregister.php?type=student&sdmscode=" . trim($student['student_code']);
         try {
             // Fetching the content
@@ -172,6 +171,7 @@ class BrandsController
             // checking if students code exists
             // Remove white spaces from both sides of a string
             $student_code = trim($student['student_code']);
+            $student['is_from_sdms'] = false;
             $studentCodeExists = $this->studentsModel->getStudentsByStudentCode($student_code);
             if (sizeof($studentCodeExists) > 0) {
                 return Errors::badRequestError("Student code already exists, please try again?");
@@ -221,6 +221,7 @@ class BrandsController
                 // checking if students code exists
                 // Remove white spaces from both sides of a string
                 $student_code = trim($student['student_code']);
+                $student['is_from_sdms'] = false;
                 $studentCodeExists = $this->studentsModel->getStudentsByStudentCode($student_code);
                 if (sizeof($studentCodeExists) > 0) {
                     array_push($existingStudents, $student);
