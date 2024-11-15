@@ -1,6 +1,8 @@
 <?php
 namespace Src\Controller;
 
+use ElephantIO\Client;
+use ElephantIO\Engine\SocketIO\Version2X;
 use Src\Models\StudentsModel;
 use Src\System\AuthValidation;
 use Src\System\Errors;
@@ -203,8 +205,17 @@ class BrandsController
         // getting authorized user id
         $logged_user_id = AuthValidation::authorized()->id;
         try {
+            // initializing socket
+            $socketVersion = new Version2X("http://localhost:4500");
+            $socketClient = new Client($socketVersion);
+            $socketClient->initialize();
+
+            // getting students
             $existingStudents = array(); // For students found in the database
             $newStudents = array(); // For students not found in the database
+            $socketClient->emit('students_received', [
+                "message" => "Student received successfully!",
+            ]);
             foreach ($students as $student) {
                 // checking if students code exists
                 // Remove white spaces from both sides of a string
@@ -212,15 +223,19 @@ class BrandsController
                 $studentCodeExists = $this->studentsModel->getStudentsByStudentCode($student_code);
                 if (sizeof($studentCodeExists) > 0) {
                     array_push($existingStudents, $student);
+                    $socketClient->emit('duplicate_student', $student);
+                } else {
+                    // get student from sdms
+                    $newStudent = $this->getStudentFromSdms($student);
+                    // Generate brand id
+                    $generated_students_id = UuidGenerator::gUuid();
+                    $newStudent['students_id'] = $generated_students_id;
+                    $this->studentsModel->createNewStudents($newStudent, $logged_user_id);
+                    $socketClient->emit('new_student', $newStudent);
+                    array_push($newStudents, $newStudent);
                 }
-                // get student from sdms
-                $newStudent = $this->getStudentFromSdms($student);
-                // Generate brand id
-                $generated_students_id = UuidGenerator::gUuid();
-                $newStudent['students_id'] = $generated_students_id;
-                $this->studentsModel->createNewStudents($newStudent, $logged_user_id);
-                array_push($newStudents, $newStudent);
             }
+            $socketClient->close();
             $response['status_code_header'] = 'HTTP/1.1 201 Created';
             $response['body'] = json_encode([
                 "new_students" => $newStudents,
@@ -228,6 +243,8 @@ class BrandsController
                 "message" => "Student created successfully!",
             ]);
             return $response;
+        } catch (\ElephantIO\Exception\ServerConnectionFailureException $e) {
+            return Errors::databaseError("Socket.IO connection failed: " . $e->getMessage());
         } catch (\Throwable $th) {
             return Errors::databaseError($th->getMessage());
         }
