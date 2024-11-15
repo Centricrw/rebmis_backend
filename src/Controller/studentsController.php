@@ -61,6 +61,7 @@ class BrandsController
 
     function getStudentFromSdms($student)
     {
+        $student['is_from_sdms'] = false;
         $url = "https://elearning.reb.rw/sandbox/local/custom_service/userregister.php?type=student&sdmscode=" . trim($student['student_code']);
         try {
             // Fetching the content
