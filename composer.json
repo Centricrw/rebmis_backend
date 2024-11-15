@@ -8,7 +8,8 @@
     "phpoffice/phpspreadsheet": "^1.22",
     "tecnickcom/tcpdf": "^6.4",
     "setasign/fpdi": "^2.5",
-    "vlucas/phpdotenv": "^5.6"
+    "vlucas/phpdotenv": "^5.6",
+    "wisembly/elephant.io": "*"
   },
   "autoload": {
     "psr-4": {
