@@ -81,7 +81,7 @@ class StudentsModel
      */
     public function getStudentsByStudentCode($student_code)
     {
-        $statement = "SELECT * FROM `students` WHERE student_code = ? LIMIT 1";
+        $statement = "SELECT ST.*, SC.school_name, SC.school_category, SC.region_code as school_region_code FROM `students` ST LEFT JOIN schools SC ON ST.schoolCode = school_code WHERE ST.student_code = ? LIMIT 1";
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array($student_code));
@@ -99,7 +99,7 @@ class StudentsModel
      */
     public function getStudentById($student_id)
     {
-        $statement = "SELECT * FROM `students` WHERE `students_id` = ? LIMIT 1";
+        $statement = "SELECT ST.*, SC.school_name, SC.school_category, SC.region_code as school_region_code FROM `students` ST LEFT JOIN schools SC ON ST.schoolCode = school_code WHERE ST.`students_id` = ? LIMIT 1";
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array($student_id));
@@ -117,7 +117,7 @@ class StudentsModel
      */
     public function getStudentByAcademicYear($academic_year)
     {
-        $statement = "SELECT * FROM `students` WHERE `academicYear` = ?";
+        $statement = "SELECT ST.*, SC.school_name, SC.school_category, SC.region_code as school_region_code FROM `students` ST LEFT JOIN schools SC ON ST.schoolCode = school_code WHERE ST.`academicYear` = ?";
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array($academic_year));
