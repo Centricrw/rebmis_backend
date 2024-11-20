@@ -237,6 +237,9 @@ class BrandsController
                     array_push($newStudents, $newStudent);
                 }
             }
+            $socketClient->emit('finished_uploading_students', [
+                "message" => "Students finished uploading successfully!",
+            ]);
             $socketClient->close();
             $response['status_code_header'] = 'HTTP/1.1 201 Created';
             $response['body'] = json_encode([
