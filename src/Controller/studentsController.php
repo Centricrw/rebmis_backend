@@ -225,9 +225,9 @@ class BrandsController
                 $studentCodeExists = $this->studentsModel->getStudentsByStudentCode($student_code);
                 if (sizeof($studentCodeExists) > 0) {
                     // Update is_from_sdms value
-                    $studentCodeExists[0]['is_from_sdms'] = $studentCodeExists[0]['is_from_sdms'] === 1 ? true : false;
+                    $studentCodeExists[0]['is_from_sdms'] = $studentCodeExists[0]['is_from_sdms'] == "1" ? true : false;
                     // Update isActive value
-                    $studentCodeExists[0]['isActive'] = $studentCodeExists[0]['isActive'] === 1 ? true : false;
+                    $studentCodeExists[0]['isActive'] = $studentCodeExists[0]['isActive'] == "1" ? true : false;
                     array_push($existingStudents, $studentCodeExists[0]);
                     $socketClient->emit('duplicate_student', $studentCodeExists[0]);
                 } else {
