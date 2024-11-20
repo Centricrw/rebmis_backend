@@ -77,7 +77,7 @@ class BrandsController
             return [
                 'student_code' => $studentFromSdms['sdms_data']['externalid'],
                 'is_from_sdms' => true,
-                'academicYear' => $studentFromSdms['sdms_data']['academicyear'],
+                'academicYear' => str_replace("/", "-", $studentFromSdms['sdms_data']['academicyear']),
                 'identification' => $studentFromSdms['sdms_data']['idnumber'],
                 'full_name' => $studentFromSdms['sdms_data']['firstname'] . " " . $studentFromSdms['sdms_data']['lastname'],
                 'first_name' => $studentFromSdms['sdms_data']['firstname'],
