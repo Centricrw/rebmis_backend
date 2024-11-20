@@ -62,7 +62,8 @@ class StudentsModel
      */
     public function getAllStudents()
     {
-        $statement = "SELECT * FROM `students` WHERE `status` = ?";
+        $statement = "SELECT ST.*, SC.school_name, SC.school_category, SC.region_code as school_region_code FROM `students` ST LEFT JOIN schools SC ON ST.schoolCode = school_code
+         WHERE `status` = ?";
         try {
             $statement = $this->db->prepare($statement);
             $statement->execute(array(1));
