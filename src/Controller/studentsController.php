@@ -207,7 +207,7 @@ class BrandsController
         $logged_user_id = AuthValidation::authorized()->id;
         try {
             // initializing socket
-            $socketVersion = new Version2X("http://localhost:6200");
+            $socketVersion = new Version2X("http://localhost:6200/socket.io/");
             $socketClient = new Client($socketVersion);
             $socketClient->initialize();
 
