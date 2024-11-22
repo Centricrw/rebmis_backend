@@ -33,6 +33,9 @@ class BrandsController
                 } else if (isset($this->params['action']) && $this->params['action'] == "academic") {
                     // get student by academic year
                     $response = $this->getStudentByAcademicYear($this->params['id']);
+                } else if (isset($this->params['action']) && $this->params['action'] == "unidentified") {
+                    // get unidentified students
+                    $response = $this->getUnIdentifiedStudents();
                 } else {
                     $response = $this->getAllStudents();
                 }
@@ -47,7 +50,17 @@ class BrandsController
                 }
                 break;
             case "PUT":
-                $response = Errors::notFoundError("Route not found!");
+                if (isset($this->params['action']) && $this->params['action'] == "update") {
+                    if (isset($this->params['id'])) {
+                        $response = $this->updateStudentsManually($this->params['id']);
+                    } else {
+                        $response = Errors::unprocessableEntityResponse("Student ID is required for update operation.");
+                    }
+                } elseif (isset($this->params['action']) && $this->params['action'] == "update_automatically") {
+                    $response = $this->updateUnidentifiedStudentsAutomatically();
+                } else {
+                    $response = Errors::notFoundError("Route not found!");
+                }
                 break;
             default:
                 $response = Errors::notFoundError("Route not found!");
@@ -316,6 +329,120 @@ class BrandsController
         }
     }
 
+    /**
+     * get student has not yet unidentified on sdms
+     * @param NULL
+     * @return OBJECT $results
+     */
+    public function getUnIdentifiedStudents()
+    {
+        // getting authorized user id
+        $logged_user_id = AuthValidation::authorized()->id;
+        try {
+            $results = $this->studentsModel->getStudentsWhoHasNotIdentified();
+            $response['status_code_header'] = 'HTTP/1.1 200 OK';
+            $response['body'] = json_encode($results);
+            return $response;
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
+        }
+    }
+
+    /**
+     * Parses a given value as an integer.
+     *
+     * If the value is numeric, it is converted to an integer.
+     * Otherwise, the specified default value is returned.
+     *
+     * @param mixed $value The value to be parsed.
+     * @param int $default The default value to return if the input is not numeric.
+     *
+     * @return int The parsed integer value or the default value.
+     */
+    function parseIntOrDefault($value, $default = 1)
+    {
+        if (is_numeric($value)) {
+            return intval($value);
+        } else {
+            return $default;
+        }
+    }
+
+    /**
+     * update student manually
+     * @param NULL
+     * @return OBJECT $results
+     */
+    public function updateStudentsManually($student_id)
+    {
+        // getting input data
+        $data = (array) json_decode(file_get_contents('php://input'), true);
+        // getting authorized user id
+        $logged_user_id = AuthValidation::authorized()->id;
+        try {
+            // checking if students exists
+            $student = $this->studentsModel->getStudentById($student_id);
+            if (count($student) == 0) {
+                return Errors::notFoundError("Student not found, please try again?");
+            }
+            // validate students
+            $validate = $this->validateStudent($data);
+            if (!$validate['isValid']) {
+                return Errors::badRequestError($validate['errors'][0]);
+            }
+            $data['students_id'] = $student_id;
+            $this->studentsModel->updateStudentsInformationFromSdms($data, $logged_user_id);
+            $response['status_code_header'] = 'HTTP/1.1 201 Created';
+            $response['body'] = json_encode([
+                "data" => $data,
+                "message" => "Student updated successfully!",
+            ]);
+            return $response;
+        } catch (\Throwable $th) {
+            return Errors::databaseError($th->getMessage());
+        }
+    }
+
+    /**
+     *  update unidentified student automatically
+     * @param NULL
+     * @return OBJECT $results
+     */
+    public function updateUnidentifiedStudentsAutomatically()
+    {
+        try {
+            // getting unidentified students from sdms
+            $unidentifiedStudents = $this->studentsModel->getStudentsWhoHasNotIdentified();
+            // updated students count
+            $updatedCount = 0;
+            if (count($unidentifiedStudents) > 0) {
+                foreach ($unidentifiedStudents as $student) {
+                    // getting student data from sdms
+                    $newStudent = $this->getStudentFromSdms($student);
+                    // if students found in sdms count add one
+                    $updatedCount = $newStudent['is_from_sdms'] ? $updatedCount + 1 : $updatedCount;
+                    // update number of tries
+                    $newStudent['number_of_tries'] = $this->parseIntOrDefault($student['number_of_tries']) + 1;
+                    $newStudent['students_id'] = $student['students_id'];
+                    // update students
+                    $this->studentsModel->updateStudentsInformationFromSdms($newStudent, $student['created_by']);
+                }
+            } else {
+                return Errors::notFoundError("No unidentified students found!");
+            }
+            $response['status_code_header'] = 'HTTP/1.1 200 OK';
+            $response['body'] = json_encode([
+                "data" => [],
+                "unidentified_found" => count($unidentifiedStudents),
+                "updated_count" => $updatedCount,
+                "message" => "Unidentified students updated successfully!",
+            ]);
+            return $response;
+        } catch (\Throwable $th) {
+            //throw $th;
+            return Errors::databaseError($th->getMessage());
+        }
+    }
 }
 $controller = new BrandsController($this->db, $request_method, $params);
 $controller->processRequest();
