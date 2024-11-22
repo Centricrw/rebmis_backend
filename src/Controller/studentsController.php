@@ -410,6 +410,8 @@ class BrandsController
      */
     public function updateUnidentifiedStudentsAutomatically()
     {
+        // getting authorized user id
+        $logged_user_id = AuthValidation::authorized()->id;
         try {
             // getting unidentified students from sdms
             $unidentifiedStudents = $this->studentsModel->getStudentsWhoHasNotIdentified();
