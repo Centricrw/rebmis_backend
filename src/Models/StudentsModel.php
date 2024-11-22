@@ -127,4 +127,68 @@ class StudentsModel
             throw new Error($e->getMessage());
         }
     }
+
+    /**
+     * get students who has not yet identified in sdms code
+     * @param STRING $academic_year
+     * @return OBJECT $results
+     */
+    public function getStudentsWhoHasNotIdentified()
+    {
+        $statement = "SELECT ST.*, SC.school_name, SC.school_category, SC.region_code as school_region_code FROM `students` ST LEFT JOIN schools SC ON ST.schoolCode = school_code WHERE ST.`is_from_sdms` = ?";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(0));
+            $results = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $results;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
+    /**
+     * update student information
+     * @param STRING $academic_year
+     * @return OBJECT $results
+     */
+    public function updateStudentsInformationFromSdms($data, $updated_by)
+    {
+        $statement = "UPDATE `students` SET `student_code`=:student_code, `is_from_sdms`=:is_from_sdms,`academicYear`=:academicYear,`full_name`=:full_name,`first_name`=:first_name,`middle_name`=:middle_name,`last_name`=:last_name,`gender`=:gender,`dob`=:dob,`identification`=:identification,`schoolCode`=:schoolCode,`phone_number`=:phone_number,`email`=:email,`address_description`=:address_description,`country`=:country,`city`=:city,`country_code`=:country_code,`class_level_name`=:class_level_name,`class_grade_code`=:class_grade_code,`class_grade_name`=:class_grade_name,`combination_code`=:combination_code,`isActive`=:isActive,`updated_by`=:updated_by,`status`=:status,`number_of_tries`=:number_of_tries WHERE `students_id`=:students_id";
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
+                ':student_code' => $data['student_code'],
+                ':is_from_sdms' => isset($data['is_from_sdms']) && $data['is_from_sdms'] === true ? 1 : 0,
+                ':academicYear' => $data['academicYear'],
+                ':full_name' => $data['full_name'],
+                ':first_name' => $data['first_name'],
+                ':middle_name' => $data['middle_name'] ?? null,
+                ':last_name' => $data['last_name'],
+                ':gender' => $data['gender'] ?? null,
+                ':dob' => $data['dob'] ?? null,
+                ':identification' => $data['identification'] ?? null,
+                ':schoolCode' => $data['schoolCode'],
+                ':phone_number' => $data['phone_number'] ?? null,
+                ':email' => $data['email'] ?? null,
+                ':address_description' => $data['address_description'] ?? null,
+                ':country' => $data['country'] ?? null,
+                ':city' => $data['city'] ?? null,
+                ':country_code' => $data['country_code'] ?? null,
+                ':class_level_name' => $data['class_level_name'] ?? null,
+                ':class_grade_code' => $data['class_grade_code'] ?? null,
+                ':class_grade_name' => $data['class_grade_name'] ?? null,
+                ':combination_code' => $data['combination_code'] ?? null,
+                ':isActive' => isset($data['isActive']) && $data['isActive'] === false ? 0 : 1,
+                ':updated_by' => $updated_by,
+                ':status' => $data['status'] ?? 1,
+                ':number_of_tries' => $data['number_of_tries'] ?? 1,
+                ':students_id' => $data['students_id'],
+            ));
+            $results = $statement->rowCount();
+            return $results;
+        } catch (\PDOException $e) {
+            throw new Error($e->getMessage());
+        }
+    }
+
 }
